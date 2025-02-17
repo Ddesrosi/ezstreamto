@@ -1,0 +1,2 @@
+-- This migration is superseded by 20250206184303_orange_feather.sql
+-- Keeping this file empty to maintain migration history

@@ -1,0 +1,369 @@
+import { Movie } from '@/types';
+import { enrichMovieWithPoster } from './tmdb';
+
+// Constants
+const TMDB_ACCESS_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI0MTNjZDMzZjdjNDViNjUwMTQ4NzljYWVhZDcyY2FiYSIsIm5iZiI6MTczODAwNTE3Ni43MjMsInN1YiI6IjY3OTdkYWI4YTZlNDEyODNmMTJiNDU2NSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.dM4keiy2kA6XcUufnGGSnCDCUJGwFMg91pq4I5Bziq8';
+const TMDB_API_URL = 'https://api.themoviedb.org/3';
+const DEEPSEEK_API_KEY = import.meta.env.VITE_DEEPSEEK_API_KEY;
+const DEEPSEEK_API_URL = 'https://api.deepseek.com/v1/chat/completions';
+const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba';
+
+interface PerfectMatchPreferences {
+  contentType: 'movie' | 'tv' | null;
+  genres: string[];
+  moods: string[];
+  yearRange: {
+    from: number;
+    to: number;
+  };
+  ratingRange: {
+    min: number;
+    max: number;
+  };
+}
+
+export interface PerfectMatchInsights {
+  explanation: string;
+  recommendations: {
+    title: string;
+    reason: string;
+    imageUrl?: string;
+    year?: number;
+    rating?: number;
+    language?: string;
+    genres?: string[];
+    youtubeUrl?: string;
+  }[];
+}
+
+// Map our genres to TMDB genre IDs
+const genreMap: Record<string, number> = {
+  'Action': 28,
+  'Adventure': 12,
+  'Animation': 16,
+  'Comedy': 35,
+  'Crime': 80,
+  'Documentary': 99,
+  'Drama': 18,
+  'Family': 10751,
+  'Fantasy': 14,
+  'History': 36,
+  'Horror': 27,
+  'Music': 10402,
+  'Mystery': 9648,
+  'Romance': 10749,
+  'Science Fiction': 878,
+  'Thriller': 53,
+  'War': 10752,
+  'Western': 37
+};
+
+// Map moods to genre combinations and keywords
+const moodMap: Record<string, { genres: number[]; keywords: string[] }> = {
+  'Happy': {
+    genres: [35, 10751],
+    keywords: ['feel-good', 'uplifting', 'heartwarming']
+  },
+  'Relaxed': {
+    genres: [18],
+    keywords: ['slow-paced', 'calm', 'peaceful']
+  },
+  'Excited': {
+    genres: [28, 12],
+    keywords: ['thrilling', 'fast-paced', 'intense']
+  },
+  'Romantic': {
+    genres: [10749],
+    keywords: ['love', 'romantic', 'relationship']
+  },
+  'Thoughtful': {
+    genres: [18, 9648],
+    keywords: ['thought-provoking', 'philosophical', 'deep']
+  },
+  'Adventurous': {
+    genres: [12, 14],
+    keywords: ['exploration', 'journey', 'quest']
+  },
+  'Nostalgic': {
+    genres: [],
+    keywords: ['classic', 'retro', 'timeless']
+  },
+  'Mysterious': {
+    genres: [9648, 53],
+    keywords: ['suspense', 'twist', 'enigmatic']
+  }
+};
+
+function getGenreIds(genres: string[], moods: string[]): number[] {
+  const genreIds = new Set<number>();
+  
+  genres.forEach(genre => {
+    const tmdbId = genreMap[genre];
+    if (tmdbId) genreIds.add(tmdbId);
+  });
+
+  moods.forEach(mood => {
+    const moodGenres = moodMap[mood]?.genres || [];
+    moodGenres.forEach(id => genreIds.add(id));
+  });
+
+  return Array.from(genreIds);
+}
+
+function getMoodKeywords(moods: string[]): string[] {
+  return moods.flatMap(mood => moodMap[mood]?.keywords || []);
+}
+
+function validateRecommendation(rec: any): boolean {
+  return (
+    typeof rec === 'object' &&
+    typeof rec.title === 'string' &&
+    typeof rec.reason === 'string' &&
+    (!rec.year || typeof rec.year === 'number') &&
+    (!rec.rating || typeof rec.rating === 'number') &&
+    (!rec.language || typeof rec.language === 'string') &&
+    (!rec.genres || Array.isArray(rec.genres))
+  );
+}
+
+async function generatePerfectMatchInsights(
+  movie: Movie,
+  preferences: PerfectMatchPreferences
+): Promise<PerfectMatchInsights> {
+  if (!DEEPSEEK_API_KEY) {
+    throw new Error('API key not configured');
+  }
+
+  try {
+    const prompt = `
+      Based on a user's preferences and their perfect movie match, generate personalized insights.
+      
+      User Preferences:
+      - Content Type: ${preferences.contentType}
+      - Genres: ${preferences.genres.join(', ')}
+      - Moods: ${preferences.moods.join(', ')}
+      - Year Range: ${preferences.yearRange.from}-${preferences.yearRange.to}
+      - Rating Range: ${preferences.ratingRange.min}-${preferences.ratingRange.max}
+      
+      Perfect Match:
+      - Title: ${movie.title}
+      - Year: ${movie.year}
+      - Genres: ${movie.genres.join(', ')}
+      - Description: ${movie.description}
+      
+      Please provide:
+      1. A personalized explanation (2-3 sentences) of why this movie is perfect for them
+      2. Three similar movie recommendations with brief reasons
+      
+      Return as JSON:
+      {
+        "explanation": "string",
+        "recommendations": [
+          {
+            "title": "string",
+            "reason": "string (1-2 sentences)",
+            "year": number,
+            "rating": number,
+            "language": "string",
+            "genres": ["string"]
+          }
+        ]
+      }
+    `;
+
+    const response = await fetch(DEEPSEEK_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${DEEPSEEK_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: "deepseek-chat",
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.7,
+        max_tokens: 1000,
+        response_format: { type: "json_object" }
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`API request failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+    if (!data?.choices?.[0]?.message?.content) {
+      throw new Error('Invalid API response structure');
+    }
+
+    let insights;
+    try {
+      insights = JSON.parse(data.choices[0].message.content);
+    } catch (error) {
+      console.error('Failed to parse insights response:', error);
+      throw new Error('Failed to parse insights response');
+    }
+
+    if (!insights?.recommendations || !Array.isArray(insights.recommendations)) {
+      throw new Error('Invalid recommendations format');
+    }
+
+    const validRecommendations = insights.recommendations
+      .filter(validateRecommendation)
+      .slice(0, 3);
+
+    if (validRecommendations.length === 0) {
+      throw new Error('No valid recommendations found');
+    }
+
+    const enrichedRecommendations = await Promise.all(
+      validRecommendations.map(async (rec) => {
+        try {
+          const movie: Movie = {
+            id: crypto.randomUUID(),
+            title: rec.title,
+            year: rec.year || new Date().getFullYear(),
+            rating: rec.rating || 0,
+            duration: 'Movie',
+            language: rec.language || 'EN',
+            genres: rec.genres || [],
+            description: rec.reason || '',
+            imageUrl: '',
+            streamingPlatforms: []
+          };
+
+          const enriched = await enrichMovieWithPoster(movie);
+          return {
+            ...rec,
+            imageUrl: enriched.imageUrl,
+            youtubeUrl: enriched.youtubeUrl
+          };
+        } catch (error) {
+          console.warn(`Failed to enrich recommendation "${rec.title}":`, error);
+          return rec;
+        }
+      })
+    );
+
+    return {
+      explanation: insights.explanation || generateFallbackExplanation(movie, preferences),
+      recommendations: enrichedRecommendations
+    };
+  } catch (error) {
+    console.error('Failed to generate insights:', error);
+    return generateFallbackInsights(movie, preferences);
+  }
+}
+
+function generateFallbackExplanation(movie: Movie, preferences: PerfectMatchPreferences): string {
+  const genreMatch = movie.genres.filter(g => preferences.genres.includes(g));
+  const moodDesc = preferences.moods.join(' and ').toLowerCase();
+  
+  return `"${movie.title}" perfectly matches your interest in ${genreMatch.join(' and ')} content and your ${moodDesc} mood. Its ${movie.year} release and ${movie.rating.toFixed(1)} rating align with your preferences, making it an ideal choice for your viewing taste.`;
+}
+
+function generateFallbackInsights(movie: Movie, preferences: PerfectMatchPreferences): PerfectMatchInsights {
+  return {
+    explanation: generateFallbackExplanation(movie, preferences),
+    recommendations: movie.genres.slice(0, 3).map(genre => ({
+      title: `Similar ${genre} Movie`,
+      reason: `Features similar ${genre.toLowerCase()} elements to "${movie.title}"`,
+      genres: [genre]
+    }))
+  };
+}
+
+async function findPerfectMatchMovie(preferences: PerfectMatchPreferences): Promise<Movie> {
+  try {
+    if (!preferences.contentType) {
+      throw new Error('Content type is required');
+    }
+
+    const genreIds = getGenreIds(preferences.genres, preferences.moods);
+    const keywords = getMoodKeywords(preferences.moods);
+
+    const url = new URL(`${TMDB_API_URL}/discover/${preferences.contentType}`);
+    const params = {
+      'language': 'en-US',
+      'sort_by': 'vote_average.desc,popularity.desc',
+      'vote_count.gte': '100',
+      'vote_average.gte': preferences.ratingRange.min.toString(),
+      'vote_average.lte': preferences.ratingRange.max.toString(),
+      'primary_release_date.gte': `${preferences.yearRange.from}-01-01`,
+      'primary_release_date.lte': `${preferences.yearRange.to}-12-31`,
+      'with_original_language': 'en',
+      'include_adult': 'false',
+      'page': '1'
+    };
+
+    if (genreIds.length > 0) {
+      params['with_genres'] = genreIds.join('|');
+    }
+
+    Object.entries(params).forEach(([key, value]) => {
+      url.searchParams.append(key, value);
+    });
+
+    const response = await fetch(url.toString(), {
+      headers: {
+        'Authorization': `Bearer ${TMDB_ACCESS_TOKEN}`,
+        'Accept': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ status_message: `HTTP error! status: ${response.status}` }));
+      throw new Error(error?.status_message || `TMDB API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    
+    if (!data.results?.length) {
+      throw new Error('No movies found matching your criteria');
+    }
+
+    const topResults = data.results.slice(0, 5);
+    const match = topResults[Math.floor(Math.random() * topResults.length)];
+
+    // Transform to our Movie type with streaming platforms
+    const movie: Movie = {
+      id: match.id.toString(),
+      title: match.title || match.name || 'Unknown Title',
+      year: new Date(match.release_date || match.first_air_date || Date.now()).getFullYear(),
+      rating: match.vote_average || 0,
+      duration: preferences.contentType === 'movie' ? 'Movie' : 'TV Series',
+      language: (match.original_language || 'en').toUpperCase(),
+      genres: (match.genre_ids || [])
+        .map(id => Object.entries(genreMap).find(([_, val]) => val === id)?.[0])
+        .filter((genre): genre is string => Boolean(genre)),
+      description: match.overview || 'No description available',
+      imageUrl: match.poster_path 
+        ? `https://image.tmdb.org/t/p/w500${match.poster_path}`
+        : FALLBACK_IMAGE,
+      backdropUrl: match.backdrop_path
+        ? `https://image.tmdb.org/t/p/original${match.backdrop_path}`
+        : undefined,
+      streamingPlatforms: []
+    };
+
+    // Enrich with additional data including streaming platforms
+    return await enrichMovieWithPoster(movie);
+  } catch (error) {
+    console.error('Perfect match error:', error instanceof Error ? error.message : 'Unknown error');
+    throw error;
+  }
+}
+
+export async function findPerfectMatch(preferences: PerfectMatchPreferences): Promise<{
+  movie: Movie;
+  insights: PerfectMatchInsights;
+}> {
+  try {
+    const movie = await findPerfectMatchMovie(preferences);
+    const insights = await generatePerfectMatchInsights(movie, preferences);
+    return { movie, insights };
+  } catch (error) {
+    throw new Error(error instanceof Error ? error.message : 'Failed to find perfect match');
+  }
+}
+
+export type { PerfectMatchPreferences, PerfectMatchInsights };

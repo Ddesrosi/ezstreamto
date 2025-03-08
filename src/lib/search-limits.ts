@@ -39,37 +39,70 @@ export async function validateSearch() {
   try {
     const ip = await getIP();
     
-    // Get search count for today
-    const today = new Date().toISOString().split('T')[0];
+    console.log('🔍 Validating search for IP:', ip);
+    
+    // Get lifetime search count
     const { data: searches, error } = await supabase
       .from('ip_searches')
       .select('*')
       .eq('ip_address', ip)
       .single();
-
+    
     if (error) {
       console.error('❌ Failed to get search count:', error.message);
       return { 
         status: 'free',
         canSearch: true,
-        remaining: 5,
+        remaining: 4,
         total: 5,
-        message: 'Free user - limited searches'
+        message: 'Free user - 4 searches remaining forever'
       };
     }
-
-    // If no searches today or last search was yesterday, reset count
-    if (!searches || new Date(searches.last_search).toISOString().split('T')[0] !== today) {
+    
+    // First time user
+    if (!searches) {
+      console.log('✨ New user - initializing search count');
+      
+      // Create initial record
+      const { error: insertError } = await supabase
+        .from('ip_searches')
+        .insert({
+          ip_address: ip,
+          search_count: 1,
+          last_search: new Date().toISOString()
+        });
+      
+      if (insertError) {
+        console.error('❌ Failed to initialize search count:', insertError);
+      }
+      
       return { 
         status: 'free',
         canSearch: true,
         remaining: 4,
         total: 5,
-        message: 'Free user - limited searches'
+        message: 'Free user - 4 searches remaining forever'
       };
     }
-
+    
+    console.log('📊 Current search count:', searches.search_count);
+    
     const remaining = Math.max(0, 5 - searches.search_count);
+    
+    // Always increment search count
+    if (searches.search_count < 5) {
+      const { error: updateError } = await supabase
+        .from('ip_searches')
+        .update({
+          search_count: searches.search_count + 1,
+          last_search: new Date().toISOString()
+        })
+        .eq('ip_address', ip);
+      
+      if (updateError) {
+        console.error('❌ Failed to update search count:', updateError);
+      }
+    }
     
     return {
       status: 'free',
@@ -77,18 +110,17 @@ export async function validateSearch() {
       remaining,
       total: 5,
       message: remaining > 0 
-        ? `Free user - ${remaining} searches remaining`
-        : 'Daily search limit reached. Support us to get unlimited searches!'
+        ? `Free user - ${remaining} searches remaining forever`
+        : 'You have used all your free searches. Support us to get unlimited searches!'
     };
-
   } catch (error) {
     console.error('Search validation error:', error);
     return { 
       status: 'free',
       canSearch: true,
-      remaining: 5,
+      remaining: 4,
       total: 5,
-      message: 'Free user - limited searches'
+      message: 'Free user - 4 searches remaining forever'
     };
   }
 }

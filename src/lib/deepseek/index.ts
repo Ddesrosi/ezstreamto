@@ -311,6 +311,10 @@ export async function getMovieRecommendations(preferences: SearchPreferences): P
   try {
     validatePreferences(preferences);
 
+    // Force non-premium features
+    preferences.isPremium = false;
+    preferences.isPerfectMatch = false;
+
     // Get user's IP
     const ip = await import('../search-limits').then(m => m.getIP());
 

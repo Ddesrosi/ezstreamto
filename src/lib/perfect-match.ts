@@ -32,7 +32,9 @@ export interface PerfectMatchInsights {
     rating?: number;
     language?: string;
     genres?: string[];
+    duration?: number | string;
     youtubeUrl?: string;
+    streamingPlatforms?: string[];
   }[];
 }
 
@@ -218,12 +220,13 @@ async function generatePerfectMatchInsights(
     const enrichedRecommendations = await Promise.all(
       validRecommendations.map(async (rec) => {
         try {
+          const duration = rec.duration || 'Movie';
           const movie: Movie = {
             id: crypto.randomUUID(),
             title: rec.title,
             year: rec.year || new Date().getFullYear(),
             rating: rec.rating || 0,
-            duration: 'Movie',
+            duration: preferences.contentType === 'tv' ? 'TV Series' : '120 min',
             language: rec.language || 'EN',
             genres: rec.genres || [],
             description: rec.reason || '',
@@ -235,11 +238,18 @@ async function generatePerfectMatchInsights(
           return {
             ...rec,
             imageUrl: enriched.imageUrl,
-            youtubeUrl: enriched.youtubeUrl
+            duration: enriched.duration || (preferences.contentType === 'tv' ? 'TV Series' : '120 min'),
+            youtubeUrl: enriched.youtubeUrl || `https://www.youtube.com/results?search_query=${encodeURIComponent(`${rec.title} trailer`)}`,
+            streamingPlatforms: enriched.streamingPlatforms
           };
         } catch (error) {
           console.warn(`Failed to enrich recommendation "${rec.title}":`, error);
-          return rec;
+          return {
+            ...rec,
+            duration: preferences.contentType === 'tv' ? 'TV Series' : '120 min',
+            imageUrl: FALLBACK_IMAGE,
+            streamingPlatforms: []
+          };
         }
       })
     );
@@ -278,18 +288,19 @@ async function findPerfectMatchMovie(preferences: PerfectMatchPreferences): Prom
       throw new Error('Content type is required');
     }
 
+    const contentType = preferences.contentType === 'tv' ? 'tv' : 'movie';
     const genreIds = getGenreIds(preferences.genres, preferences.moods);
     const keywords = getMoodKeywords(preferences.moods);
 
-    const url = new URL(`${TMDB_API_URL}/discover/${preferences.contentType}`);
+    const url = new URL(`${TMDB_API_URL}/discover/${contentType}`);
     const params = {
       'language': 'en-US',
       'sort_by': 'vote_average.desc,popularity.desc',
       'vote_count.gte': '100',
       'vote_average.gte': preferences.ratingRange.min.toString(),
       'vote_average.lte': preferences.ratingRange.max.toString(),
-      'primary_release_date.gte': `${preferences.yearRange.from}-01-01`,
-      'primary_release_date.lte': `${preferences.yearRange.to}-12-31`,
+      [`${contentType === 'movie' ? 'primary_release_date' : 'first_air_date'}.gte`]: `${preferences.yearRange.from}-01-01`,
+      [`${contentType === 'movie' ? 'primary_release_date' : 'first_air_date'}.lte`]: `${preferences.yearRange.to}-12-31`,
       'with_original_language': 'en',
       'include_adult': 'false',
       'page': '1'
@@ -328,9 +339,9 @@ async function findPerfectMatchMovie(preferences: PerfectMatchPreferences): Prom
     const movie: Movie = {
       id: match.id.toString(),
       title: match.title || match.name || 'Unknown Title',
-      year: new Date(match.release_date || match.first_air_date || Date.now()).getFullYear(),
+      year: new Date(contentType === 'movie' ? match.release_date : match.first_air_date || Date.now()).getFullYear(),
       rating: match.vote_average || 0,
-      duration: preferences.contentType === 'movie' ? 'Movie' : 'TV Series',
+      duration: contentType === 'movie' ? (match.runtime || 120) : 'TV Series',
       language: (match.original_language || 'en').toUpperCase(),
       genres: (match.genre_ids || [])
         .map(id => Object.entries(genreMap).find(([_, val]) => val === id)?.[0])
@@ -362,8 +373,12 @@ export async function findPerfectMatch(preferences: PerfectMatchPreferences): Pr
     const insights = await generatePerfectMatchInsights(movie, preferences);
     return { movie, insights };
   } catch (error) {
-    throw new Error(error instanceof Error ? error.message : 'Failed to find perfect match');
+    const errorMessage = error instanceof Error ? error.message : 'Failed to find perfect match';
+    console.error('Perfect match error:', errorMessage);
+    throw new Error(errorMessage);
   }
 }
 
 export type { PerfectMatchPreferences, PerfectMatchInsights };
+
+export { findPerfectMatch }

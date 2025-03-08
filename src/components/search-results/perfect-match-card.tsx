@@ -3,10 +3,22 @@ import { motion } from 'framer-motion';
 import { Star, ThumbsUp, Youtube, Facebook, MessageCircle, Share2 } from 'lucide-react';
 import { Movie } from '@/types';
 import { PerfectMatchInsights } from '@/lib/perfect-match';
+import { APPROVED_PLATFORMS } from '@/lib/constants/platforms';
 import { cn } from '@/lib/utils';
 import { FALLBACK_IMAGE } from '@/lib/tmdb';
 import { Button } from '../ui/button';
 import { FacebookShareButton, TwitterShareButton, WhatsappShareButton } from 'react-share';
+
+function getPlatformStyle(platform: string) {
+  const approvedPlatform = Object.entries(APPROVED_PLATFORMS).find(([name, data]) => 
+    data.matches.includes(platform) || name === platform
+  );
+
+  return approvedPlatform ? {
+    name: approvedPlatform[0],
+    ...approvedPlatform[1]
+  } : null;
+}
 
 interface PerfectMatchCardProps {
   movie: Movie;
@@ -17,6 +29,11 @@ interface PerfectMatchCardProps {
 export function PerfectMatchCard({ movie, insights, isDark }: PerfectMatchCardProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [showAllPlatforms, setShowAllPlatforms] = useState(false);
+  const [showAllGenres, setShowAllGenres] = useState(false);
+
+  // Remove duplicate platforms
+  const uniquePlatforms = [...new Set(movie.streamingPlatforms)];
 
   const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const img = e.target as HTMLImageElement;
@@ -76,6 +93,12 @@ export function PerfectMatchCard({ movie, insights, isDark }: PerfectMatchCardPr
                 <div className="flex items-center gap-2">
                   <span>{movie.year}</span>
                   <span>•</span>
+                  {movie.duration && (
+                    <>
+                      <span>{typeof movie.duration === 'number' ? `${movie.duration} min` : movie.duration}</span>
+                      <span>•</span>
+                    </>
+                  )}
                   <div className="flex items-center gap-1">
                     <Star className="h-4 w-4 text-amber-400" fill="currentColor" />
                     <span>{movie.rating.toFixed(1)}</span>
@@ -83,23 +106,42 @@ export function PerfectMatchCard({ movie, insights, isDark }: PerfectMatchCardPr
                 </div>
                 <div className="flex items-center gap-2">
                   <span>{movie.language}</span>
-                  <span>•</span>
-                  <span>{movie.duration}</span>
                 </div>
                 <div className="flex flex-wrap gap-1 mt-1">
-                  {movie.genres.slice(0, 3).map((genre, index) => (
+                  {/* Streaming Platforms */}
+                  <div className="flex flex-wrap gap-2 w-full mb-3">
+                    {uniquePlatforms.map((platform) => {
+                      const style = getPlatformStyle(platform);
+                      return style ? (
+                      <span
+                        key={platform}
+                        className={cn(
+                          "text-xs px-2.5 py-1.5 rounded-full transition-all whitespace-nowrap",
+                          style.bgColor,
+                          style.textColor,
+                          "hover:opacity-90"
+                        )}
+                      >
+                        {style.shortName}
+                      </span>
+                      ) : null;
+                    })}
+                  </div>
+                  
+                  {/* Genres - Now on a new line */}
+                  <div className="flex flex-wrap gap-2 w-full">
+                  {movie.genres.map((genre) => (
                     <span
                       key={genre}
-                      className="text-xs px-1.5 py-0.5 rounded-full bg-white/20"
+                      className={cn(
+                        "text-xs px-2.5 py-1.5 rounded-full transition-all whitespace-nowrap",
+                        isDark ? 'bg-blue-900/30 text-blue-200' : 'bg-blue-100 text-blue-800'
+                      )}
                     >
                       {genre}
                     </span>
                   ))}
-                  {movie.genres.length > 3 && (
-                    <span className="text-xs px-1.5 py-0.5 rounded-full bg-white/20">
-                      +{movie.genres.length - 3}
-                    </span>
-                  )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -126,9 +168,15 @@ export function PerfectMatchCard({ movie, insights, isDark }: PerfectMatchCardPr
               {/* Watch Trailer Button */}
               <Button
                 onClick={() => window.open(movie.youtubeUrl || `https://www.youtube.com/results?search_query=${encodeURIComponent(`${movie.title} ${movie.year} trailer`)}`, '_blank')}
-                className="mt-4 flex items-center gap-2"
+                className={cn(
+                  "mt-4 flex items-center justify-center gap-2 h-12 text-base font-medium",
+                  "transition-all duration-300 hover:scale-[1.02]",
+                  isDark 
+                    ? 'bg-blue-600 hover:bg-blue-700' 
+                    : 'bg-blue-500 hover:bg-blue-600'
+                )}
               >
-                <Youtube className="h-4 w-4" />
+                <Youtube className="h-5 w-5" />
                 Watch Trailer
               </Button>
 
@@ -183,17 +231,24 @@ export function PerfectMatchCard({ movie, insights, isDark }: PerfectMatchCardPr
                   >
                     <div className="flex gap-4">
                       {/* Recommendation Poster */}
-                      {rec.imageUrl && (
-                        <div className="flex-none w-16 h-24 rounded overflow-hidden">
-                          <img
-                            src={rec.imageUrl}
-                            alt={rec.title}
-                            className="w-full h-full object-cover"
-                            loading="lazy"
-                          />
-                        </div>
-                      )}
-                      
+                      <div className="flex-none w-24 h-36 rounded overflow-hidden bg-gray-900">
+                        <img
+                          src={rec.imageUrl}
+                          alt={`${rec.title} poster`}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                          onError={(e) => {
+                            const img = e.target as HTMLImageElement;
+                            img.src = FALLBACK_IMAGE;
+                            setImageError(true);
+                          }}
+                          onLoad={(e) => {
+                            const img = e.target as HTMLImageElement;
+                            img.classList.add('loaded');
+                          }}
+                        />
+                      </div>
+                        
                       {/* Recommendation Details */}
                       <div className="flex-1">
                         <h5 className={cn(
@@ -203,34 +258,67 @@ export function PerfectMatchCard({ movie, insights, isDark }: PerfectMatchCardPr
                           {rec.title}
                         </h5>
                         
-                        {/* Movie Details */}
                         <div className="flex flex-wrap gap-2 text-xs mb-2">
-                          {rec.year && <span>{rec.year}</span>}
-                          {rec.rating && (
+                          <span>{rec.year}</span>
+                          <span>•</span>
+                          {rec.duration && (
+                            <>
+                              <span>
+                                {typeof rec.duration === 'number' 
+                                  ? `${rec.duration} min` 
+                                  : rec.duration}
+                              </span>
+                              <span>•</span>
+                            </>
+                          )}
+                          {rec.rating !== undefined && (
                             <div className="flex items-center gap-1">
                               <Star className="h-3 w-3 text-amber-400" fill="currentColor" />
                               <span>{rec.rating.toFixed(1)}</span>
                             </div>
                           )}
-                          {rec.language && <span>{rec.language}</span>}
+                        </div>
+                        
+                        {/* Streaming Platforms */}
+                        <div className="flex flex-wrap gap-1 mb-2">
+                          {/* Streaming Platforms */}
+                          {rec.streamingPlatforms && rec.streamingPlatforms.length > 0 && (
+                            <div className="flex flex-wrap gap-2 mb-2">
+                              {rec.streamingPlatforms.map((platform) => {
+                                const style = getPlatformStyle(platform);
+                                return style ? (
+                                <span
+                                  key={platform}
+                                  className={cn(
+                                    "text-xs px-2.5 py-1.5 rounded-full transition-all whitespace-nowrap",
+                                    style.bgColor,
+                                    style.textColor,
+                                    "hover:opacity-90"
+                                  )}
+                                >
+                                  {style.shortName}
+                                </span>
+                                ) : null;
+                              })}
+                            </div>
+                          )}
+                          
                         </div>
                         
                         {/* Genres */}
-                        {rec.genres && rec.genres.length > 0 && (
-                          <div className="flex flex-wrap gap-1 mb-2">
-                            {rec.genres.map((genre, idx) => (
-                              <span
-                                key={idx}
-                                className={cn(
-                                  "text-xs px-1.5 py-0.5 rounded-full",
-                                  isDark ? 'bg-blue-900/30 text-blue-200' : 'bg-blue-100 text-blue-800'
-                                )}
-                              >
-                                {genre}
-                              </span>
-                            ))}
-                          </div>
-                        )}
+                        <div className="flex flex-wrap gap-1 mb-2">
+                          {rec.genres?.map((genre, idx) => (
+                            <span
+                              key={idx}
+                              className={cn(
+                                "text-xs px-2.5 py-1.5 rounded-full transition-all whitespace-nowrap",
+                                isDark ? 'bg-blue-900/30 text-blue-200' : 'bg-blue-100 text-blue-800'
+                              )}
+                            >
+                              {genre}
+                            </span>
+                          ))}
+                        </div>
                         
                         <p className={cn(
                           "text-sm",
@@ -239,18 +327,53 @@ export function PerfectMatchCard({ movie, insights, isDark }: PerfectMatchCardPr
                           {rec.reason}
                         </p>
                         
-                        {/* Trailer Button */}
-                        {rec.youtubeUrl && (
+                        {/* Trailer Button and Social Share */}
+                        <div className="space-y-3 mt-3">
                           <Button
-                            variant="ghost"
-                            size="sm"
                             onClick={() => window.open(rec.youtubeUrl, '_blank')}
-                            className="mt-2 h-8 text-xs"
+                            className={cn(
+                              "w-full flex items-center justify-center gap-2 h-12 text-base font-medium",
+                              "transition-all duration-300 hover:scale-[1.02]",
+                              isDark 
+                                ? 'bg-blue-600 hover:bg-blue-700' 
+                                : 'bg-blue-500 hover:bg-blue-600'
+                            )}
                           >
-                            <Youtube className="h-3 w-3 mr-1" />
+                            <Youtube className="h-5 w-5" />
                             Watch Trailer
                           </Button>
-                        )}
+                          
+                          {/* Social Share */}
+                          <div className="space-y-2">
+                            <p className={cn(
+                              "text-sm text-center font-medium",
+                              isDark ? 'text-blue-200/70' : 'text-gray-600'
+                            )}>
+                              Share your recommendation
+                            </p>
+                            <div className="flex items-center justify-center gap-2">
+                              <FacebookShareButton url={window.location.origin} quote={shareMessage}>
+                                <div className="w-8 h-8 flex items-center justify-center rounded-full bg-blue-600 hover:bg-blue-700 text-white transition-colors">
+                                  <Facebook className="h-4 w-4" />
+                                </div>
+                              </FacebookShareButton>
+                              
+                              <TwitterShareButton url={window.location.origin} title={shareMessage}>
+                                <div className="w-8 h-8 flex items-center justify-center rounded-full bg-neutral-800 hover:bg-neutral-900 text-white transition-colors">
+                                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                                  </svg>
+                                </div>
+                              </TwitterShareButton>
+                              
+                              <WhatsappShareButton url={window.location.origin} title={shareMessage}>
+                                <div className="w-8 h-8 flex items-center justify-center rounded-full bg-green-500 hover:bg-green-600 text-white transition-colors">
+                                  <MessageCircle className="h-4 w-4" />
+                                </div>
+                              </WhatsappShareButton>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>

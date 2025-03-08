@@ -3,6 +3,7 @@ import { Film, Sun, Coffee, Zap, Heart, Brain, Compass, Clock, Search, Star, Tv2
 import { motion } from 'framer-motion';
 import { Button } from '../ui/button';
 import { SearchModal } from '../ui/modal';
+import { KeywordSelector } from '../ui/keyword-selector';
 import { Movie } from '@/types';
 import { getMovieRecommendations } from '@/lib/deepseek/index';
 import { validateSearch } from '@/lib/search-limits';
@@ -37,7 +38,6 @@ function PreferenceForm({ isDark, onSearch, onError }: PreferenceFormProps) {
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   
   // Keywords state and handlers
-  const [keywordInput, setKeywordInput] = useState('');
   const [keywords, setKeywords] = useState<string[]>([]);
 
   // Rating Range
@@ -68,15 +68,12 @@ function PreferenceForm({ isDark, onSearch, onError }: PreferenceFormProps) {
   const [specificYearInput, setSpecificYearInput] = useState('');
   const [sliderValue, setSliderValue] = useState<[number, number]>([1920, new Date().getFullYear()]);
 
-  const handleAddKeyword = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && keywordInput.trim()) {
-      setKeywords(prev => [...new Set([...prev, keywordInput.trim()])]);
-      setKeywordInput('');
-    }
-  };
-
-  const handleRemoveKeyword = (keyword: string) => {
-    setKeywords(prev => prev.filter(k => k !== keyword));
+  const handleKeywordSelect = (keyword: string) => {
+    setKeywords(prev => 
+      prev.includes(keyword)
+        ? prev.filter(k => k !== keyword)
+        : [...prev, keyword]
+    );
   };
 
   const handleSpecificYearChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -403,51 +400,26 @@ function PreferenceForm({ isDark, onSearch, onError }: PreferenceFormProps) {
                   Keywords
                 </h3>
               </div>
-              <div className="space-y-3 sm:space-y-4">
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={keywordInput}
-                    onChange={(e) => setKeywordInput(e.target.value)}
-                    onKeyDown={handleAddKeyword}
-                    placeholder="Enter a keyword (actor, director, theme, etc.) and press Enter"
-                    className={`flex-1 px-3 py-2 text-sm sm:text-base rounded-md border ${
-                      isDark 
-                        ? 'bg-[#0A1A3F] border-blue-900/30 text-blue-100 placeholder-blue-400/50'
-                        : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'
-                    }`}
-                  />
-                </div>
-                {keywords.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 sm:gap-2">
-                    {keywords.map(keyword => (
-                      <span
-                        key={keyword}
-                        className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs sm:text-sm ${
-                          isDark
-                            ? 'bg-blue-900/30 text-blue-200'
-                            : 'bg-blue-100 text-blue-800'
-                        }`}
-                      >
-                        {keyword}
-                        <button
-                          onClick={() => handleRemoveKeyword(keyword)}
-                          className="hover:text-red-500 transition-colors"
-                        >
-                          ×
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <KeywordSelector
+                isPremium={isPremium}
+                onPremiumClick={() => setShowPremiumModal(true)}
+                selectedKeywords={keywords}
+                onKeywordSelect={handleKeywordSelect}
+                isDark={isDark}
+              />
             </PremiumFeatureWrapper>
 
             {/* Perfect Match */}
             <PerfectMatch
               isPremium={isPremium}
               isEnabled={isPerfectMatchEnabled}
-              onToggle={setIsPerfectMatchEnabled}
+              onToggle={(enabled: boolean) => {
+                if (!isPremium) {
+                  onPremiumClick();
+                  return;
+                }
+                setIsPerfectMatchEnabled(enabled);
+              }}
               onUpgrade={() => setShowPremiumModal(true)}
               isDark={isDark}
             />

@@ -1,407 +1,315 @@
 import { API_CONFIG } from '@/config';
 import { Movie } from '@/types';
-import pLimit from 'p-limit';
-import { genreMap, mapTMDBGenres } from './constants/genres';
+import { mapTMDBGenres, genreMap } from './constants/genres';
+import { APPROVED_PLATFORMS } from './constants/platforms';
 import type { SearchPreferences } from './deepseek/types';
+import { RateLimiter } from './utils/rate-limiter';
+import { retryWithBackoff } from './utils/retry';
 
-// Constants
-const TMDB_API_URL = API_CONFIG.tmdb.baseUrl;
 const TMDB_IMAGE_URL = `${API_CONFIG.tmdb.imageBaseUrl}/w500`;
+const TMDB_DISCOVER_URL = `${API_CONFIG.tmdb.baseUrl}/discover`;
 export const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba';
+export const FALLBACK_TRAILER = 'https://www.youtube.com/results?search_query=official+movie+trailer';
 
-// Rate limiting configuration
-const RATE_LIMIT = 40;
-const RATE_WINDOW = 10000;
-const limit = pLimit(5);
+console.log('🔍 Initializing TMDB API client');
 
-const requestQueue: { timestamp: number }[] = [];
+const rateLimiter = new RateLimiter(
+  API_CONFIG.tmdb.rateLimit,
+  API_CONFIG.tmdb.rateWindow
+);
 
-async function checkRateLimit(): Promise<void> {
-  const now = Date.now();
-  requestQueue.push({ timestamp: now });
-  
-  while (requestQueue.length > 0 && now - requestQueue[0].timestamp > RATE_WINDOW) {
-    requestQueue.shift();
-  }
-  
-  if (requestQueue.length > RATE_LIMIT) {
-    const oldestRequest = requestQueue[0].timestamp;
-    const waitTime = RATE_WINDOW - (now - oldestRequest);
-    await new Promise(resolve => setTimeout(resolve, waitTime));
-  }
+interface TMDBRequestOptions extends RequestInit {
+  timeout?: number;
+  retries?: number;
 }
 
-async function fetchWithRetry(url: string, options: RequestInit = {}, retries = 3): Promise<Response> {
-  await checkRateLimit();
-  
-  // Add API key to URL
-  const separator = url.includes('?') ? '&' : '?';
-  const urlWithKey = `${url}${separator}api_key=${API_CONFIG.tmdb.apiKey}`;
+async function tmdbRequest<T>(
+  endpoint: string,
+  options: TMDBRequestOptions = {}
+): Promise<T> {
+  const apiKey = API_CONFIG.tmdb.apiKey;
+  const {
+    timeout = API_CONFIG.tmdb.timeout,
+    retries = API_CONFIG.tmdb.retries,
+    ...fetchOptions
+  } = options;
 
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 10000);
+  if (!apiKey) {
+    throw new Error('TMDB API key is not configured');
+  }
 
-  try {
-    const response = await limit(async () => {
-      const fetchOptions = {
-        ...options,
+  const separator = endpoint.includes('?') ? '&' : '?';
+  const url = `${API_CONFIG.tmdb.baseUrl}${endpoint}${separator}api_key=${apiKey}`;
+
+  const makeRequest = async () => {
+    await rateLimiter.acquire();
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+    try {
+      const response = await fetch(url, {
+        ...fetchOptions,
         signal: controller.signal,
         headers: {
-          ...options.headers,
-          'Accept': 'application/json',
+          ...fetchOptions.headers,
+          'Accept': 'application/json'
         }
-      };
-
-      return await fetch(urlWithKey, fetchOptions);
-    });
-
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      let errorMessage = 'TMDB API Error';
-      try {
-        const errorData = await response.json();
-        console.error('TMDB API Error:', { 
-          status: response.status, 
-          message: errorData?.status_message || errorData?.message,
-          details: errorData
-        });
-        errorMessage = errorData?.status_message || `HTTP error ${response.status}`;
-        console.error('TMDB API Error:', {
-          status: response.status,
-          message: errorMessage,
-          url: url
-        });
-      } catch (parseError) {
-        console.error('Failed to parse TMDB error response:', parseError);
-        console.error('Failed to parse TMDB error response:', parseError);
-        errorMessage = `HTTP error ${response.status}`;
+      });
+      clearTimeout(timeoutId);
+      if (!response.ok) {
+        throw new Error(`HTTP error ${response.status}`);
       }
-      throw new Error(errorMessage);
-    }
-
-    return response;
-  } catch (error) {
-    clearTimeout(timeoutId);
-
-    if (error instanceof Error) {
-      if (error.name === 'AbortError') {
+      return await response.json();
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
         throw new Error('Request timed out');
       }
-      
-      console.error('TMDB API Error:', error);
-
-      if (retries > 0) {
-        await new Promise(resolve => setTimeout(resolve, Math.pow(2, 3 - retries) * 1000));
-        return fetchWithRetry(url, options, retries - 1);
-      }
+      throw error;
+    } finally {
+      clearTimeout(timeoutId);
     }
-    
-    throw error;
-  }
+  };
+  return retryWithBackoff(makeRequest, {
+    maxRetries: retries,
+    baseDelay: 1000,
+    maxDelay: 5000
+  });
 }
 
-// Helper function to get watch providers
-async function getWatchProviders(mediaType: string, id: string): Promise<string[]> {
+export async function fetchMoviesFromTMDB(preferences: SearchPreferences): Promise<Movie[]> {
   try {
-    const response = await fetchWithRetry(
-      `${TMDB_API_URL}/${mediaType}/${id}/watch/providers`
-    );
-    const data = await response.json();
+    console.log('🔍 Fetching movies from TMDB with preferences:', preferences);
     
-    // Get US providers (fallback to GB if US not available)
-    const providers = data.results?.US || data.results?.GB;
-    if (!providers) return [];
-
-    // Combine flatrate, free, and ads providers
-    const allProviders = [
-      ...(providers.flatrate || []),
-      ...(providers.free || []),
-      ...(providers.ads || []),
-      ...(providers.rent || []),
-      ...(providers.buy || [])
-    ];
-
-    // Map TMDB provider names to our platform names
-    const providerMap: Record<string, string> = {
-      'Netflix': 'Netflix',
-      'Amazon Prime Video': 'Amazon Prime',
-      'Prime Video': 'Amazon Prime',
-      'Disney Plus': 'Disney+',
-      'Disney+': 'Disney+',
-      'HBO Max': 'HBO Max',
-      'Max': 'HBO Max',
-      'Apple TV Plus': 'Apple TV+',
-      'Apple TV': 'Apple TV+',
-      'Apple TV+': 'Apple TV+',
-      'Hulu': 'Hulu',
-      'Paramount Plus': 'Paramount+',
-      'Paramount+': 'Paramount+',
-      'Peacock': 'Peacock'
-    };
-
-    const platforms = [...new Set(
-      allProviders
-        .map(p => providerMap[p.provider_name])
-        .filter(Boolean)
-    )];
-
-    if (import.meta.env.DEV) {
-      console.log('Watch providers for:', id, {
-        raw: allProviders.map(p => p.provider_name),
-        mapped: platforms
-      });
+    if (!preferences.selectedGenres.length && !preferences.selectedMoods.length) {
+      throw new Error('Please select at least one genre or mood');
     }
 
-    return platforms;
+    const contentType = preferences.contentType === 'tv' ? 'tv' : 'movie';
+    const genreIds = preferences.selectedGenres
+      .map(genre => genreMap[genre] || null)
+      .filter(Boolean)
+      .join(',');
+      
+    // Add mood-based genre mapping
+    const moodGenreIds = preferences.selectedMoods
+      .flatMap(mood => {
+        if (!mood) return [];
+        
+        switch (mood.toString().toLowerCase()) {
+          case 'happy': return [35, 10751]; // Comedy, Family
+          case 'relaxed': return [18, 99]; // Drama, Documentary
+          case 'excited': return [28, 12]; // Action, Adventure
+          case 'romantic': return [10749]; // Romance
+          case 'thoughtful': return [18, 9648]; // Drama, Mystery
+          case 'adventurous': return [12, 14]; // Adventure, Fantasy
+          case 'mysterious': return [9648, 53]; // Mystery, Thriller
+          default: return [];
+        }
+      })
+      .filter(Boolean)
+      .join(',');
+
+    const allGenreIds = [...new Set([...genreIds.split(','), ...moodGenreIds.split(',')])]
+      .filter(Boolean)
+      .join(',');
+    
+    // Initial search parameters with strict criteria
+    const params = new URLSearchParams({
+      include_adult: 'false',
+      include_video: 'true',
+      language: 'en-US',
+      page: '1',
+      sort_by: 'popularity.desc',
+      'vote_average.gte': preferences.ratingRange?.min?.toString() || '0',
+      'vote_average.lte': preferences.ratingRange?.max?.toString() || '10',
+      'primary_release_date.gte': preferences.yearRange?.from ? `${preferences.yearRange.from}-01-01` : '1920-01-01',
+      'primary_release_date.lte': preferences.yearRange?.to ? `${preferences.yearRange.to}-12-31` : '2025-12-31',
+      'vote_count.gte': '50'
+    });
+
+    if (allGenreIds) {
+      params.append('with_genres', allGenreIds);
+    }
+
+    console.log('🛠️ TMDB Query Parameters:', Object.fromEntries(params.entries()));
+    
+    const fetchPages = async () => {
+      const results = [];
+      let totalPages = 0;
+      let attempts = 0;
+      const maxAttempts = 3;
+
+      for (let page = 1; page <= 3; page++) {
+        try {
+          const data = await tmdbRequest(`/discover/${contentType}?${params.toString()}&page=${page}`);
+          if (data.results?.length) {
+            results.push(...data.results);
+            totalPages++;
+          }
+        } catch (err) {
+          console.warn(`Failed to fetch page ${page}:`, err);
+          continue;
+        }
+      }
+      return { results, totalPages };
+    };
+
+    // Try initial search with strict criteria
+    let { results: allResults, totalPages } = await fetchPages();
+    console.log(`📊 Initial search found ${allResults.length} results`);
+
+    if (allResults.length === 0) {
+      console.log('🔄 No results found, trying with relaxed criteria...');
+      
+      // First relaxation: Remove vote count requirement
+      params.delete('vote_count.gte');
+      
+      let { results: relaxedResults } = await fetchPages();
+      
+      // If still no results, try without genre restrictions
+      if (relaxedResults.length === 0 && allGenreIds) {
+        console.log('🔄 Still no results, trying without genre restrictions...');
+        params.delete('with_genres');
+        const { results: noGenreResults } = await fetchPages();
+        relaxedResults = noGenreResults;
+      }
+      
+      // If still no results, try with expanded year range
+      if (relaxedResults.length === 0) {
+        console.log('🔄 Expanding year range...');
+        params.set('primary_release_date.gte', '1900-01-01');
+        params.set('primary_release_date.lte', new Date().getFullYear().toString() + '-12-31');
+        const { results: expandedResults } = await fetchPages();
+        relaxedResults = expandedResults;
+      }
+      
+      if (relaxedResults.length === 0) {
+        throw new Error(
+          'We could not find any movies matching your criteria. Please try:\n' +
+          '• Selecting different genres or moods\n' +
+          '• Expanding your year range\n' +
+          '• Adjusting your rating requirements'
+        );
+      }
+      
+      allResults = relaxedResults;
+      console.log(`✅ Found ${allResults.length} results with relaxed criteria`);
+    }
+
+    // Ensure we have enough results
+    const minResults = preferences.isPremium ? 10 : 5;
+    if (allResults.length < minResults) {
+      console.log(`⚠️ Not enough results (${allResults.length}), fetching more...`);
+      params.delete('vote_average.gte');
+      params.delete('vote_average.lte');
+      const { results: additionalResults } = await fetchPages();
+      // Ensure unique results by ID
+      const existingIds = new Set(allResults.map(r => r.id));
+      const uniqueAdditionalResults = additionalResults.filter(r => !existingIds.has(r.id));
+      allResults = [...allResults, ...uniqueAdditionalResults];
+    }
+
+    return await Promise.all(
+      allResults.map(async (result: any) => await enrichMovieWithPoster({
+        id: result.id.toString(),
+        title: result.title || result.name,
+        year: new Date(result.release_date || result.first_air_date).getFullYear(),
+        rating: typeof result.vote_average === 'number' ? result.vote_average : 0,
+        duration: contentType === 'movie' ? (result.runtime || 120) : 'TV Series',
+        language: (result.original_language || 'en').toUpperCase(),
+        genres: mapTMDBGenres(result.genre_ids || []),
+        description: result.overview || 'No description available',
+        imageUrl: result.poster_path ? `${TMDB_IMAGE_URL}${result.poster_path}` : FALLBACK_IMAGE,
+        backdropUrl: result.backdrop_path ? `${TMDB_IMAGE_URL}${result.backdrop_path}` : undefined,
+        streamingPlatforms: [],
+        youtubeUrl: FALLBACK_TRAILER,
+        hasTrailer: false
+      }))
+    );
   } catch (error) {
-    console.warn('Failed to fetch watch providers:', error);
-    return [];
+    const errorMessage = error instanceof Error ? error.message : 'Failed to fetch movies';
+    console.error('❌ TMDB API Error:', errorMessage);
+    
+    // Log additional error details for debugging
+    if (error instanceof Error && error.stack) {
+      console.debug('Error stack:', error.stack);
+    }
+    
+    // Provide more helpful error messages
+    if (errorMessage.includes('No movies found')) {
+      throw new Error('No movies found matching your criteria. Try:\n- Selecting different genres or moods\n- Expanding your year range\n- Adjusting your rating requirements');
+    }
+    
+    throw new Error('We encountered an issue while fetching movies. Please try again or adjust your search criteria.');
   }
 }
 
 export async function enrichMovieWithPoster(movie: Movie): Promise<Movie> {
   try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000);
+    console.log('🎬 Enriching movie:', movie.title);
+    
+    // Determine content type based on duration
+    const contentType = movie.duration === 'TV Series' ? 'tv' : 'movie';
+    const details = await tmdbRequest(`/${contentType}/${movie.id}?append_to_response=videos,watch/providers`);
+    
+    // Get runtime from details
+    const runtime = contentType === 'movie' 
+      ? details.runtime 
+      : details.episode_run_time?.[0] || movie.duration;
+      
+    const duration = typeof runtime === 'number' ? runtime : 
+      typeof movie.duration === 'number' ? movie.duration : 
+      movie.duration === 'TV Series' ? 'TV Series' : 120;
 
-    const searchUrl = new URL(`${TMDB_API_URL}/search/multi`);
-    searchUrl.searchParams.append('query', movie.title);
-    if (movie.year) {
-      searchUrl.searchParams.append('year', movie.year.toString());
+    const trailer = details.videos?.results?.find(
+      video => video?.site === 'YouTube' && 
+        (video.type === 'Trailer' || video.type === 'Teaser' || video.type === 'Opening Credits')
+    );
+    
+    const youtubeUrl = trailer?.key 
+      ? `https://www.youtube.com/watch?v=${trailer.key}` 
+      : `https://www.youtube.com/results?search_query=${encodeURIComponent(`${movie.title} ${movie.year} trailer`)}`;
+
+    console.log('⚠️ [DEBUG] Raw Watch Providers Data:', details['watch/providers']);
+
+    let streamingPlatforms: string[] = [];
+
+    if (details['watch/providers']?.results) {
+        Object.values(details['watch/providers'].results).forEach((providerData: any) => {
+            if (providerData.flatrate) {
+                streamingPlatforms.push(...providerData.flatrate.map((provider: any) => provider.provider_name));
+            }
+            if (providerData.buy) {
+                streamingPlatforms.push(...providerData.buy.map((provider: any) => provider.provider_name));
+            }
+            if (providerData.rent) {
+                streamingPlatforms.push(...providerData.rent.map((provider: any) => provider.provider_name));
+            }
+        });
     }
-    searchUrl.searchParams.append('include_adult', 'false');
-    searchUrl.searchParams.append('language', 'en-US');
 
-    try {
-      const response = await fetchWithRetry(searchUrl.toString());
-      clearTimeout(timeoutId);
+    streamingPlatforms = [...new Set(streamingPlatforms)];
+    console.log('✅ [DEBUG] Streaming Platforms Before Filtering:', streamingPlatforms);
 
-      const data = await response.json();
+    // ✅ Define `filteredPlatforms` before using it
+    const approvedPlatformNames = Object.keys(APPROVED_PLATFORMS);
+    const approvedMatches = Object.values(APPROVED_PLATFORMS).flatMap(platform => platform.matches);
 
-      const match = data.results?.find((r: any) => {
-        if (!r || !['movie', 'tv'].includes(r.media_type)) return false;
-        
-        const resultTitle = (r.title || r.name || '').toLowerCase().trim();
-        const movieTitle = movie.title.toLowerCase().trim();
-        
-        if (resultTitle === movieTitle) return true;
-        
-        if (resultTitle.includes(movieTitle) || movieTitle.includes(resultTitle)) {
-          if (movie.year) {
-            const resultYear = new Date(r.release_date || r.first_air_date || '').getFullYear();
-            return resultYear === movie.year;
-          }
-          return true;
-        }
-        
-        return false;
-      });
+    const filteredPlatforms = streamingPlatforms.filter(provider =>
+        approvedPlatformNames.includes(provider) || approvedMatches.includes(provider)
+    );
 
-      if (!match) {
-        return {
-          ...movie,
-          imageUrl: FALLBACK_IMAGE,
-          youtubeUrl: `https://www.youtube.com/results?search_query=${encodeURIComponent(`${movie.title} ${movie.year} trailer`)}`
-        };
-      }
+    console.log('✅ [DEBUG] Streaming Platforms Final before returning:', filteredPlatforms);
 
-      // Get additional details including videos and watch providers
-      const detailsUrl = `${TMDB_API_URL}/${match.media_type}/${match.id}?append_to_response=videos`;
-      const detailsResponse = await fetchWithRetry(detailsUrl);
-      const details = await detailsResponse.json();
-
-      // Get watch providers
-      const providers = await getWatchProviders(match.media_type, match.id);
-
-      // Find trailer
-      const trailer = details.videos?.results?.find(
-        (video: any) => video?.site === 'YouTube' && 
-          (video.type === 'Trailer' || video.type === 'Teaser')
-      );
-
-      return {
-        ...movie,
-        imageUrl: match.poster_path
-          ? `${TMDB_IMAGE_URL}/${match.poster_path}`
-          : FALLBACK_IMAGE,
-        backdropUrl: match.backdrop_path
-          ? `https://image.tmdb.org/t/p/original${match.backdrop_path}`
-          : undefined,
-        youtubeUrl: trailer
-          ? `https://www.youtube.com/watch?v=${trailer.key}`
-          : `https://www.youtube.com/results?search_query=${encodeURIComponent(`${movie.title} ${movie.year} trailer`)}`,
-        // Merge existing platforms with TMDB providers
-        streamingPlatforms: [...new Set([
-          ...movie.streamingPlatforms,
-          ...providers
-        ])]
-      };
-
-    } catch (error) {
-      clearTimeout(timeoutId);
-      throw error;
-    }
-  } catch (error) {
-    console.error(`Error enriching movie "${movie.title}":`, error);
     return {
       ...movie,
-      imageUrl: FALLBACK_IMAGE,
-      youtubeUrl: `https://www.youtube.com/results?search_query=${encodeURIComponent(`${movie.title} ${movie.year} trailer`)}`
+      duration,
+      streamingPlatforms: filteredPlatforms.length > 0 ? filteredPlatforms : [],
+      youtubeUrl,
+      hasTrailer: !!trailer
     };
-  }
-}
-
-// Export the fetchMoviesFromTMDB function
-export async function fetchMoviesFromTMDB(preferences: SearchPreferences): Promise<Movie[]> {
-  try {
-    if (!preferences.contentType) {
-      throw new Error('Content type is required');
-    }
-
-    // Debug logging
-    console.log('TMDB API Request:', {
-      contentType: preferences.contentType,
-      genres: preferences.selectedGenres,
-      yearRange: preferences.yearRange,
-      ratingRange: preferences.ratingRange
-    });
-
-    const queryParams = new URLSearchParams({
-      'include_adult': 'false',
-      'language': 'en-US',
-      'page': '1',
-      'sort_by': 'popularity.desc',
-      'vote_count.gte': '100',
-      'vote_average.gte': (preferences.ratingRange.min - 0.5).toString(), // Slightly expand range
-      'vote_average.lte': (preferences.ratingRange.max + 0.5).toString(),
-      'primary_release_date.gte': `${preferences.yearRange.from - 1}-01-01`, // Slightly expand range
-      'primary_release_date.lte': `${preferences.yearRange.to + 1}-12-31`,
-    });
-
-    // Add genre filtering if specified
-    if (preferences.selectedGenres.length > 0) {
-      // Use all selected genres for better accuracy
-      const genreIds = preferences.selectedGenres
-        .slice(0, 2) // Limit to 2 genres for better results
-        .map(genre => {
-          const id = genreMap[genre];
-          if (!id) {
-            console.warn(`No TMDB genre ID found for: ${genre}`);
-          }
-          return id;
-        })
-        .filter(Boolean)
-        .join(',');
-
-      if (genreIds) {
-        queryParams.append('with_genres', genreIds);
-      }
-    }
-
-    // Debug logging
-    if (import.meta.env.DEV) {
-      console.log('TMDB API Query:', {
-        endpoint: `${TMDB_API_URL}/discover/${preferences.contentType}`,
-        params: Object.fromEntries(queryParams.entries())
-      });
-    }
-
-    // Add more flexibility to the query
-    if (!preferences.selectedGenres.length) {
-      // If no genres selected, don't filter by genre
-      queryParams.delete('with_genres');
-    }
-
-    // Expand year range slightly to get more results
-    const yearPadding = 2;
-    queryParams.set('primary_release_date.gte', 
-      `${preferences.yearRange.from - yearPadding}-01-01`);
-    queryParams.set('primary_release_date.lte', 
-      `${preferences.yearRange.to + yearPadding}-12-31`);
-
-    // Lower minimum vote count for more results
-    queryParams.set('vote_count.gte', '50');
-
-    // Fetch from TMDB
-    const response = await fetchWithRetry(
-      `${TMDB_API_URL}/discover/${preferences.contentType}?${queryParams.toString()}`
-    );
-
-    const data = await response.json();
-
-    // If no results, try a more relaxed search
-    if (!data.results?.length) {
-      // Remove genre filter
-      queryParams.delete('with_genres');
-      // Lower rating requirements
-      queryParams.set('vote_count.gte', '20');
-      
-      const relaxedResponse = await fetchWithRetry(
-        `${TMDB_API_URL}/discover/${preferences.contentType}?${queryParams.toString()}`
-      );
-      const relaxedData = await relaxedResponse.json();
-      
-      if (!relaxedData.results?.length) {
-        throw new Error('No movies found matching your criteria. Try adjusting your filters.');
-      }
-      
-      data.results = relaxedData.results;
-    }
-    
-    // Debug logging
-    if (import.meta.env.DEV) {
-      console.log('TMDB API Response:', {
-        totalResults: data.total_results,
-        page: data.page,
-        totalPages: data.total_pages,
-        resultCount: data.results?.length,
-        firstResult: data.results?.[0]?.title
-      });
-    }
-
-    if (!data.results?.length) {
-      throw new Error('No movies found matching your criteria. Try adjusting your filters.');
-    }
-
-    // Transform to our Movie type
-    const movies: Movie[] = data.results.map((result: any) => ({
-      id: result.id.toString(),
-      title: result.title || result.name,
-      year: new Date(result.release_date || result.first_air_date).getFullYear(),
-      rating: result.vote_average,
-      duration: preferences.contentType === 'movie' ? 'Movie' : 'TV Series',
-      language: (result.original_language || 'en').toUpperCase(),
-      genres: mapTMDBGenres(result.genre_ids || []),
-      description: result.overview,
-      imageUrl: result.poster_path 
-        ? `${TMDB_IMAGE_URL}${result.poster_path}`
-        : FALLBACK_IMAGE,
-      backdropUrl: result.backdrop_path
-        ? `https://image.tmdb.org/t/p/original${result.backdrop_path}`
-        : undefined,
-      streamingPlatforms: []
-    }));
-
-    // Enrich movies with additional data
-    const enrichedMovies = await Promise.all(
-      movies.map(movie => enrichMovieWithPoster(movie))
-    );
-
-    if (import.meta.env.DEV) {
-      console.log('Successfully processed movies:', {
-        count: enrichedMovies.length,
-        firstMovie: enrichedMovies[0]?.title,
-        firstMovieGenres: enrichedMovies[0]?.genres
-      });
-    }
-
-    return enrichedMovies;
   } catch (error) {
-    console.error('TMDB API Error:', {
-      error: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : undefined
-    });
-    throw error;
+    console.warn(`⚠️ Could not enrich ${movie.duration === 'TV Series' ? 'TV series' : 'movie'} details:`, movie.title, error);
+    return movie;
   }
 }

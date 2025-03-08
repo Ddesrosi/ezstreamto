@@ -2,6 +2,26 @@ import { Baby, GraduationCap, Home, Users, Sun, Coffee, Zap, Heart, Brain, Compa
 
 export const moods = [
   { 
+    name: 'Dark', 
+    icon: Moon,
+    tooltip: "If you love eerie atmospheres and twisted minds, this one's for you. No nightlights allowed!"
+  },
+  { 
+    name: 'Funny', 
+    icon: Laugh,
+    tooltip: "A guaranteed laugh-fest. If you don't at least giggle, we'll refund your chuckles!"
+  },
+  { 
+    name: 'Epic', 
+    icon: Crown,
+    tooltip: "Sweeping battles, breathtaking vistas, and music that gives you goosebumps. Get ready for a journey!"
+  },
+  { 
+    name: 'Heartwarming', 
+    icon: HeartHandshake,
+    tooltip: "Movies that melt your heart and restore your faith in humanity. Kleenex not included!"
+  },
+  { 
     name: 'Happy', 
     icon: Sun,
     tooltip: "Happiness is contagious—let's spread it with a feel-good movie!"

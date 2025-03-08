@@ -54,10 +54,12 @@ export async function getCachedResult(
   try {
     // In development mode, skip caching
     if (import.meta.env.DEV) {
+      console.log('🔧 Development mode: Skipping cache');
       return null;
     }
 
     const hash = await generatePreferencesHash(preferences);
+    console.log('🔑 Cache hash generated:', hash);
 
     // Use RPC call instead of direct query for better error handling
     const { data, error } = await supabase.rpc('get_cached_results', {
@@ -65,16 +67,18 @@ export async function getCachedResult(
     });
 
     if (error) {
-      // Log error but don't throw - allow fallback to fresh results
-      console.warn('Cache lookup failed:', error.message);
+      console.warn('⚠️ Cache lookup failed:', error.message);
+      // Return null to allow fallback to fresh results
       return null;
     }
 
     if (!data || !Array.isArray(data) || data.length === 0) {
+      console.log('📭 No cached results found');
       return null;
     }
 
     const cache = data[0];
+    console.log('✅ Cache hit:', { resultCount: cache.results?.length || 0 });
 
     return {
       results: cache.results || [],
@@ -86,8 +90,10 @@ export async function getCachedResult(
       })
     };
   } catch (error) {
-    // Log error but don't throw - allow fallback to fresh results
-    logError(error, 'Cache Lookup');
+    console.error('❌ Cache error:', error instanceof Error ? error.message : 'Unknown error');
+    if (error instanceof Error && error.stack) {
+      console.debug('Cache error stack:', error.stack);
+    }
     return null;
   }
 }

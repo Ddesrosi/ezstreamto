@@ -43,11 +43,20 @@ export function SearchResults({
   const [showLocalPremiumModal, setShowLocalPremiumModal] = useState(false);
 
   useEffect(() => {
+    console.log('Search Results Update:', {
+      resultsCount: results.length,
+      perfectMatch: !!perfectMatch,
+      isPremium,
+      remainingSearches
+    });
+
     setIsLoading(true);
     setDisplayedResults([]);
 
     const loadResults = async () => {
-      setDisplayedResults(results.slice(0, ITEMS_PER_BATCH));
+      const initialBatch = results.slice(0, ITEMS_PER_BATCH);
+      console.log('Loading initial batch:', initialBatch.length);
+      setDisplayedResults(initialBatch);
       setIsLoading(false);
     };
     loadResults();
@@ -56,6 +65,11 @@ export function SearchResults({
   useEffect(() => {
     const handleScroll = () => {
       if (isLoading || perfectMatch) return;
+
+      console.log('📊 Loading more results:', {
+        current: displayedResults.length,
+        total: results.length
+      });
 
       const isNearBottom = 
         window.innerHeight + window.scrollY >= 
@@ -67,6 +81,14 @@ export function SearchResults({
           displayedResults.length,
           displayedResults.length + ITEMS_PER_BATCH
         );
+        console.log('➕ Adding batch:', {
+          size: nextBatch.length,
+          movies: nextBatch.map(m => ({
+            title: m.title,
+            platforms: m.streamingPlatforms,
+            hasTrailer: !!m.youtubeUrl
+          }))
+        });
         setDisplayedResults(prev => [...prev, ...nextBatch]);
         setIsLoading(false);
       }
@@ -122,6 +144,7 @@ export function SearchResults({
     </motion.div>
   );
 
+  // Early return for no results
   if (!results || results.length === 0) {
     return (
       <div className="w-full text-center py-8 sm:py-12">
@@ -147,11 +170,7 @@ export function SearchResults({
       {/* Header with Back Button */}
       <div className={`sticky top-0 z-10 pb-3 sm:pb-4 ${isDark ? 'bg-[#040B14]/90' : 'bg-gray-50/90'} backdrop-blur-sm`}>
         <div className="flex items-center justify-between mb-2">
-          <Button
-            variant="ghost"
-            onClick={onBack}
-            className="hover:bg-transparent text-sm sm:text-base"
-          >
+          <Button variant="ghost" onClick={onBack} className="hover:bg-transparent text-sm sm:text-base">
             ← Back to Search
           </Button>
         </div>
@@ -172,12 +191,12 @@ export function SearchResults({
 
       {/* Results Grid */}
       <div className="space-y-6">
-        {/* Perfect Match Section */}
-        {perfectMatch && (
+        {perfectMatch && perfectMatch.movie ? (
+          // Perfect Match View
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
+            key={`perfect-match-${perfectMatch.movie.id}`}
           >
             <PerfectMatchCard
               movie={perfectMatch.movie}
@@ -185,24 +204,24 @@ export function SearchResults({
               isDark={isDark}
             />
           </motion.div>
-        )}
-
-        {/* Regular Results */}
-        {!perfectMatch && (
-          <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4">
-            {displayedResults.map((movie) => (
-              <MovieCard 
-                key={`movie-${movie.id}`} 
-                movie={movie} 
-                isDark={isDark} 
-              />
-            ))}
-          </div>
+        ) : (
+          // Regular Results Grid
+          displayedResults.length > 0 && (
+            <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4">
+              {displayedResults.map((movie) => (
+                <MovieCard 
+                  key={`movie-${movie.id}`}
+                  movie={movie} 
+                  isDark={isDark} 
+                />
+              ))}
+            </div>
+          )
         )}
       </div>
 
       {/* Loading State */}
-      {isLoading && (
+      {isLoading && !perfectMatch && (
         <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4 mt-4">
           <MovieSkeleton 
             count={Math.min(ITEMS_PER_BATCH, results.length - displayedResults.length)} 
@@ -212,7 +231,7 @@ export function SearchResults({
       )}
 
       {/* Support Section */}
-      <div className="flex flex-col items-center gap-6 sm:gap-8 py-6 sm:py-12">
+      <div className="flex flex-col items-center gap-6 sm:gap-8 py-6 sm:py-12 mt-6">
         {!isLoading && !perfectMatch && displayedResults.length < results.length && (
           <Button
             onClick={() => {
@@ -220,7 +239,8 @@ export function SearchResults({
               const nextBatch = results.slice(
                 displayedResults.length,
                 displayedResults.length + ITEMS_PER_BATCH
-              );
+              ).filter(movie => !displayedResults.some(m => m.id === movie.id));
+              console.log('Loading next batch:', nextBatch.length);
               setDisplayedResults(prev => [...prev, ...nextBatch]);
               setIsLoading(false);
             }}

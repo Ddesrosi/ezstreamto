@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Mail } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import { Button } from '../ui/button';
 import { ContactForm } from '../ui/contact-form';
 import { cn } from '@/lib/utils';
@@ -35,26 +36,24 @@ export function Footer({ isDark }: FooterProps) {
           
           {/* Links */}
           <div className="flex items-center gap-6 text-sm">
-            <a 
-              href="/privacy"
-              target="_self"
+            <Link
+              to="/privacy"
               className={cn(
                 "hover:underline transition-colors",
                 isDark ? 'text-blue-200 hover:text-blue-100' : 'text-gray-600 hover:text-gray-900'
               )}
             >
               Privacy Policy
-            </a>
-            <a 
-              href="/disclaimer"
-              target="_self"
+            </Link>
+            <Link
+              to="/disclaimer"
               className={cn(
                 "hover:underline transition-colors",
                 isDark ? 'text-blue-200 hover:text-blue-100' : 'text-gray-600 hover:text-gray-900'
               )}
             >
               Disclaimer
-            </a>
+            </Link>
           </div>
           
           {/* Copyright */}

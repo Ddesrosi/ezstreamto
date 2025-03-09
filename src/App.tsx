@@ -9,7 +9,7 @@ import { AnimatedHeader } from './components/animated-header';
 import { usePremiumStatus } from '@/hooks/usePremiumStatus';
 import { getRandomShareMessage } from '@/lib/utils';
 import { Footer } from './components/layout/footer';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import Disclaimer from './pages/Disclaimer';
 import Privacy from './pages/Privacy';
 

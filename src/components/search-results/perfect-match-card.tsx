@@ -64,7 +64,7 @@ export function PerfectMatchCard({ movie, insights, isDark }: PerfectMatchCardPr
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className={cn(
-        "col-span-full w-full rounded-lg border overflow-hidden",
+        "col-span-full w-full rounded-lg border overflow-hidden mb-6",
         isDark ? 'bg-[#0A1A3F] border-blue-900/30' : 'bg-white border-gray-200'
       )}
     >

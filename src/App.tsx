@@ -8,6 +8,10 @@ import { Helmet } from 'react-helmet-async';
 import { AnimatedHeader } from './components/animated-header';
 import { usePremiumStatus } from '@/hooks/usePremiumStatus';
 import { getRandomShareMessage } from '@/lib/utils';
+import { Footer } from './components/layout/footer';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Disclaimer from './pages/Disclaimer';
+import Privacy from './pages/Privacy';
 
 function App() {
   const [isDark, setIsDark] = useState(true);
@@ -63,14 +67,19 @@ function App() {
   };
 
   return (
-    <div className={`min-h-screen ${isDark ? 'bg-[#040B14] text-white' : 'bg-gray-50 text-gray-900'} transition-colors duration-200`}>
-      <Helmet>
-        <title>
-          {showResults 
-            ? `${searchResults.length} Movie Recommendations - EzStreamTo`
-            : 'EzStreamTo - Find Where to Watch Movies & TV Shows'}
-        </title>
-        <meta name="description" content={shareMessage} />
+    <Router>
+      <Routes>
+        <Route path="/disclaimer" element={<Disclaimer />} />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/" element={
+          <div className={`min-h-screen flex flex-col relative ${isDark ? 'bg-[#040B14] text-white' : 'bg-gray-50 text-gray-900'} transition-colors duration-200`}>
+            <Helmet>
+              <title>
+                {showResults 
+                  ? `${searchResults.length} Movie Recommendations - EzStreamTo`
+                  : 'EzStreamTo - Find Where to Watch Movies & TV Shows'}
+              </title>
+              <meta name="description" content={shareMessage} />
         <meta name="keywords" content="movie streaming, TV shows, where to watch, streaming platforms, movie finder, what to watch, entertainment recommendations" />
 
         <meta property="og:type" content="website" />
@@ -102,8 +111,8 @@ function App() {
 
       <Header isDark={isDark} onThemeToggle={toggleTheme} />
 
-      <main className="container mx-auto px-3 sm:px-5 md:px-6 lg:px-8 py-6 sm:py-10 md:py-12">
-        <div className="fixed inset-0 overflow-hidden pointer-events-none">
+      <main className="container mx-auto px-3 sm:px-5 md:px-6 lg:px-8 py-6 sm:py-10 md:py-12 flex-1">
+        <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
           <div className={`absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] ${
             isDark 
               ? 'from-[#0A1A3F] via-[#040B14] to-[#040B14]'
@@ -112,7 +121,7 @@ function App() {
           <div className={`absolute top-0 left-0 w-full h-full bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJub25lIiBzdHJva2U9IiMxMjM0NjAiIHN0cm9rZS13aWR0aD0iMC41IiBzdHJva2UtZGFzaGFycmF5PSI1LDUiLz48L3N2Zz4=')] opacity-20`} />
         </div>
 
-        <div className="relative">
+        <div className="relative z-10">
           {error && (
             <div className={`mb-4 p-3 sm:p-4 rounded-lg ${
               isDark ? 'bg-red-900/20 text-red-200' : 'bg-red-100 text-red-800'
@@ -122,7 +131,7 @@ function App() {
           )}
 
           {!showResults ? (
-            <>
+            <div>
               <AnimatedHeader isDark={isDark} />
               <div className="w-full -mx-3 sm:-mx-5 md:-mx-6 lg:-mx-8 mb-6 sm:mb-8">
                 <TrendingCarousel isDark={isDark} />
@@ -134,7 +143,7 @@ function App() {
                   onError={handleError}
                 />
               </div>
-            </>
+            </div>
           ) : (
             <SearchResults
               results={searchResults}
@@ -149,7 +158,12 @@ function App() {
           )}
         </div>
       </main>
-    </div>
+          <div className="mt-auto relative z-10">
+            <Footer isDark={isDark} />
+          </div>
+        </div>} />
+      </Routes>
+    </Router>
   );
 }
 

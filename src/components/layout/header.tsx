@@ -115,6 +115,7 @@ export function Header({ isDark, onThemeToggle }: HeaderProps) {
             </motion.div>
           </div>
         </div>
+
       </div>
     </motion.header>
   );

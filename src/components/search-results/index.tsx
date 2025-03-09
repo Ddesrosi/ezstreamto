@@ -190,7 +190,7 @@ export function SearchResults({
       </div>
 
       {/* Results Grid */}
-      <div className="space-y-6">
+      <div className="space-y-6 mb-6">
         {perfectMatch && perfectMatch.movie ? (
           // Perfect Match View
           <motion.div
@@ -221,8 +221,8 @@ export function SearchResults({
       </div>
 
       {/* Loading State */}
-      {isLoading && !perfectMatch && (
-        <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4 mt-4">
+      {isLoading && !perfectMatch && !showResults && (
+        <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4 mt-4 mb-6">
           <MovieSkeleton 
             count={Math.min(ITEMS_PER_BATCH, results.length - displayedResults.length)} 
             isDark={isDark} 
@@ -231,7 +231,7 @@ export function SearchResults({
       )}
 
       {/* Support Section */}
-      <div className="flex flex-col items-center gap-6 sm:gap-8 py-6 sm:py-12 mt-6">
+      <div className="flex flex-col items-center gap-6 sm:gap-8 py-6 sm:py-8 mb-6">
         {!isLoading && !perfectMatch && displayedResults.length < results.length && (
           <Button
             onClick={() => {

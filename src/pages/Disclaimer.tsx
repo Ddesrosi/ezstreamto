@@ -2,10 +2,14 @@ import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function Disclaimer() {
   const [isDark, setIsDark] = useState(true);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const toggleTheme = () => {
     setIsDark(!isDark);

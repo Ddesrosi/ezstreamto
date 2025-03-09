@@ -54,6 +54,30 @@
     </script>
   </head>
   <body>
+    <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EzStreamTo</title>
+</head>
+<body>
+  
+  <!-- AJOUTE EXACTEMENT CE FORMULAIRE CACHÉ ICI -->
+  <form name="contact" netlify netlify-honeypot="bot-field" hidden>
+    <input type="email" name="email" />
+    <textarea name="message"></textarea>
+  </form>
+
+  <!-- fin de l'ajout -->
+
+  <div id="root"></div>
+
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+</html>
+
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

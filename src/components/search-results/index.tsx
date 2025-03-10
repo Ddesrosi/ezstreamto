@@ -28,7 +28,7 @@ interface SearchResultsProps {
 
 const ITEMS_PER_BATCH = 12;
 
-export function SearchResults({ 
+export default function SearchResults({ 
   results, 
   isDark, 
   onBack, 
@@ -43,11 +43,9 @@ export function SearchResults({
   const [showLocalPremiumModal, setShowLocalPremiumModal] = useState(false);
 
   useEffect(() => {
-    console.log('Search Results Update:', {
+    console.log('Search Results Mount:', {
       resultsCount: results.length,
-      perfectMatch: !!perfectMatch,
-      isPremium,
-      remainingSearches
+      perfectMatch: !!perfectMatch
     });
 
     setIsLoading(true);
@@ -221,7 +219,7 @@ export function SearchResults({
       </div>
 
       {/* Loading State */}
-      {isLoading && !perfectMatch && !showResults && (
+      {isLoading && !perfectMatch && (
         <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4 mt-4 mb-6">
           <MovieSkeleton 
             count={Math.min(ITEMS_PER_BATCH, results.length - displayedResults.length)} 

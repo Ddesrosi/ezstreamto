@@ -15,41 +15,42 @@ export function Footer({ isDark }: FooterProps) {
 
   return (
     <footer className={cn(
-      "w-full border-t py-8 relative",
+      "w-full border-t py-4 sm:py-6 relative",
       isDark ? 'bg-[#0A1A3F] border-blue-900/30' : 'bg-white border-gray-200'
     )}>
       <div className="container mx-auto px-4">
-        <div className="flex flex-col items-center gap-6">
+        <div className="flex flex-col items-center gap-4">
           {/* Contact Button */}
           <Button
             onClick={() => setShowContactForm(true)}
             className={cn(
-              "flex items-center gap-2 px-6 py-2 rounded-full transition-all",
+              "flex items-center gap-1.5 px-4 py-1.5 text-sm rounded-full transition-all",
               isDark 
-                ? 'bg-blue-600 hover:bg-blue-700 text-white' 
-                : 'bg-blue-500 hover:bg-blue-600 text-white'
+                ? 'bg-blue-900/20 hover:bg-blue-900/30 text-blue-200' 
+                : 'bg-blue-50 hover:bg-blue-100 text-blue-600'
             )}
           >
-            <Mail className="w-4 h-4" />
+            <Mail className="w-3.5 h-3.5" />
             Contact Us
           </Button>
           
           {/* Links */}
-          <div className="flex items-center gap-6 text-sm">
+          <div className="flex items-center gap-4 text-xs">
             <Link
               to="/privacy"
               className={cn(
                 "hover:underline transition-colors",
-                isDark ? 'text-blue-200 hover:text-blue-100' : 'text-gray-600 hover:text-gray-900'
+                isDark ? 'text-blue-200/70 hover:text-blue-200' : 'text-gray-500 hover:text-gray-700'
               )}
             >
               Privacy Policy
             </Link>
+            <span className={isDark ? 'text-blue-200/40' : 'text-gray-300'}>•</span>
             <Link
               to="/disclaimer"
               className={cn(
                 "hover:underline transition-colors",
-                isDark ? 'text-blue-200 hover:text-blue-100' : 'text-gray-600 hover:text-gray-900'
+                isDark ? 'text-blue-200/70 hover:text-blue-200' : 'text-gray-500 hover:text-gray-700'
               )}
             >
               Disclaimer
@@ -58,8 +59,8 @@ export function Footer({ isDark }: FooterProps) {
           
           {/* Copyright */}
           <p className={cn(
-            "text-sm text-center",
-            isDark ? 'text-blue-200/70' : 'text-gray-500'
+            "text-xs text-center",
+            isDark ? 'text-blue-200/50' : 'text-gray-400'
           )}>
             © {new Date().getFullYear()} EzStreamTo - All Rights Reserved
           </p>

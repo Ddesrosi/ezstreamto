@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
+import { cn } from '@/lib/utils';
 import { Header } from './components/layout/header';
 import PreferenceForm from './components/preference-form';
-import { SearchResults } from './components/search-results';
+import SearchResults from './components/search-results';
 import { TrendingCarousel } from './components/trending-carousel';
 import { Movie } from './types';
 import { Helmet } from 'react-helmet-async';
@@ -72,7 +73,9 @@ function App() {
         <Route path="/disclaimer" element={<Disclaimer />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/" element={
-          <div className={`min-h-screen flex flex-col relative ${isDark ? 'bg-[#040B14] text-white' : 'bg-gray-50 text-gray-900'} transition-colors duration-200`}>
+          <div className={`min-h-screen flex flex-col relative transition-colors duration-200 ${
+            isDark ? 'bg-[#040B14] text-white' : 'bg-gray-50 text-gray-900'
+          }`}>
             <Helmet>
               <title>
                 {showResults 
@@ -111,7 +114,7 @@ function App() {
 
       <Header isDark={isDark} onThemeToggle={toggleTheme} />
 
-      <main className="container mx-auto px-3 sm:px-5 md:px-6 lg:px-8 py-6 sm:py-10 md:py-12 flex-1">
+      <main className="container mx-auto px-4 py-8 flex-1">
         <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
           <div className={`absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] ${
             isDark 
@@ -130,7 +133,18 @@ function App() {
             </div>
           )}
 
-          {!showResults ? (
+          {showResults ? (
+            <SearchResults
+              results={searchResults}
+              isDark={isDark}
+              onBack={handleBack}
+              remainingSearches={remainingSearches}
+              isPremium={isPremium}
+              isPremiumLoading={isPremiumLoading}
+              setShowPremiumModal={setShowPremiumModal}
+              perfectMatch={perfectMatch}
+            />
+          ) : (
             <div>
               <AnimatedHeader isDark={isDark} />
               <div className="w-full -mx-3 sm:-mx-5 md:-mx-6 lg:-mx-8 mb-6 sm:mb-8">
@@ -144,17 +158,6 @@ function App() {
                 />
               </div>
             </div>
-          ) : (
-            <SearchResults
-              results={searchResults}
-              isDark={isDark}
-              onBack={handleBack}
-              remainingSearches={remainingSearches}
-              isPremium={isPremium}
-              isPremiumLoading={isPremiumLoading}
-              setShowPremiumModal={setShowPremiumModal}
-              perfectMatch={perfectMatch}
-            />
           )}
         </div>
       </main>

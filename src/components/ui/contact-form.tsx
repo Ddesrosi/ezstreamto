@@ -57,7 +57,12 @@ export function ContactForm({ isOpen, onClose, isDark }: ContactFormProps) {
                 method="POST"
                 data-netlify="true"
                 netlify-honeypot="bot-field"
-                onSubmit={() => setSubmitted(true)}
+                onSubmit={(e) => {
+  e.preventDefault();
+  setSubmitted(true);
+  (e.target as HTMLFormElement).submit();
+}}
+
                 className="p-6 space-y-4"
               >
                 <input type="hidden" name="form-name" value="contact" />

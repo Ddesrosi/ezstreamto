@@ -4,6 +4,16 @@ export const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 
 export const TMDB_API_KEY = "413cd33f7c45b65014879caead72caba";
 export const BMC_SECRET = import.meta.env.VITE_BMC_SECRET;
+export const DEEPSEEK_API_KEY = import.meta.env.VITE_DEEPSEEK_API_KEY;
+
+// Deepseek Configuration
+export const DEEPSEEK_CONFIG = {
+  baseUrl: 'https://api.deepseek.com/v1',
+  apiKey: DEEPSEEK_API_KEY,
+  model: 'deepseek-chat',
+  temperature: 0.7,
+  maxTokens: 1000
+};
 
 // API Configuration
 export const API_CONFIG = {
@@ -16,7 +26,7 @@ export const API_CONFIG = {
     timeout: 8000, // milliseconds
     retries: 3
   },
-  fallbackImage: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba'
+  fallbackImage: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=500&fit=crop&auto=format'
 };
 
 // User Limits Configuration

@@ -2,7 +2,6 @@ export interface SearchPreferences {
   contentType: string | null;
   selectedMoods: string[];
   selectedGenres: string[];
-  selectedServices: string[];
   keywords: string[];
   yearRange: {
     from: number;

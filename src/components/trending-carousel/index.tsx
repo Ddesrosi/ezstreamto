@@ -1,7 +1,10 @@
 import { useEffect, useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Star } from 'lucide-react';
+import { API_CONFIG } from '@/config';
 import { Movie } from '@/types';
+import { buildImageUrl } from '@/lib/tmdb';
+
 
 interface TrendingCarouselProps {
   isDark: boolean;
@@ -28,7 +31,7 @@ export function TrendingCarousel({ isDark }: TrendingCarouselProps) {
       
       lastFetchRef.current = now;
       
-      const response = await fetch('https://api.themoviedb.org/3/trending/all/day', {
+      const response = await fetch(`https://api.themoviedb.org/3/trending/all/day`, {
         headers: {
           'Authorization': 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI0MTNjZDMzZjdjNDViNjUwMTQ4NzljYWVhZDcyY2FiYSIsIm5iZiI6MTczODAwNTE3Ni43MjMsInN1YiI6IjY3OTdkYWI4YTZlNDEyODNmMTJiNDU2NSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.dM4keiy2kA6XcUufnGGSnCDCUJGwFMg91pq4I5Bziq8',
           'Accept': 'application/json',
@@ -44,10 +47,10 @@ export function TrendingCarousel({ isDark }: TrendingCarouselProps) {
         .map((item: any) => ({
           id: item.id.toString(),
           title: item.title || item.name,
-          year: new Date(item.release_date || item.first_air_date).getFullYear(),
+          year: new Date(item.release_date || item.first_air_date || Date.now()).getFullYear(),
           rating: item.vote_average,
-          imageUrl: `https://image.tmdb.org/t/p/w500${item.poster_path}`,
-          backdropUrl: item.backdrop_path 
+          imageUrl: buildImageUrl(item.poster_path),
+          backdropUrl: item.backdrop_path
             ? `https://image.tmdb.org/t/p/original${item.backdrop_path}`
             : undefined,
           description: item.overview,
@@ -224,8 +227,13 @@ export function TrendingCarousel({ isDark }: TrendingCarouselProps) {
                 loading="lazy"
                 decoding="async"
                 fetchpriority="low"
+                crossorigin="anonymous"
                 draggable="false"
                 onLoad={handleImageLoad}
+                onError={(e) => {
+                  const img = e.target as HTMLImageElement;
+                  img.src = API_CONFIG.fallbackImage;
+                }}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 <div className="absolute bottom-0 left-0 right-0 p-2">

@@ -88,17 +88,6 @@ export const genres = [
   { name: 'Western', icon: Horse } // Already using Horse for Western theme
 ] as const;
 
-export const streamingServices = [
-  { name: 'Netflix', icon: Netflix },
-  { name: 'Amazon Prime', icon: Amazon },
-  { name: 'Disney+', icon: Disney },
-  { name: 'HBO Max', icon: Crown },
-  { name: 'Apple TV+', icon: Apple },
-  { name: 'Hulu', icon: Tv2 },
-  { name: 'Paramount+', icon: Film },
-  { name: 'Peacock', icon: Bird }
-] as const;
-
 export const timePresets = [
   { label: 'Classic Era (1920-1959)', range: { from: 1920, to: 1959 }, icon: History },
   { label: 'New Hollywood (1960-1979)', range: { from: 1960, to: 1979 }, icon: Film },

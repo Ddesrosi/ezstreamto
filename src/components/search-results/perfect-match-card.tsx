@@ -32,8 +32,20 @@ export function PerfectMatchCard({ movie, insights, isDark }: PerfectMatchCardPr
   const [showAllPlatforms, setShowAllPlatforms] = useState(false);
   const [showAllGenres, setShowAllGenres] = useState(false);
 
-  // Remove duplicate platforms
-  const uniquePlatforms = [...new Set(movie.streamingPlatforms)];
+  // Remove duplicate platforms with smarter deduplication
+  const uniquePlatforms = movie.streamingPlatforms.reduce((acc: string[], platform) => {
+    // Check if any variant of this platform already exists
+    const exists = acc.some(existing => {
+      const existingStyle = getPlatformStyle(existing);
+      const newStyle = getPlatformStyle(platform);
+      return existingStyle?.name === newStyle?.name;
+    });
+    
+    if (!exists) {
+      acc.push(platform);
+    }
+    return acc;
+  }, []);
 
   const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const img = e.target as HTMLImageElement;

@@ -1,66 +1,125 @@
 import type { SearchPreferences } from './types';
 
+/**
+ * Builds a structured search prompt for Deepseek based on user preferences
+ */
 export function buildSearchPrompt(preferences: SearchPreferences): string {
-  const sections: string[] = [];
-  
-  // Validate preferences
   if (!preferences) {
     throw new Error('Search preferences are required');
   }
 
-  // Start with the standard prompt header
-  sections.push('Find the best recommendations based on these preferences:');
+  const promptLines: string[] = [];
 
-  // Mandatory fields (always included)
-  sections.push(`- Content Type: ${preferences.contentType === 'movie' ? 'Movies' : 'TV Series'}`);
-  sections.push(`- Mood: ${preferences.selectedMoods.join(', ')}`);
-  sections.push(`- Genres: ${preferences.selectedGenres.join(', ')}`);
+  // Content Type - Critical Base Requirement
+  promptLines.push(
+    `Find ${preferences.contentType === 'movie' ? 'Movies' : 'TV Series'} that EXACTLY match these requirements:`
+  );
 
-  // Premium-only fields
-  if (preferences.isPremium) {
-    // Keywords
+  // Genres - Primary Criteria
+  if (preferences.selectedGenres.length > 0) {
+    promptLines.push(
+      'MUST include these genres:',
+      preferences.selectedGenres.map(genre => `- ${genre}`).join('\n')
+    );
+  }
+
+  // Moods - Emotional Context
+  if (preferences.selectedMoods.length > 0) {
+    promptLines.push(
+      'MUST match these moods/themes:',
+      preferences.selectedMoods.map(mood => `- ${mood}`).join('\n')
+    );
+  }
+
+  // Year Range - Temporal Filter
+  const yearRange = preferences.yearRange;
+  if (preferences.specificYear && preferences.isPremium) {
+    promptLines.push(`MUST be from exactly year: ${preferences.specificYear}`);
+  } else if (yearRange) {
+    promptLines.push(
+      `MUST be released between ${yearRange.from} and ${yearRange.to}`
+    );
+  }
+
+  // Rating Range - Quality Filter
+  const ratingRange = preferences.ratingRange;
+  if (ratingRange) {
+    promptLines.push(
+      `MUST have rating between ${ratingRange.min} and ${ratingRange.max}`
+    );
+  }
+
+  // Keywords - Premium Feature
+  if (preferences.isPremium && preferences.keywords.length > 0) {
+    promptLines.push(
+      'MUST include these themes or elements:',
+      preferences.keywords.map(keyword => `- ${keyword}`).join('\n')
+    );
+  }
+
+  // Perfect Match Instructions
+  if (preferences.isPerfectMatch && preferences.isPremium) {
+    promptLines.push(
+      '\nProvide ONE perfect match with:',
+      '1. Detailed explanation of why it matches',
+      '2. Three similar recommendations',
+      '3. Specific connections to user preferences'
+    );
+  } else {
+    promptLines.push(
+      '\nProvide recommendations that:',
+      '1. STRICTLY follow all criteria above',
+      '2. Are ordered by relevance',
+      '3. Include brief explanations of matches'
+    );
+  }
+
+  // Format Requirements
+  promptLines.push(
+    '\nFor each recommendation, return:',
+    '- Title',
+    '- Year',
+    '- Genres',
+    '- Rating',
+    '- Brief description',
+    '- Match explanation'
+  );
+
+  return promptLines.join('\n\n');
+}
+
+/**
+ * Validates search preferences before building prompt
+ */
+export function validatePreferences(preferences: SearchPreferences): string | null {
+  if (!preferences.contentType) {
+    return 'Content type is required';
+  }
+
+  if (preferences.selectedGenres.length === 0 && preferences.selectedMoods.length === 0) {
+    return 'At least one genre or mood is required';
+  }
+
+  if (preferences.yearRange.from > preferences.yearRange.to) {
+    return 'Invalid year range';
+  }
+
+  if (preferences.ratingRange.min > preferences.ratingRange.max) {
+    return 'Invalid rating range';
+  }
+
+  // Premium feature validation
+  if (!preferences.isPremium) {
     if (preferences.keywords.length > 0) {
-      sections.push(`- Keywords: ${preferences.keywords.join(', ')}`);
+      return 'Keywords are a premium feature';
     }
-
-    // Perfect Match
-    if (preferences.isPerfectMatch) {
-      sections.push('- Looking for a perfect match!');
-    }
-
-    // Specific Year
     if (preferences.specificYear) {
-      sections.push(`- Year: ${preferences.specificYear}`);
-    } else if (preferences.yearRange) {
-      sections.push(`- Year Range: ${preferences.yearRange.from}-${preferences.yearRange.to}`);
+      return 'Specific year selection is a premium feature';
     }
-
-    // Rating Range (if not default)
-    if (preferences.ratingRange.min > 0 || preferences.ratingRange.max < 10) {
-      sections.push(`- Rating Range: ${preferences.ratingRange.min.toFixed(1)}-${preferences.ratingRange.max.toFixed(1)}`);
+    if (preferences.isPerfectMatch) {
+      return 'Perfect match is a premium feature';
     }
   }
 
-  // Optional fields (available to all users)
-  if (preferences.selectedServices.length > 0) {
-    sections.push(`- Available on: ${preferences.selectedServices.join(', ')}`);
-  }
-
-  // Debug logging in development
-  if (import.meta.env.DEV) {
-    console.log('Search Prompt:', {
-      isPremium: preferences.isPremium,
-      contentType: preferences.contentType,
-      moods: preferences.selectedMoods,
-      genres: preferences.selectedGenres,
-      keywords: preferences.keywords,
-      perfectMatch: preferences.isPerfectMatch,
-      yearRange: preferences.yearRange,
-      specificYear: preferences.specificYear,
-      ratingRange: preferences.ratingRange,
-      services: preferences.selectedServices
-    });
-  }
-
-  return sections.join('\n');
+  return null;
 }

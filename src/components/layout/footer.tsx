@@ -15,7 +15,7 @@ export function Footer({ isDark }: FooterProps) {
 
   return (
     <footer className={cn(
-      "w-full border-t py-4 sm:py-6 relative",
+      "w-full border-t py-4 sm:py-6 relative z-10",
       isDark ? 'bg-[#0A1A3F] border-blue-900/30' : 'bg-white border-gray-200'
     )}>
       <div className="container mx-auto px-4">

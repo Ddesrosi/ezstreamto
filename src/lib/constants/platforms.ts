@@ -1,4 +1,4 @@
-// Define approved streaming platforms and their properties
+// Define streaming platform types and helpers
 export const APPROVED_PLATFORMS = {
   'Netflix': {
     color: '#E50914',
@@ -57,3 +57,14 @@ export const APPROVED_PLATFORMS = {
     matches: ['Peacock', 'Peacock Premium', 'Peacock Premium Plus', 'Peacock TV']
   }
 } as const;
+
+export function getPlatformStyle(platform: string) {
+  const approvedPlatform = Object.entries(APPROVED_PLATFORMS).find(([name, data]) => 
+    data.matches.includes(platform) || name === platform
+  );
+
+  return approvedPlatform ? {
+    name: approvedPlatform[0],
+    ...approvedPlatform[1]
+  } : null;
+}

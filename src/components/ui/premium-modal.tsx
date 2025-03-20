@@ -40,17 +40,18 @@ export function PremiumModal({ isOpen, onClose, onUpgrade }: PremiumModalProps) 
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80">
+      <div className="fixed inset-0 z-[999999] isolate flex items-center justify-center p-4">
+        <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
-          className="relative w-[90vw] xs:w-[85vw] sm:w-full max-w-lg bg-gradient-to-b from-blue-600 to-blue-700 rounded-xl shadow-xl overflow-hidden"
+          className="relative w-[90vw] xs:w-[85vw] sm:w-full max-w-lg bg-gradient-to-b from-blue-600 to-blue-700 rounded-xl shadow-2xl overflow-hidden translate-z-0 z-10"
         >
           {/* Close Button */}
           <button
             onClick={onClose}
-            className="absolute top-3 right-3 sm:top-4 sm:right-4 text-white/70 hover:text-white transition-colors"
+            className="absolute top-3 right-3 sm:top-4 sm:right-4 text-white/70 hover:text-white transition-colors z-20"
           >
             <X className="h-5 w-5 sm:h-6 sm:w-6" />
           </button>

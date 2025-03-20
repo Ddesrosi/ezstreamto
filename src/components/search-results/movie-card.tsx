@@ -1,7 +1,6 @@
 import { useState, memo } from 'react';
 import { API_CONFIG } from "@/config";
 import { mapTMDBGenres } from "@/lib/constants/genres";
-import { APPROVED_PLATFORMS } from "@/lib/constants/platforms";
 import type { Movie } from '@/types';
 import { motion } from 'framer-motion';
 import { Star, Youtube, Share2 } from 'lucide-react';
@@ -14,24 +13,13 @@ interface MovieCardProps {
   isDark: boolean;
 }
 
-function getPlatformStyle(platform: string) {
-  const approvedPlatform = Object.entries(APPROVED_PLATFORMS).find(([name, data]) => 
-    data.matches.includes(platform) || name === platform
-  );
-
-  return approvedPlatform ? {
-    name: approvedPlatform[0],
-    ...approvedPlatform[1]
-  } : null;
-}
-
 export function MovieCard({ movie, isDark }: MovieCardProps) {
   console.log("🎬 [DEBUG] Rendering MovieCard for:", movie.title);
-console.log("📆 [DEBUG] Release Year:", movie.year);
-console.log("⏳ [DEBUG] Duration:", movie.duration);
-console.log("⭐ [DEBUG] Rating:", movie.rating);
-console.log("📺 [DEBUG] Streaming Platforms:", movie.streamingPlatforms);
-console.log("🎞️ [DEBUG] Trailer URL:", movie.youtubeUrl);
+  console.log("📆 [DEBUG] Release Year:", movie.year);
+  console.log("⏳ [DEBUG] Duration:", movie.duration);
+  console.log("⭐ [DEBUG] Rating:", movie.rating);
+  console.log("📺 [DEBUG] Streaming Platforms:", movie.streamingPlatforms);
+  console.log("🎞️ [DEBUG] Trailer URL:", movie.youtubeUrl);
 
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
@@ -39,17 +27,26 @@ console.log("🎞️ [DEBUG] Trailer URL:", movie.youtubeUrl);
   const [showAllPlatforms, setShowAllPlatforms] = useState(false);
   const [showAllGenres, setShowAllGenres] = useState(false);
 
-  // Remove duplicate platforms
+  // Remove duplicates while preserving order
   const uniquePlatforms = [...new Set(movie.streamingPlatforms)];
 
   const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const img = e.target as HTMLImageElement;
+    console.log('✅ Image loaded successfully:', {
+      src: img.src,
+      movie: movie.title
+    });
     setImageLoaded(true);
     img.classList.add('loaded');
   };
 
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const img = e.target as HTMLImageElement;
+    console.log('❌ Image load failed:', {
+      originalSrc: img.src,
+      movie: movie.title,
+      fallbackImage: API_CONFIG.fallbackImage
+    });
     setImageError(true);
     img.src = API_CONFIG.fallbackImage;
   };
@@ -79,11 +76,14 @@ console.log("🎞️ [DEBUG] Trailer URL:", movie.youtubeUrl);
       <div className="relative aspect-[2/3] overflow-hidden bg-gray-900">
         <img
           src={movie.imageUrl}
-          alt={movie.title}
+          alt={`${movie.title} Poster`}
           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           loading="lazy"
+          decoding="async"
+          fetchpriority="high"
           onLoad={handleImageLoad}
           onError={handleImageError}
+          crossOrigin="anonymous"
         />
         {!imageLoaded && !imageError && (
           <div className="absolute inset-0 bg-gray-800 animate-pulse" />
@@ -122,23 +122,28 @@ console.log("🎞️ [DEBUG] Trailer URL:", movie.youtubeUrl);
           </span>
           <div className="flex flex-wrap justify-end gap-2 w-auto">
             {uniquePlatforms.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
-                {uniquePlatforms.map(platform => {
-                  const style = getPlatformStyle(platform);
-                  return style ? (
-                    <span
-                      key={platform}
-                      className={cn(
-                        "text-xs px-2.5 py-1.5 rounded-full transition-all whitespace-nowrap",
-                        style.bgColor,
-                        style.textColor,
-                        "hover:opacity-90"
-                      )}
-                    >
-                      {style.shortName}
-                    </span>
-                  ) : null;
-                })}
+              <div className="flex flex-wrap gap-1.5 justify-end">
+                {uniquePlatforms.map((platform, index) => (
+                  <span
+                    key={platform}
+                    className={cn(
+                      "text-xs px-2 py-1 rounded-md transition-all flex items-center gap-1.5 whitespace-normal",
+                      isDark 
+                        ? 'bg-purple-900/30 text-purple-200 border border-purple-700/30' 
+                        : 'bg-purple-50 text-purple-700 border border-purple-100',
+                      "hover:border-opacity-50"
+                    )}
+                    title={platform}
+                  >
+                    <svg className="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M4 4h16v12H4z" />
+                      <path d="M8 16v4" />
+                      <path d="M16 16v4" />
+                      <path d="M6 20h12" />
+                    </svg>
+                    <span className="leading-tight">{platform}</span>
+                  </span>
+                ))}
               </div>
             ) : (
               <span className={cn(
@@ -154,17 +159,19 @@ console.log("🎞️ [DEBUG] Trailer URL:", movie.youtubeUrl);
         {/* Genres */}
         <div className="flex flex-wrap gap-1 min-h-[1.75rem]">
           {movie.genres.map(genre => (
-            <span
+            <motion.span
+              whileHover={{ scale: 1.05 }}
+              transition={{ type: "spring", stiffness: 400, damping: 10 }}
               key={genre}
               className={cn(
                 "text-xs px-2.5 py-1.5 rounded-full transition-all whitespace-nowrap",
                 isDark 
-                  ? 'bg-blue-900/30 text-blue-200 hover:bg-blue-900/40' 
-                  : 'bg-blue-100 text-blue-800 hover:bg-blue-200'
+                  ? 'bg-blue-900/20 text-blue-200 ring-1 ring-blue-500/20' 
+                  : 'bg-blue-50 text-blue-700 ring-1 ring-blue-200/50'
               )}
             >
               {genre}
-            </span>
+            </motion.span>
           ))}
         </div>
 

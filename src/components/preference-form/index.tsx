@@ -34,9 +34,6 @@ function PreferenceForm({ isDark, onSearch, onError }: PreferenceFormProps) {
   const [selectedMoods, setSelectedMoods] = useState<string[]>([]);
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   
-  // Streaming Services
-  const [selectedServices, setSelectedServices] = useState<string[]>([]);
-  
   // Keywords state and handlers
   const [keywords, setKeywords] = useState<string[]>([]);
 
@@ -190,7 +187,6 @@ function PreferenceForm({ isDark, onSearch, onError }: PreferenceFormProps) {
         contentType,
         selectedMoods,
         selectedGenres,
-        selectedServices,
         keywords: isPremium ? keywords : [],
         yearRange,
         specificYear: isPremium && specificYearInput ? parseInt(specificYearInput) : null,
@@ -217,7 +213,7 @@ function PreferenceForm({ isDark, onSearch, onError }: PreferenceFormProps) {
     }
   }, [
     contentType, selectedMoods, selectedGenres,
-    selectedServices, keywords, yearRange, 
+    keywords, yearRange, 
     ratingRange, onSearch, onError, isPremium, specificYearInput,
     isPerfectMatchEnabled
   ]);
@@ -545,32 +541,6 @@ function PreferenceForm({ isDark, onSearch, onError }: PreferenceFormProps) {
                 </div>
               </div>
             </PremiumFeatureWrapper>
-
-            {/* Streaming Services */}
-            <div className={`p-3 sm:p-6 rounded-lg border ${isDark ? 'bg-[#0A1A3F] border-blue-900/30' : 'bg-white border-gray-200'}`}>
-              <div className="flex items-center gap-2 mb-3 sm:mb-4">
-                <Tooltip content="Select your streaming services to find where to watch">
-                  <h3 className={`text-base sm:text-lg font-semibold ${isDark ? 'text-blue-100' : 'text-gray-900'}`}>
-                    My Streaming Platforms
-                  </h3>
-                </Tooltip>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
-                {streamingServices.map(({ name, icon: Icon }) => (
-                  <Button
-                    key={name}
-                    variant={selectedServices.includes(name) ? 'primary' : 'secondary'}
-                    onClick={() => setSelectedServices(prev => 
-                      prev.includes(name) ? prev.filter(s => s !== name) : [...prev, name]
-                    )}
-                    className="flex items-center justify-center gap-2"
-                  >
-                    <Icon className="h-4 w-4" />
-                    <span className="text-sm whitespace-nowrap">{name}</span>
-                  </Button>
-                ))}
-              </div>
-            </div>
 
             {/* Find Matches Button */}
             <Button 

@@ -1,15 +1,40 @@
 import { API_CONFIG } from '@/config';
 import { Movie } from '@/types';
 import { mapTMDBGenres, genreMap } from './constants/genres';
-import { APPROVED_PLATFORMS } from './constants/platforms';
 import type { SearchPreferences } from './deepseek/types';
 import { RateLimiter } from './utils/rate-limiter';
 import { retryWithBackoff } from './utils/retry';
 
-const TMDB_IMAGE_URL = `${API_CONFIG.tmdb.imageBaseUrl}/w500`;
-const TMDB_DISCOVER_URL = `${API_CONFIG.tmdb.baseUrl}/discover`;
 export const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba';
-export const FALLBACK_TRAILER = 'https://www.youtube.com/results?search_query=official+movie+trailer';
+
+console.log('🔍 TMDB Config:', {
+  imageBaseUrl: API_CONFIG.tmdb.imageBaseUrl,
+  fallbackImage: API_CONFIG.fallbackImage
+});
+
+// Helper function to build TMDB image URL
+export function buildImageUrl(path: string | null | undefined, size: string = 'w500'): string {
+  console.log('🖼️ Building image URL:', { path, size });
+  if (!path) return API_CONFIG.fallbackImage;
+  
+  // Ensure path starts with '/'
+  const cleanPath = path.startsWith('/') ? path : `/${path}`;
+  const fullUrl = `${API_CONFIG.tmdb.imageBaseUrl}/${size}${cleanPath}`;
+  
+  console.log('🔗 Generated image URL:', fullUrl);
+  return fullUrl;
+}
+
+// Helper function to get trailer URL
+function getTrailerUrl(details: any): string {
+  const trailer = details.videos?.results?.find(
+    (video: any) => video?.site === 'YouTube' && 
+      (video.type === 'Trailer' || video.type === 'Teaser')
+  );
+  return trailer
+    ? `https://www.youtube.com/watch?v=${trailer.key}`
+    : `https://www.youtube.com/results?search_query=${encodeURIComponent(`${details.title || ''} trailer`)}`;
+}
 
 console.log('🔍 Initializing TMDB API client');
 
@@ -219,10 +244,10 @@ export async function fetchMoviesFromTMDB(preferences: SearchPreferences): Promi
         language: (result.original_language || 'en').toUpperCase(),
         genres: mapTMDBGenres(result.genre_ids || []),
         description: result.overview || 'No description available',
-        imageUrl: result.poster_path ? `${TMDB_IMAGE_URL}${result.poster_path}` : FALLBACK_IMAGE,
-        backdropUrl: result.backdrop_path ? `${TMDB_IMAGE_URL}${result.backdrop_path}` : undefined,
+        imageUrl: buildImageUrl(result.poster_path),
+        backdropUrl: result.backdrop_path ? buildImageUrl(result.backdrop_path, 'original') : undefined,
         streamingPlatforms: [],
-        youtubeUrl: FALLBACK_TRAILER,
+        youtubeUrl: `https://www.youtube.com/results?search_query=${encodeURIComponent(`${result.title || result.name} trailer`)}`,
         hasTrailer: false
       }))
     );
@@ -246,70 +271,79 @@ export async function fetchMoviesFromTMDB(preferences: SearchPreferences): Promi
 
 export async function enrichMovieWithPoster(movie: Movie): Promise<Movie> {
   try {
-    console.log('🎬 Enriching movie:', movie.title);
+    console.log('🎬 Enriching movie:', {
+      title: movie.title,
+      id: movie.id,
+      currentImageUrl: movie.imageUrl
+    });
     
-    // Determine content type based on duration
-    const contentType = movie.duration === 'TV Series' ? 'tv' : 'movie';
-    const details = await tmdbRequest(`/${contentType}/${movie.id}?append_to_response=videos,watch/providers`);
+    const details = await tmdbRequest(`/${movie.duration === 'TV Series' ? 'tv' : 'movie'}/${movie.id}?append_to_response=videos,watch/providers`);
     
-    // Get runtime from details
-    const runtime = contentType === 'movie' 
-      ? details.runtime 
-      : details.episode_run_time?.[0] || movie.duration;
-      
-    const duration = typeof runtime === 'number' ? runtime : 
-      typeof movie.duration === 'number' ? movie.duration : 
-      movie.duration === 'TV Series' ? 'TV Series' : 120;
+    console.log('📥 TMDB API Response:', {
+      title: details.title || details.name,
+      poster_path: details.poster_path,
+      backdrop_path: details.backdrop_path,
+      id: details.id
+    });
 
-    const trailer = details.videos?.results?.find(
-      video => video?.site === 'YouTube' && 
-        (video.type === 'Trailer' || video.type === 'Teaser' || video.type === 'Opening Credits')
-    );
-    
-    const youtubeUrl = trailer?.key 
-      ? `https://www.youtube.com/watch?v=${trailer.key}` 
-      : `https://www.youtube.com/results?search_query=${encodeURIComponent(`${movie.title} ${movie.year} trailer`)}`;
+    // Explicitly build image URLs using TMDB paths
+    const imageUrl = buildImageUrl(details.poster_path);
+    const backdropUrl = details.backdrop_path ? buildImageUrl(details.backdrop_path, 'original') : undefined;
+
+    console.log('🖼️ Final image URLs:', { 
+      imageUrl, 
+      backdropUrl,
+      fallbackUsed: !details.poster_path 
+    });
 
     console.log('⚠️ [DEBUG] Raw Watch Providers Data:', details['watch/providers']);
 
     let streamingPlatforms: string[] = [];
 
     if (details['watch/providers']?.results) {
-        Object.values(details['watch/providers'].results).forEach((providerData: any) => {
-            if (providerData.flatrate) {
-                streamingPlatforms.push(...providerData.flatrate.map((provider: any) => provider.provider_name));
-            }
-            if (providerData.buy) {
-                streamingPlatforms.push(...providerData.buy.map((provider: any) => provider.provider_name));
-            }
-            if (providerData.rent) {
-                streamingPlatforms.push(...providerData.rent.map((provider: any) => provider.provider_name));
-            }
-        });
+        // Get US providers first, fallback to any region if US not available
+        const usProviders = details['watch/providers'].results.US;
+        const anyRegionProviders = Object.values(details['watch/providers'].results)[0];
+        const providers = usProviders || anyRegionProviders;
+        
+        if (providers) {
+          // Get all available providers
+          if (providers.flatrate) {
+            streamingPlatforms.push(...providers.flatrate.map((p: any) => p.provider_name));
+          }
+          if (providers.free) {
+            streamingPlatforms.push(...providers.free.map((p: any) => p.provider_name));
+          }
+          if (providers.ads) {
+            streamingPlatforms.push(...providers.ads.map((p: any) => p.provider_name));
+          }
+          if (providers.buy) {
+            streamingPlatforms.push(...providers.buy.map((p: any) => p.provider_name));
+          }
+          if (providers.rent) {
+            streamingPlatforms.push(...providers.rent.map((p: any) => p.provider_name));
+          }
+        }
     }
 
     streamingPlatforms = [...new Set(streamingPlatforms)];
-    console.log('✅ [DEBUG] Streaming Platforms Before Filtering:', streamingPlatforms);
-
-    // ✅ Define `filteredPlatforms` before using it
-    const approvedPlatformNames = Object.keys(APPROVED_PLATFORMS);
-    const approvedMatches = Object.values(APPROVED_PLATFORMS).flatMap(platform => platform.matches);
-
-    const filteredPlatforms = streamingPlatforms.filter(provider =>
-        approvedPlatformNames.includes(provider) || approvedMatches.includes(provider)
-    );
-
-    console.log('✅ [DEBUG] Streaming Platforms Final before returning:', filteredPlatforms);
+    console.log('✅ [DEBUG] Streaming Platforms Final:', streamingPlatforms);
 
     return {
       ...movie,
-      duration,
-      streamingPlatforms: filteredPlatforms.length > 0 ? filteredPlatforms : [],
-      youtubeUrl,
-      hasTrailer: !!trailer
+      imageUrl,
+      backdropUrl,
+      youtubeUrl: getTrailerUrl(details),
+      streamingPlatforms
     };
   } catch (error) {
     console.warn(`⚠️ Could not enrich ${movie.duration === 'TV Series' ? 'TV series' : 'movie'} details:`, movie.title, error);
-    return movie;
+    
+    return {
+      ...movie,
+      imageUrl: movie.imageUrl || API_CONFIG.fallbackImage,
+      youtubeUrl: `https://www.youtube.com/results?search_query=${encodeURIComponent(`${movie.title} trailer`)}`,
+      streamingPlatforms: []
+    };
   }
 }

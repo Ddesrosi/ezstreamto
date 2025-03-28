@@ -45,36 +45,38 @@ function App() {
     remaining?: number,
     perfectMatchResult?: typeof perfectMatch
   ) => {
-    console.log('🎬 Handling search results:', {
-      resultsCount: results.length,
+    console.log('📥 App.tsx handleSearch called with:', {
+      resultsCount: results?.length,
       remaining,
-      hasPerfectMatch: !!perfectMatchResult,
-      currentState: { showResults, searchResults: searchResults.length }
+      hasPerfectMatch: !!perfectMatchResult
     });
 
     if (!results || results.length === 0) {
+      console.warn('❌ No results received');
       setError('No results found. Please try different preferences.');
       return;
     }
 
     // Ensure state updates happen in the correct order
     setError(null);
+    console.log('🔄 Updating state...');
     setSearchResults(results);
     setShowResults(true);
     setPerfectMatch(perfectMatchResult);
+
     if (remaining !== undefined) {
       setRemainingSearches(remaining);
     }
     
+    console.log('✅ State updated:', {
+      showResults: true,
+      resultsCount: results.length,
+      error: null
+    });
+
     // Force scroll after state updates
     requestAnimationFrame(() => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
-    });
-
-    console.log('🔄 Updated state:', {
-      showResults: true,
-      resultsCount: results.length,
-      remaining
     });
   };
 
@@ -161,16 +163,18 @@ function App() {
           )}
 
           {showResults ? (
-            <SearchResults
-              results={searchResults}
-              isDark={isDark}
-              onBack={handleBack}
-              remainingSearches={remainingSearches}
-              isPremium={isPremium}
-              isPremiumLoading={isPremiumLoading}
-              setShowPremiumModal={setShowPremiumModal}
-              perfectMatch={perfectMatch}
-            />
+            <div key={searchResults.length}>
+              <SearchResults
+                results={searchResults}
+                isDark={isDark}
+                onBack={handleBack}
+                remainingSearches={remainingSearches}
+                isPremium={isPremium}
+                isPremiumLoading={isPremiumLoading}
+                setShowPremiumModal={setShowPremiumModal}
+                perfectMatch={perfectMatch}
+              />
+            </div>
           ) : (
             <div>
               <AnimatedHeader isDark={isDark} />

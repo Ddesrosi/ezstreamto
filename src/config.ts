@@ -4,17 +4,7 @@ export const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 
 // Import all sensitive keys from .env
 export const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY;
-export const DEEPSEEK_API_KEY = import.meta.env.VITE_DEEPSEEK_API_KEY;
 export const BMC_SECRET = import.meta.env.VITE_BMC_SECRET;
-
-// Deepseek Configuration
-export const DEEPSEEK_CONFIG = {
-  baseUrl: 'https://api.deepseek.com/v1/chat/completions',
-  apiKey: DEEPSEEK_API_KEY,
-  model: 'deepseek-chat',
-  temperature: 0.7,
-  maxTokens: 1000
-};
 
 // TMDB Configuration
 export const API_CONFIG = {

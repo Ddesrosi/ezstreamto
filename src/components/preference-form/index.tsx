@@ -116,11 +116,12 @@ function PreferenceForm({ isDark, onSearch, onError }: PreferenceFormProps) {
   }, []);
 
   const handleSearch = useCallback(async () => {
-    console.log('🔍 Starting search with preferences:', {
+    console.log('🔍 handleSearch triggered with:', {
       contentType,
-      moods: selectedMoods,
-      genres: selectedGenres,
-      isPremium
+      moods: selectedMoods.length,
+      genres: selectedGenres.length,
+      isPremium,
+      isPerfectMatch: isPerfectMatchEnabled
     });
 
     if (!contentType) {
@@ -128,74 +129,34 @@ function PreferenceForm({ isDark, onSearch, onError }: PreferenceFormProps) {
       return;
     }
 
-    if (selectedMoods.length === 0) {
-      onError('Please select at least one mood');
-      return;
-    }
-
-    if (selectedGenres.length === 0) {
-      onError('Please select at least one genre');
-      return;
-    }
-
-    // Validate Premium-only features
-    if (!isPremium) {
-      if (keywords.length > 0) {
-        onError('Keywords are a Premium feature');
-        return;
-      }
-      if (isPerfectMatchEnabled) {
-        onError('Perfect Match is a Premium feature');
-        return;
-      }
-      if (specificYearInput) {
-        onError('Specific year selection is a Premium feature');
-        return;
-      }
-      if (ratingRange.min > 0 || ratingRange.max < 10) {
-        onError('Custom rating ranges are a Premium feature');
-        return;
-      }
-    }
-
     try {
       setIsSearching(true);
       setShowModal(true);
       setSearchProgress(0);
 
-      const searchValidation = await validateSearch();
-      
-      if (!searchValidation.canSearch) {
-        setSearchLimitMessage(searchValidation.message || 'Search limit reached');
-        setShowLimitToast(true);
-        setShowPremiumModal(true);
-        setIsSearching(false);
-        setShowModal(false);
-        return;
-      }
-
-      if (searchValidation.remaining !== undefined) {
-        setRemainingSearches(searchValidation.remaining);
-      }
-
+      // Start progress animation
       const progressInterval = setInterval(() => {
         setSearchProgress(prev => {
           if (prev >= 85) {
             clearInterval(progressInterval);
             return 85;
           }
-          const increment = prev < 30 ? 2 : prev < 60 ? 4 : 3;
-          return prev + Math.random() * increment;
+          return prev + Math.random() * 5;
         });
-      }, 400);
+      }, 300);
 
-      console.log('🔍 Starting search with preferences:', {
-        contentType,
-        selectedMoods,
-        selectedGenres,
-        yearRange,
-        ratingRange
-      });
+      const searchValidation = await validateSearch();
+      console.log('✅ Search validation:', searchValidation);
+      
+      if (!searchValidation.canSearch) {
+        setSearchLimitMessage(searchValidation.message || 'Search limit reached');
+        setShowLimitToast(true);
+        setShowPremiumModal(true);
+        clearInterval(progressInterval);
+        setIsSearching(false);
+        setShowModal(false);
+        return;
+      }
 
       const response = await getMovieRecommendations({
         contentType,
@@ -210,38 +171,43 @@ function PreferenceForm({ isDark, onSearch, onError }: PreferenceFormProps) {
         isPerfectMatchEnabled: isPerfectMatchEnabled && isPremium
       });
 
+      console.log('📥 Raw API response:', response);
       const { results } = response;
-
-      console.log('✅ Search results:', {
-        resultsCount: results.length,
-        firstMovie: results[0]?.title,
-        remainingSearches: searchValidation.remaining
+      console.log('🎬 Parsed results:', {
+        count: results?.length,
+        firstMovie: results?.[0]
       });
+
+      if (!results || results.length === 0) {
+        throw new Error('No results found. Please try different preferences.');
+      }
 
       clearInterval(progressInterval);
       setSearchProgress(100);
       
-      setTimeout(() => {
-        onSearch(results, searchValidation.remaining);
-        setIsSearching(false);
-        setShowModal(false);
-        setSearchProgress(0);
-      }, 1000);
+      console.log('🚀 Calling onSearch with:', {
+        resultsCount: results.length,
+        remaining: searchValidation.remaining
+      });
 
-    } catch (error) {
-      console.error('Search error:', error);
+      onSearch(results, searchValidation.remaining);
       setIsSearching(false);
       setShowModal(false);
       setSearchProgress(0);
+
+    } catch (error) {
+      console.error('❌ Search error:', error);
+      setIsSearching(false);
+      setShowModal(false);
+      clearInterval(progressInterval);
+      setSearchProgress(0);
       const errorMessage = error instanceof Error ? error.message : 'Unable to get recommendations';
-      console.error('❌ Search failed:', errorMessage);
       onError(errorMessage);
     }
   }, [
     contentType, selectedMoods, selectedGenres,
-    keywords, yearRange, 
-    ratingRange, onSearch, onError, isPremium, specificYearInput,
-    isPerfectMatchEnabled
+    keywords, yearRange, ratingRange, onSearch, onError,
+    isPremium, specificYearInput, isPerfectMatchEnabled
   ]);
 
   const SearchCreditsSection = () => (
@@ -572,7 +538,10 @@ function PreferenceForm({ isDark, onSearch, onError }: PreferenceFormProps) {
             <Button 
               size="lg" 
               className="w-full h-12 sm:h-14 text-base sm:text-lg transition-all duration-300 mt-6"
-              onClick={handleSearch}
+              onClick={() => {
+                console.log('🔍 Search button clicked');
+                handleSearch();
+              }}
               disabled={isSearching || !contentType || selectedMoods.length === 0 || selectedGenres.length === 0}
             >
               {isSearching ? (

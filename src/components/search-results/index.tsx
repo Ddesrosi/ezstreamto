@@ -38,6 +38,12 @@ export default function SearchResults({
   setShowPremiumModal,
   perfectMatch 
 }: SearchResultsProps) {
+  console.log('🎬 SearchResults mounted with:', {
+    resultsCount: results?.length,
+    isPremium,
+    hasPerfectMatch: !!perfectMatch
+  });
+
   const [displayedResults, setDisplayedResults] = useState<Movie[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showLocalPremiumModal, setShowLocalPremiumModal] = useState(false);
@@ -59,6 +65,10 @@ export default function SearchResults({
       try {
         const initialBatch = results.slice(0, ITEMS_PER_BATCH);
         console.log('📦 Loading initial batch:', initialBatch.length);
+        console.log('📦 Loading initial batch:', {
+          size: initialBatch.length,
+          firstMovie: initialBatch[0]?.title
+        });
         setDisplayedResults(initialBatch);
       } catch (error) {
         console.error('Error loading results:', error);

@@ -41,23 +41,32 @@ export default function SearchResults({
   const [displayedResults, setDisplayedResults] = useState<Movie[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showLocalPremiumModal, setShowLocalPremiumModal] = useState(false);
+  const [loadingError, setLoadingError] = useState<string | null>(null);
 
   useEffect(() => {
     console.log('Search Results Mount:', {
       resultsCount: results.length,
-      perfectMatch: !!perfectMatch
+      hasResults: results && results.length > 0,
+      displayedCount: displayedResults.length
     });
 
     setIsLoading(true);
+    setLoadingError(null);
     setDisplayedResults([]);
 
-    const loadResults = async () => {
-      const initialBatch = results.slice(0, ITEMS_PER_BATCH);
-      console.log('Loading initial batch:', initialBatch.length);
-      setDisplayedResults(initialBatch);
-      setIsLoading(false);
-    };
-    loadResults();
+    // Immediately load initial batch
+    if (results && results.length > 0) {
+      try {
+        const initialBatch = results.slice(0, ITEMS_PER_BATCH);
+        console.log('📦 Loading initial batch:', initialBatch.length);
+        setDisplayedResults(initialBatch);
+      } catch (error) {
+        console.error('Error loading results:', error);
+        setLoadingError(error instanceof Error ? error.message : 'Failed to load results');
+      } finally {
+        setIsLoading(false);
+      }
+    }
   }, [results, perfectMatch, isPremium]);
 
   useEffect(() => {

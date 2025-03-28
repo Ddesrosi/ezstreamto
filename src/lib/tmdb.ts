@@ -77,11 +77,21 @@ async function tmdbRequest<T>(
         signal: controller.signal,
         headers: {
           ...fetchOptions.headers,
+          'Authorization': `Bearer ${API_CONFIG.tmdb.apiKey}`,
           'Accept': 'application/json'
         }
       });
       clearTimeout(timeoutId);
       if (!response.ok) {
+        // Check for 404 specifically
+        if (response.status === 404) {
+          console.warn('🚫 TMDB resource not found:', url);
+          return null; // Signal that the resource was not found
+        }
+        console.error('❌ TMDB API error:', {
+          status: response.status,
+          url: url.replace(API_CONFIG.tmdb.apiKey, '[REDACTED]')
+        });
         throw new Error(`HTTP error ${response.status}`);
       }
       return await response.json();
@@ -271,32 +281,60 @@ export async function fetchMoviesFromTMDB(preferences: SearchPreferences): Promi
 
 export async function enrichMovieWithPoster(movie: Movie): Promise<Movie> {
   try {
-    console.log('🎬 Enriching movie:', {
+    console.log('🎥 Enriching movie details:', {
       title: movie.title,
       id: movie.id,
-      currentImageUrl: movie.imageUrl
+      year: movie.year,
+      hasImage: !!movie.imageUrl
     });
     
+    // Validate movie ID
+    if (!movie.id || movie.id === 'undefined') {
+      console.warn('⚠️ Invalid movie ID:', movie.title);
+      return {
+        ...movie,
+        imageUrl: API_CONFIG.fallbackImage,
+        youtubeUrl: `https://www.youtube.com/results?search_query=${encodeURIComponent(`${movie.title} trailer`)}`,
+        streamingPlatforms: []
+      };
+    }
+
     const details = await tmdbRequest(`/${movie.duration === 'TV Series' ? 'tv' : 'movie'}/${movie.id}?append_to_response=videos,watch/providers`);
+
+    if (details === null) {
+      console.warn(`❌ TMDB details not found for ${movie.title} (ID: ${movie.id})`);
+      return {
+        ...movie,
+        imageUrl: API_CONFIG.fallbackImage,
+        youtubeUrl: `https://www.youtube.com/results?search_query=${encodeURIComponent(`${movie.title} trailer`)}`,
+        streamingPlatforms: [],
+        enrichmentFailed: true
+      };
+    }
     
-    console.log('📥 TMDB API Response:', {
+    console.log('📥 TMDB details received:', {
       title: details.title || details.name,
-      poster_path: details.poster_path,
-      backdrop_path: details.backdrop_path,
-      id: details.id
+      hasPoster: !!details.poster_path,
+      hasBackdrop: !!details.backdrop_path,
+      hasVideos: details.videos?.results?.length > 0,
+      hasProviders: !!details['watch/providers']?.results
     });
 
     // Explicitly build image URLs using TMDB paths
     const imageUrl = buildImageUrl(details.poster_path);
     const backdropUrl = details.backdrop_path ? buildImageUrl(details.backdrop_path, 'original') : undefined;
 
-    console.log('🖼️ Final image URLs:', { 
+    console.log('🖼️ Generated image URLs:', { 
       imageUrl, 
       backdropUrl,
-      fallbackUsed: !details.poster_path 
+      usingFallback: !details.poster_path,
+      originalPosterPath: details.poster_path
     });
 
-    console.log('⚠️ [DEBUG] Raw Watch Providers Data:', details['watch/providers']);
+    console.log('📺 Processing streaming providers:', {
+      hasUSProviders: !!details['watch/providers']?.results?.US,
+      totalRegions: Object.keys(details['watch/providers']?.results || {}).length
+    });
 
     let streamingPlatforms: string[] = [];
 
@@ -327,7 +365,10 @@ export async function enrichMovieWithPoster(movie: Movie): Promise<Movie> {
     }
 
     streamingPlatforms = [...new Set(streamingPlatforms)];
-    console.log('✅ [DEBUG] Streaming Platforms Final:', streamingPlatforms);
+    console.log('✅ Final streaming platforms:', {
+      count: streamingPlatforms.length,
+      platforms: streamingPlatforms
+    });
 
     return {
       ...movie,
@@ -337,7 +378,11 @@ export async function enrichMovieWithPoster(movie: Movie): Promise<Movie> {
       streamingPlatforms
     };
   } catch (error) {
-    console.warn(`⚠️ Could not enrich ${movie.duration === 'TV Series' ? 'TV series' : 'movie'} details:`, movie.title, error);
+    console.error('❌ Failed to enrich movie:', {
+      title: movie.title,
+      type: movie.duration === 'TV Series' ? 'TV series' : 'movie',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
     
     return {
       ...movie,

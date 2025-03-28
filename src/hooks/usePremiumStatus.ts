@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 
+
 export function usePremiumStatus() {
   const [isPremium, setIsPremium] = useState(false);
   const [isLoading, setIsLoading] = useState(false);

@@ -116,6 +116,13 @@ function PreferenceForm({ isDark, onSearch, onError }: PreferenceFormProps) {
   }, []);
 
   const handleSearch = useCallback(async () => {
+    console.log('🔍 Starting search with preferences:', {
+      contentType,
+      moods: selectedMoods,
+      genres: selectedGenres,
+      isPremium
+    });
+
     if (!contentType) {
       onError('Please select a content type first');
       return;
@@ -171,7 +178,6 @@ function PreferenceForm({ isDark, onSearch, onError }: PreferenceFormProps) {
         setRemainingSearches(searchValidation.remaining);
       }
 
-
       const progressInterval = setInterval(() => {
         setSearchProgress(prev => {
           if (prev >= 85) {
@@ -183,7 +189,15 @@ function PreferenceForm({ isDark, onSearch, onError }: PreferenceFormProps) {
         });
       }, 400);
 
-      const { results, perfectMatch } = await getMovieRecommendations({
+      console.log('🔍 Starting search with preferences:', {
+        contentType,
+        selectedMoods,
+        selectedGenres,
+        yearRange,
+        ratingRange
+      });
+
+      const response = await getMovieRecommendations({
         contentType,
         selectedMoods,
         selectedGenres,
@@ -192,24 +206,36 @@ function PreferenceForm({ isDark, onSearch, onError }: PreferenceFormProps) {
         specificYear: isPremium && specificYearInput ? parseInt(specificYearInput) : null,
         ratingRange,
         isPremium,
-        isPerfectMatch: isPerfectMatchEnabled && isPremium
+        isPerfectMatch: isPerfectMatchEnabled && isPremium,
+        isPerfectMatchEnabled: isPerfectMatchEnabled && isPremium
+      });
+
+      const { results } = response;
+
+      console.log('✅ Search results:', {
+        resultsCount: results.length,
+        firstMovie: results[0]?.title,
+        remainingSearches: searchValidation.remaining
       });
 
       clearInterval(progressInterval);
       setSearchProgress(100);
       
       setTimeout(() => {
-        onSearch(results, searchValidation.remaining, perfectMatch);
+        onSearch(results, searchValidation.remaining);
         setIsSearching(false);
         setShowModal(false);
         setSearchProgress(0);
-      }, 800);
+      }, 1000);
 
     } catch (error) {
+      console.error('Search error:', error);
       setIsSearching(false);
       setShowModal(false);
       setSearchProgress(0);
-      onError(error instanceof Error ? error.message : 'Failed to get recommendations');
+      const errorMessage = error instanceof Error ? error.message : 'Unable to get recommendations';
+      console.error('❌ Search failed:', errorMessage);
+      onError(errorMessage);
     }
   }, [
     contentType, selectedMoods, selectedGenres,

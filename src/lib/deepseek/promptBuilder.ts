@@ -1,91 +1,62 @@
 import type { SearchPreferences } from './types';
 
-/**
- * Builds a structured search prompt for Deepseek based on user preferences
- */
 export function buildSearchPrompt(preferences: SearchPreferences): string {
-  if (!preferences) {
-    throw new Error('Search preferences are required');
-  }
+  const {
+    contentType,
+    selectedGenres,
+    selectedMoods,
+    keywords,
+    yearRange,
+    specificYear,
+    ratingRange,
+    isPremium,
+    isPerfectMatch
+  } = preferences;
 
-  const promptLines: string[] = [];
+  const promptLines = [];
 
-  // Content Type - Critical Base Requirement
   promptLines.push(
-    `Find ${preferences.contentType === 'movie' ? 'Movies' : 'TV Series'} that EXACTLY match these requirements:`
+    `You are an AI movie recommendation assistant.`,
+    `Your task is to return a raw JSON array of exactly ${isPremium ? '10' : '5'} ${contentType === 'movie' ? 'movies' : 'TV series'} that match the following criteria.`
   );
 
-  // Genres - Primary Criteria
-  if (preferences.selectedGenres.length > 0) {
-    promptLines.push(
-      'MUST include these genres:',
-      preferences.selectedGenres.map(genre => `- ${genre}`).join('\n')
-    );
+  promptLines.push(`\nStrictly use this format. Do NOT include titles, lists, Markdown, or explanations. Respond ONLY with a valid JSON array.`);
+
+  promptLines.push('\nMatching criteria:');
+
+  if (selectedMoods.length > 0) {
+    promptLines.push(`- Mood(s): ${selectedMoods.join(', ')}`);
   }
 
-  // Moods - Emotional Context
-  if (preferences.selectedMoods.length > 0) {
-    promptLines.push(
-      'MUST match these moods/themes:',
-      preferences.selectedMoods.map(mood => `- ${mood}`).join('\n')
-    );
+  if (selectedGenres.length > 0) {
+    promptLines.push(`- Genre(s): ${selectedGenres.join(', ')}`);
   }
 
-  // Year Range - Temporal Filter
-  const yearRange = preferences.yearRange;
-  if (preferences.specificYear && preferences.isPremium) {
-    promptLines.push(`MUST be from exactly year: ${preferences.specificYear}`);
-  } else if (yearRange) {
-    promptLines.push(
-      `MUST be released between ${yearRange.from} and ${yearRange.to}`
-    );
+  if (specificYear && isPremium) {
+    promptLines.push(`- Release Year: ${specificYear}`);
+  } else if (yearRange?.from && yearRange?.to) {
+    promptLines.push(`- Release Between: ${yearRange.from} and ${yearRange.to}`);
   }
 
-  // Rating Range - Quality Filter
-  const ratingRange = preferences.ratingRange;
-  if (ratingRange) {
-    promptLines.push(
-      `MUST have rating between ${ratingRange.min} and ${ratingRange.max}`
-    );
+  if (isPremium && keywords.length > 0) {
+    promptLines.push(`- Keywords: ${keywords.join(', ')}`);
   }
 
-  // Keywords - Premium Feature
-  if (preferences.isPremium && preferences.keywords.length > 0) {
-    promptLines.push(
-      'MUST include these themes or elements:',
-      preferences.keywords.map(keyword => `- ${keyword}`).join('\n')
-    );
+  if (isPremium && (ratingRange.min > 0 || ratingRange.max < 10)) {
+    promptLines.push(`- Rating between ${ratingRange.min} and ${ratingRange.max}`);
   }
 
-  // Perfect Match Instructions
-  if (preferences.isPerfectMatch && preferences.isPremium) {
-    promptLines.push(
-      '\nProvide ONE perfect match with:',
-      '1. Detailed explanation of why it matches',
-      '2. Three similar recommendations',
-      '3. Specific connections to user preferences'
-    );
-  } else {
-    promptLines.push(
-      '\nProvide recommendations that:',
-      '1. STRICTLY follow all criteria above',
-      '2. Are ordered by relevance',
-      '3. Include brief explanations of matches'
-    );
-  }
-
-  // Format Requirements
   promptLines.push(
-    '\nFor each recommendation, return:',
-    '- Title',
-    '- Year',
-    '- Genres',
-    '- Rating',
-    '- Brief description',
-    '- Match explanation'
+    `\nEach movie object in the array must include exactly these fields:`,
+    `title, year, rating, description, duration, language, genres`
   );
 
-  return promptLines.join('\n\n');
+  promptLines.push(
+    `\nOutput Example (must be JSON only):`,
+    `[{"title":"The Matrix","year":1999,"rating":8.7,"description":"A computer programmer discovers a dystopian world.","duration":136,"language":"EN","genres":["Action","Sci-Fi"]}]`
+  );
+
+  return promptLines.join('\n');
 }
 
 /**

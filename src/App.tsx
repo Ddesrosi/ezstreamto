@@ -45,21 +45,48 @@ function App() {
     remaining?: number,
     perfectMatchResult?: typeof perfectMatch
   ) => {
+    console.log('🎬 Handling search results:', {
+      resultsCount: results.length,
+      remaining,
+      hasPerfectMatch: !!perfectMatchResult,
+      currentState: { showResults, searchResults: searchResults.length }
+    });
+
+    if (!results || results.length === 0) {
+      setError('No results found. Please try different preferences.');
+      return;
+    }
+
+    // Ensure state updates happen in the correct order
+    setError(null);
     setSearchResults(results);
     setShowResults(true);
-    setError(null);
     setPerfectMatch(perfectMatchResult);
     if (remaining !== undefined) {
       setRemainingSearches(remaining);
     }
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    // Force scroll after state updates
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    console.log('🔄 Updated state:', {
+      showResults: true,
+      resultsCount: results.length,
+      remaining
+    });
   };
 
   const handleError = (errorMessage: string) => {
+    console.error('❌ Search error:', errorMessage);
+    setShowResults(false);
+    setSearchResults([]);
     setError(errorMessage);
   };
 
   const handleBack = () => {
+    console.log('⬅️ Going back to search');
     setShowResults(false);
     setSearchResults([]);
     setError(null);

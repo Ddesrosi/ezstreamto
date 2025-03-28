@@ -11,7 +11,7 @@ const envVars = {
   VITE_TMDB_API_KEY: '413cd33f7c45b65014879caead72caba',
   VITE_TMDB_ACCESS_TOKEN: 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI0MTNjZDMzZjdjNDViNjUwMTQ4NzljYWVhZDcyY2FiYSIsIm5iZiI6MTczODAwNTE3Ni43MjMsInN1YiI6IjY3OTdkYWI4YTZlNDEyODNmMTJiNDU2NSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.dM4keiy2kA6XcUufnGGSnCDCUJGwFMg91pq4I5Bziq8',
   VITE_BMC_SECRET: 'your_bmc_secret_here',
-  VITE_DEEPSEEK_API_KEY: 'your_deepseek_api_key_here'
+  VITE_DEEPSEEK_API_KEY: process.env.VITE_DEEPSEEK_API_KEY || ''
 };
 
 // Create .env file if it doesn't exist
@@ -55,18 +55,24 @@ export default defineConfig({
       usePolling: true
     },
     headers: {
-      'Cross-Origin-Embedder-Policy': 'require-corp',
-      'Cross-Origin-Opener-Policy': 'same-origin'
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': '*'
     },
-    cors: true
+    cors: {
+      origin: '*',
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization']
+    }
   },
   preview: {
     port: 5173,
     strictPort: true,
     host: true,
     headers: {
-      'Cross-Origin-Embedder-Policy': 'require-corp',
-      'Cross-Origin-Opener-Policy': 'same-origin'
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': '*'
     }
   },
 });

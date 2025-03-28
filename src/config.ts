@@ -2,28 +2,29 @@
 export const SUPABASE_URL = "https://acmpivmrokzblypxdxbu.supabase.co";
 export const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFjbXBpdm1yb2t6Ymx5cHhkeGJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg5NDE1OTUsImV4cCI6MjA1NDUxNzU5NX0.nPs1MeO2vH7bh85tvLrH5-jFBCPk9Z1kQMGuZGKmY3s";
 
-export const TMDB_API_KEY = "413cd33f7c45b65014879caead72caba";
-export const BMC_SECRET = import.meta.env.VITE_BMC_SECRET;
+// Import all sensitive keys from .env
+export const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY;
 export const DEEPSEEK_API_KEY = import.meta.env.VITE_DEEPSEEK_API_KEY;
+export const BMC_SECRET = import.meta.env.VITE_BMC_SECRET;
 
 // Deepseek Configuration
 export const DEEPSEEK_CONFIG = {
-  baseUrl: 'https://api.deepseek.com/v1',
+  baseUrl: 'https://api.deepseek.com/v1/chat/completions',
   apiKey: DEEPSEEK_API_KEY,
   model: 'deepseek-chat',
   temperature: 0.7,
   maxTokens: 1000
 };
 
-// API Configuration
+// TMDB Configuration
 export const API_CONFIG = {
   tmdb: {
     baseUrl: 'https://api.themoviedb.org/3',
     imageBaseUrl: 'https://image.tmdb.org/t/p',
-    apiKey: import.meta.env.VITE_TMDB_API_KEY,  // ✅ Dynamically load from .env
-    rateLimit: 40, // requests
-    rateWindow: 10000, // milliseconds
-    timeout: 8000, // milliseconds
+    apiKey: TMDB_API_KEY,
+    rateLimit: 40,          // requests
+    rateWindow: 10000,      // milliseconds
+    timeout: 8000,          // milliseconds
     retries: 3
   },
   fallbackImage: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=500&fit=crop&auto=format'

@@ -17,7 +17,6 @@ export const genreMap: Record<string, number> = {
   'Mystery': 9648,
   'Romance': 10749,
   'Sci-Fi': 878,
-  'Sport': 10751,
   'Superhero': 28,
   'Thriller': 53,
   'War': 10752,

@@ -3,7 +3,7 @@ export interface Movie {
   title: string;
   year: number;
   rating: number;
-  duration: number | string | null;
+  duration: number | string;
   language: string;
   genres: string[];
   description: string;
@@ -11,7 +11,4 @@ export interface Movie {
   backdropUrl?: string;
   youtubeUrl?: string;
   streamingPlatforms: string[];
-  director?: string[];
-  stars?: string[];
-  trailer?: string;
 }

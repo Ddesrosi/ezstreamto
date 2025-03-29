@@ -88,7 +88,7 @@ export function PerfectMatchCard({ movie, insights, isDark }: PerfectMatchCardPr
             <img
               src={movie.imageUrl || FALLBACK_IMAGE}
               alt={movie.title}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover brightness-110"
               loading="eager"
               onLoad={handleImageLoad}
               onError={handleImageError}

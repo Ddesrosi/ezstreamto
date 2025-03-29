@@ -58,17 +58,8 @@ export function PremiumModal({ isOpen, onClose, onUpgrade }: PremiumModalProps) 
 
           {/* Content */}
           <div className="p-4 sm:p-6 text-center">
-            <motion.div
-              animate={{ rotate: isHovering ? [0, -10, 10, 0] : 0 }}
-              onHoverStart={() => setIsHovering(true)}
-              onHoverEnd={() => setIsHovering(false)}
-              className="inline-block mb-3 sm:mb-4"
-            >
-              <Coffee className="h-10 w-10 sm:h-12 sm:w-12 text-yellow-400" />
-            </motion.div>
-
-            <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">
-              Support Us with a Coffee!
+            <h2 className="text-xl sm:text-2xl font-bold text-white mb-2 flex items-center justify-center gap-2">
+              <span>Support Us with a Coffee</span>
             </h2>
             <p className="text-sm sm:text-base text-blue-100 mb-4 sm:mb-6">
               For only $5, unlock unlimited searches and support our work
@@ -82,9 +73,12 @@ export function PremiumModal({ isOpen, onClose, onUpgrade }: PremiumModalProps) 
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  className="flex items-center gap-2 text-blue-100"
+                  className="flex items-center gap-2.5 text-blue-100"
                 >
-                  <Check className="h-4 w-4 sm:h-5 sm:w-5 text-green-400 flex-shrink-0" />
+                  <div className="flex items-center gap-1.5">
+                    <Coffee className="h-3.5 w-3.5 text-amber-400" />
+                    <Check className="h-4 w-4 sm:h-5 sm:w-5 text-green-400 flex-shrink-0" />
+                  </div>
                   <span className="text-sm sm:text-base">{benefit}</span>
                 </motion.div>
               ))}
@@ -111,7 +105,7 @@ export function PremiumModal({ isOpen, onClose, onUpgrade }: PremiumModalProps) 
               ) : (
                 <div className="flex items-center justify-center gap-2">
                   <Coffee className="h-4 w-4 sm:h-5 sm:w-5" />
-                  <span>Buy me a coffee ($5)</span>
+                  <span>Become Premium – Buy me a coffee ($5)</span>
                 </div>
               )}
             </Button>

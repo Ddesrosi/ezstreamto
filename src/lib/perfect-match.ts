@@ -154,7 +154,7 @@ async function generatePerfectMatchInsights(
       - Description: ${movie.description}
       
       Please provide:
-      1. A personalized explanation (2-3 sentences) of why this movie is perfect for them
+      1. A personalized explanation (3-4 sentences) of why this movie is perfect for them
       2. Three similar movie recommendations with brief reasons
       
       Return as JSON:
@@ -348,7 +348,7 @@ async function findPerfectMatchMovie(preferences: PerfectMatchPreferences): Prom
         .filter((genre): genre is string => Boolean(genre)),
       description: match.overview || 'No description available',
       imageUrl: match.poster_path 
-        ? `https://image.tmdb.org/t/p/w500${match.poster_path}`
+        ? `https://image.tmdb.org/t/p/original${match.poster_path}`
         : FALLBACK_IMAGE,
       backdropUrl: match.backdrop_path
         ? `https://image.tmdb.org/t/p/original${match.backdrop_path}`

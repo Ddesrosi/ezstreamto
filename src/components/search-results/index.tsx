@@ -4,7 +4,7 @@ import { Movie } from '@/types';
 import { MovieSkeleton } from './skeleton';
 import { MovieCard } from './movie-card';
 import { motion } from 'framer-motion';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, Coffee } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { PremiumBadge } from '../ui/premium-badge';
 import { PremiumModal } from '../ui/premium-modal';
@@ -38,55 +38,44 @@ export default function SearchResults({
   setShowPremiumModal,
   perfectMatch 
 }: SearchResultsProps) {
-  console.log('🎬 SearchResults mounted with:', {
-    resultsCount: results?.length,
-    isPremium,
-    hasPerfectMatch: !!perfectMatch
-  });
-
   const [displayedResults, setDisplayedResults] = useState<Movie[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showLocalPremiumModal, setShowLocalPremiumModal] = useState(false);
   const [loadingError, setLoadingError] = useState<string | null>(null);
 
-  useEffect(() => {
-    console.log('Search Results Mount:', {
-      resultsCount: results.length,
-      hasResults: results && results.length > 0,
-      displayedCount: displayedResults.length
-    });
+  // Early return for no results
+  if (!Array.isArray(results) || results.length === 0) {
+    return (
+      <div className="w-full text-center py-8 sm:py-12">
+        <p className={`text-base sm:text-lg ${isDark ? 'text-blue-200' : 'text-gray-600'}`}>
+          No results found. Please try different preferences.
+        </p>
+        <Button variant="ghost" onClick={onBack} className="mt-4">
+          ← Back to Search
+        </Button>
+      </div>
+    );
+  }
 
+  useEffect(() => {
     setIsLoading(true);
     setLoadingError(null);
     setDisplayedResults([]);
 
-    // Immediately load initial batch
-    if (results && results.length > 0) {
-      try {
-        const initialBatch = results.slice(0, ITEMS_PER_BATCH);
-        console.log('📦 Loading initial batch:', initialBatch.length);
-        console.log('📦 Loading initial batch:', {
-          size: initialBatch.length,
-          firstMovie: initialBatch[0]?.title
-        });
-        setDisplayedResults(initialBatch);
-      } catch (error) {
-        console.error('Error loading results:', error);
-        setLoadingError(error instanceof Error ? error.message : 'Failed to load results');
-      } finally {
-        setIsLoading(false);
-      }
+    try {
+      const initialBatch = results.slice(0, ITEMS_PER_BATCH);
+      setDisplayedResults(initialBatch);
+    } catch (error) {
+      console.error('Error loading results:', error);
+      setLoadingError(error instanceof Error ? error.message : 'Failed to load results');
+    } finally {
+      setIsLoading(false);
     }
   }, [results, perfectMatch, isPremium]);
 
   useEffect(() => {
     const handleScroll = () => {
       if (isLoading || perfectMatch) return;
-
-      console.log('📊 Loading more results:', {
-        current: displayedResults.length,
-        total: results.length
-      });
 
       const isNearBottom = 
         window.innerHeight + window.scrollY >= 
@@ -98,6 +87,7 @@ export default function SearchResults({
           displayedResults.length,
           displayedResults.length + ITEMS_PER_BATCH
         );
+
         console.log('➕ Adding batch:', {
           size: nextBatch.length,
           movies: nextBatch.map(m => ({
@@ -114,6 +104,17 @@ export default function SearchResults({
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, [displayedResults.length, isLoading, results, perfectMatch]);
+
+  const handleLoadMore = () => {
+    setIsLoading(true);
+    const nextBatch = results.slice(
+      displayedResults.length,
+      displayedResults.length + ITEMS_PER_BATCH
+    ).filter(movie => !displayedResults.some(m => m.id === movie.id));
+    
+    setDisplayedResults(prev => [...prev, ...nextBatch]);
+    setIsLoading(false);
+  };
 
   const handleUpgrade = () => {
     window.open('https://www.buymeacoffee.com/EzStreamTo', '_blank');
@@ -134,7 +135,10 @@ export default function SearchResults({
       <div className="flex items-center justify-center gap-2">
         {isPremium ? (
           <div className="flex items-center gap-2">
-            <PremiumBadge />
+            <div className="flex items-center gap-1.5">
+              <Coffee className="h-3.5 w-3.5 text-amber-400" />
+              <span className="font-medium">Premium</span>
+            </div>
             <p className="text-xs sm:text-sm font-medium">
               Unlimited searches available
             </p>
@@ -154,26 +158,13 @@ export default function SearchResults({
             onClick={() => setShowLocalPremiumModal(true)}
             className="text-sm sm:text-base h-10 sm:h-12 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
           >
+            <Coffee className="h-4 w-4 mr-1.5" />
             Get Unlimited Searches
           </Button>
         </div>
       )}
     </motion.div>
   );
-
-  // Early return for no results
-  if (!results || results.length === 0) {
-    return (
-      <div className="w-full text-center py-8 sm:py-12">
-        <p className={`text-base sm:text-lg ${isDark ? 'text-blue-200' : 'text-gray-600'}`}>
-          No results found. Please try different preferences.
-        </p>
-        <Button variant="ghost" onClick={onBack} className="mt-4">
-          ← Back to Search
-        </Button>
-      </div>
-    );
-  }
 
   return (
     <div className="w-full">
@@ -199,9 +190,13 @@ export default function SearchResults({
             {perfectMatch ? 'Your Perfect Match' : 'Recommended for You'}
           </h2>
           <p className={`text-xs sm:text-sm ${isDark ? 'text-blue-200/70' : 'text-gray-600'}`}>
-            {perfectMatch 
-              ? 'AI-powered recommendation based on your preferences'
-              : `${results.length} matches found based on your preferences`}
+            {perfectMatch ? (
+              'AI-powered recommendation based on your preferences'
+            ) : isPremium ? (
+              `${results.length} matches found based on your preferences`
+            ) : (
+              `Here are ${results.length} great matches based on your preferences. Want more results and powerful discovery options? Become a Premium member for just $5 and unlock unlimited searches, exclusive filters, and AI-powered perfect matches!`
+            )}
           </p>
         </div>
       </div>
@@ -249,18 +244,10 @@ export default function SearchResults({
 
       {/* Support Section */}
       <div className="flex flex-col items-center gap-6 sm:gap-8 py-6 sm:py-8 mb-6">
+        {/* Load More Button */}
         {!isLoading && !perfectMatch && displayedResults.length < results.length && (
           <Button
-            onClick={() => {
-              setIsLoading(true);
-              const nextBatch = results.slice(
-                displayedResults.length,
-                displayedResults.length + ITEMS_PER_BATCH
-              ).filter(movie => !displayedResults.some(m => m.id === movie.id));
-              console.log('Loading next batch:', nextBatch.length);
-              setDisplayedResults(prev => [...prev, ...nextBatch]);
-              setIsLoading(false);
-            }}
+            onClick={handleLoadMore}
             className="w-full sm:w-auto h-10 sm:h-12 text-sm sm:text-base"
           >
             Load More

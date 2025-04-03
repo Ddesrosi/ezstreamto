@@ -279,15 +279,33 @@ export async function fetchMoviesFromTMDB(preferences: SearchPreferences): Promi
   }
 }
 
-export async function enrichMovieWithPoster(movie: Movie): Promise<Movie> {
+export async function enrichMovieWithPoster(movieOrTitle: Movie | string, year?: number): Promise<Movie> {
   try {
+    let movie: Movie;
+    if (typeof movieOrTitle === 'string') {
+      movie = {
+        id: crypto.randomUUID(),
+        title: movieOrTitle,
+        year: year || new Date().getFullYear(),
+        rating: 0,
+        duration: 'Movie',
+        language: 'EN',
+        genres: [],
+        description: '',
+        imageUrl: FALLBACK_IMAGE,
+        streamingPlatforms: []
+      };
+    } else {
+      movie = movieOrTitle;
+    }
+
     console.log('🎥 Enriching movie details:', {
       title: movie.title,
       id: movie.id,
       year: movie.year,
       hasImage: !!movie.imageUrl
     });
-    
+
     // Validate movie ID
     if (!movie.id || movie.id === 'undefined') {
       console.warn('⚠️ Invalid movie ID:', movie.title);
@@ -367,7 +385,8 @@ export async function enrichMovieWithPoster(movie: Movie): Promise<Movie> {
     streamingPlatforms = [...new Set(streamingPlatforms)];
     console.log('✅ Final streaming platforms:', {
       count: streamingPlatforms.length,
-      platforms: streamingPlatforms
+      platforms: streamingPlatforms,
+      movie: movie.title
     });
 
     return {

@@ -43,6 +43,44 @@ export default function SearchResults({
   const [showLocalPremiumModal, setShowLocalPremiumModal] = useState(false);
   const [loadingError, setLoadingError] = useState<string | null>(null);
 
+  // Early return for perfect match view
+  if (perfectMatch) {
+    console.log('🎯 Rendering Perfect Match view:', {
+      movie: perfectMatch.movie.title,
+      hasInsights: !!perfectMatch.insights,
+      recommendationsCount: perfectMatch.insights?.recommendations?.length
+    });
+
+    return (
+      <div className="w-full">
+        <div className={`sticky top-0 z-10 pb-3 sm:pb-4 ${isDark ? 'bg-[#040B14]/90' : 'bg-gray-50/90'} backdrop-blur-sm`}>
+          <div className="flex items-center justify-between mb-2">
+            <Button variant="ghost" onClick={onBack} className="hover:bg-transparent text-sm sm:text-base">
+              ← Back to Search
+            </Button>
+          </div>
+          <div>
+            <h2 className={`text-lg sm:text-2xl font-bold ${isDark ? 'text-blue-100' : 'text-gray-900'} flex items-center gap-2`}>
+              <Sparkles className="h-5 w-5 text-amber-400" />
+              Perfect Match: {perfectMatch.movie.title}
+            </h2>
+            <p className={`text-xs sm:text-sm ${isDark ? 'text-blue-200/70' : 'text-gray-600'}`}>
+              AI-powered recommendation based on your preferences
+            </p>
+          </div>
+        </div>
+
+        <div className="space-y-6 mb-6">
+          <PerfectMatchCard
+            movie={perfectMatch.movie}
+            insights={perfectMatch.insights}
+            isDark={isDark}
+          />
+        </div>
+      </div>
+    );
+  }
+
   // Early return for no results
   if (!Array.isArray(results) || results.length === 0) {
     return (
@@ -169,11 +207,7 @@ export default function SearchResults({
   return (
     <div className="w-full">
       {/* Premium Modal */}
-      <PremiumModal
-        isOpen={showLocalPremiumModal}
-        onClose={() => setShowLocalPremiumModal(false)}
-        onUpgrade={handleUpgrade}
-      />
+      <PremiumModal />
 
       {/* Header with Back Button */}
       <div className={`sticky top-0 z-10 pb-3 sm:pb-4 ${isDark ? 'bg-[#040B14]/90' : 'bg-gray-50/90'} backdrop-blur-sm`}>

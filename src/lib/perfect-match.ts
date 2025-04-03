@@ -239,11 +239,14 @@ async function generatePerfectMatchInsights(
             ...rec,
             imageUrl: enriched.imageUrl,
             duration: enriched.duration || (preferences.contentType === 'tv' ? 'TV Series' : '120 min'),
-            youtubeUrl: enriched.youtubeUrl || `https://www.youtube.com/results?search_query=${encodeURIComponent(`${rec.title} trailer`)}`,
+            youtubeUrl: enriched.youtubeUrl,
             streamingPlatforms: enriched.streamingPlatforms
           };
         } catch (error) {
-          console.warn(`Failed to enrich recommendation "${rec.title}":`, error);
+          console.warn(`❌ Enrichment failed for "${rec.title}"`, {
+            error,
+            original: rec
+          });
           return {
             ...rec,
             duration: preferences.contentType === 'tv' ? 'TV Series' : '120 min',
@@ -380,5 +383,3 @@ export async function findPerfectMatch(preferences: PerfectMatchPreferences): Pr
 }
 
 export type { PerfectMatchPreferences, PerfectMatchInsights };
-
-export { findPerfectMatch }

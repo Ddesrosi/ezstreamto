@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, Lock, Zap, Clock, Skull, Shield, Cpu, Swords, Mountain, Moon, Key, Compass, Sun, Brush, Video, PocketKnife as Knife, Rocket, Cog, Users, Car, Heart } from 'lucide-react';
+import { ChevronDown, Lock, Zap, Clock, Skull, Shield, Cpu, Swords, Mountain, Moon, Key, Compass, Sun, Brush, Video, PocketKnife as Knife, Rocket, Cog, Users, Car, Heart, Trophy } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { KEYWORD_CATEGORIES } from '@/lib/constants/keywords';
 
@@ -23,7 +23,8 @@ const iconMap = {
   Cog,
   Users,
   Car,
-  Heart
+  Heart,
+  Trophy
 } as const;
 
 interface KeywordSelectorProps {

@@ -6,7 +6,7 @@ import { SearchModal } from '../ui/modal';
 import { KeywordSelector } from '../ui/keyword-selector';
 import { Movie } from '@/types';
 import { getMovieRecommendations } from '@/lib/deepseek/index';
-import { validateSearch } from '@/lib/search-limits';
+import { validateSearch } from '@/lib/search-limits/edge';
 import { cn } from '@/lib/utils';
 import { 
   moods, genres, durations, streamingServices, audiences, 
@@ -121,8 +121,9 @@ function PreferenceForm({ isDark, onSearch, onError }: PreferenceFormProps) {
       moods: selectedMoods.length,
       genres: selectedGenres.length,
       isPremium,
-      isPerfectMatch: isPerfectMatchEnabled
+      isPerfectMatch: isPerfectMatchEnabled && isPremium
     });
+    let progressInterval: number | null = null;
 
     if (!contentType) {
       onError('Please select a content type first');
@@ -167,15 +168,15 @@ function PreferenceForm({ isDark, onSearch, onError }: PreferenceFormProps) {
         specificYear: isPremium && specificYearInput ? parseInt(specificYearInput) : null,
         ratingRange,
         isPremium,
-        isPerfectMatch: isPerfectMatchEnabled && isPremium,
-        isPerfectMatchEnabled: isPerfectMatchEnabled && isPremium
+        isPerfectMatch: isPerfectMatchEnabled && isPremium
       });
 
       console.log('📥 Raw API response:', response);
-      const { results } = response;
+      const { results, perfectMatch } = response;
       console.log('🎬 Parsed results:', {
         count: results?.length,
-        firstMovie: results?.[0]
+        firstMovie: results?.[0],
+        hasPerfectMatch: !!perfectMatch
       });
 
       if (!results || results.length === 0) {
@@ -190,7 +191,7 @@ function PreferenceForm({ isDark, onSearch, onError }: PreferenceFormProps) {
         remaining: searchValidation.remaining
       });
 
-      onSearch(results, searchValidation.remaining);
+      onSearch(results, searchValidation.remaining, response.perfectMatch);
       setIsSearching(false);
       setShowModal(false);
       setSearchProgress(0);

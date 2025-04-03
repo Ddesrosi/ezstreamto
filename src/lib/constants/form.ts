@@ -81,7 +81,6 @@ export const genres = [
   { name: 'Mystery', icon: HelpCircle },
   { name: 'Romance', icon: HeartHandshake },
   { name: 'Sci-Fi', icon: Rocket },
-  { name: 'Sport', icon: Trophy },
   { name: 'Superhero', icon: Shield },
   { name: 'Thriller', icon: Skull },
   { name: 'War', icon: Swords },

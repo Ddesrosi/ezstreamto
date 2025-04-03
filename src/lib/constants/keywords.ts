@@ -1,83 +1,83 @@
 // Define keyword categories and their subcategories
 export const KEYWORD_CATEGORIES = {
-  Superheroes: {
-    icon: 'Zap',
-    subcategories: ['Marvel', 'DC Comics', 'Anti-Heroes', 'Origin Stories', 'Superhero Teams']
+  'Adult Animation': {
+    icon: 'Brush',
+    subcategories: ['Complex Narratives', 'Dark Fantasy', 'Mature Themes', 'Satire', 'Stylized Violence']
   },
-  'Time Travel': {
-    icon: 'Clock',
-    subcategories: ['Temporal Paradoxes', 'Time Loops', 'Dystopian Future', 'Time Machines', 'Parallel Universes']
-  },
-  Zombies: {
-    icon: 'Skull',
-    subcategories: ['Zombie Apocalypse', 'Infection', 'Survivors', 'Post-Apocalyptic World', 'Scientific Experiments']
-  },
-  Espionage: {
-    icon: 'Shield',
-    subcategories: ['Secret Agents', 'Infiltration', 'Clandestine Missions', 'Counter-espionage', 'Industrial Espionage']
-  },
-  Cyberpunk: {
+  'Cyberpunk': {
     icon: 'Cpu',
-    subcategories: ['Artificial Intelligence', 'Virtual Reality', 'Mega-Corporations', 'Hackers', 'Cybernetic Enhancements']
+    subcategories: ['Artificial Intelligence', 'Cybernetic Enhancements', 'Hackers', 'Mega-Corporations', 'Virtual Reality']
   },
-  'Martial Arts': {
-    icon: 'Swords',
-    subcategories: ['Kung Fu', 'Karate', 'Samurai', 'Fighting Tournaments', 'Martial Arts Masters']
-  },
-  'Post-Apocalyptic': {
-    icon: 'Mountain',
-    subcategories: ['Nuclear Catastrophes', 'Pandemics', 'Collapsed Societies', 'Survivors', 'Scarce Resources']
-  },
-  Vampires: {
-    icon: 'Moon',
-    subcategories: ['Vampire Hunters', 'Immortality', 'Vampire Romance', 'Vampire Clans', 'Transformation']
-  },
-  Heist: {
-    icon: 'Key',
-    subcategories: ['Robbery', 'Heist Planning', 'Thief Teams', 'Double-Crossing', 'Escape']
-  },
-  Survival: {
-    icon: 'Compass',
-    subcategories: ['Wilderness', 'Castaways', 'Natural Disasters', 'Isolation', 'Adaptation']
+  'Espionage': {
+    icon: 'Shield',
+    subcategories: ['Clandestine Missions', 'Counter-espionage', 'Industrial Espionage', 'Infiltration', 'Secret Agents']
   },
   'Film Noir': {
     icon: 'Moon',
-    subcategories: ['Private Detectives', 'Femme Fatale', 'Crime Mysteries', 'Dark Atmosphere', 'Moral Ambiguity']
+    subcategories: ['Crime Mysteries', 'Dark Atmosphere', 'Femme Fatale', 'Moral Ambiguity', 'Private Detectives']
   },
-  'Spaghetti Western': {
-    icon: 'Sun',
-    subcategories: ['Gunslingers', 'Showdowns', 'Frontier Towns', 'Revenge Stories', 'Bounty Hunters']
+  'Heist': {
+    icon: 'Key',
+    subcategories: ['Double-Crossing', 'Escape', 'Heist Planning', 'Robbery', 'Thief Teams']
   },
-  'Adult Animation': {
-    icon: 'Brush',
-    subcategories: ['Mature Themes', 'Stylized Violence', 'Satire', 'Dark Fantasy', 'Complex Narratives']
+  'Martial Arts': {
+    icon: 'Swords',
+    subcategories: ['Fighting Tournaments', 'Karate', 'Kung Fu', 'Martial Arts Masters', 'Samurai']
   },
   'Mockumentary': {
     icon: 'Video',
-    subcategories: ['Fake Documentaries', 'Parody', 'Absurd Humor', 'Social Satire', 'Fictional Interviews']
+    subcategories: ['Absurd Humor', 'Fake Documentaries', 'Fictional Interviews', 'Parody', 'Social Satire']
   },
-  'Slasher': {
-    icon: 'Knife',
-    subcategories: ['Serial Killers', 'Teen Horror', 'Suspense', 'Masks', 'Gore Scenes']
-  },
-  'Space Opera': {
-    icon: 'Rocket',
-    subcategories: ['Interstellar Wars', 'Spaceships', 'Galactic Empires', 'Legendary Heroes', 'Alien Planets']
-  },
-  'Steampunk': {
-    icon: 'Cog',
-    subcategories: ['Steam-Powered Technology', 'Victorian Era', 'Retro-Futuristic Inventions', 'Explorers', 'Secret Societies']
-  },
-  'Ensemble Film': {
-    icon: 'Users',
-    subcategories: ['Interwoven Stories', 'Multiple Perspectives', 'Crossed Destinies', 'Non-Linear Narratives', 'Universal Themes']
+  'Post-Apocalyptic': {
+    icon: 'Mountain',
+    subcategories: ['Collapsed Societies', 'Nuclear Catastrophes', 'Pandemics', 'Scarce Resources', 'Survivors']
   },
   'Road Movie': {
     icon: 'Car',
-    subcategories: ['Journey of Self-Discovery', 'Friendship', 'Long Road Trips', 'Unexpected Encounters', 'Personal Growth']
+    subcategories: ['Friendship', 'Journey of Self-Discovery', 'Long Road Trips', 'Personal Growth', 'Unexpected Encounters']
   },
   'Romantic Comedy': {
     icon: 'Heart',
-    subcategories: ['Love Stories', 'Misunderstandings', 'Serendipitous Meetings', 'Unrequited Love', 'Happy Endings']
+    subcategories: ['Happy Endings', 'Love Stories', 'Misunderstandings', 'Serendipitous Meetings', 'Unrequited Love']
+  },
+  'Slasher': {
+    icon: 'Knife',
+    subcategories: ['Gore Scenes', 'Masks', 'Serial Killers', 'Suspense', 'Teen Horror']
+  },
+  'Space Opera': {
+    icon: 'Rocket',
+    subcategories: ['Alien Planets', 'Galactic Empires', 'Interstellar Wars', 'Legendary Heroes', 'Spaceships']
+  },
+  'Spaghetti Western': {
+    icon: 'Sun',
+    subcategories: ['Bounty Hunters', 'Frontier Towns', 'Gunslingers', 'Revenge Stories', 'Showdowns']
+  },
+  'Sports': {
+    icon: 'Trophy',
+    subcategories: ['Basketball', 'Boxing', 'Football', 'Golf', 'Olympics', 'Racing', 'Tennis']
+  },
+  'Steampunk': {
+    icon: 'Cog',
+    subcategories: ['Explorers', 'Retro-Futuristic Inventions', 'Secret Societies', 'Steam-Powered Technology', 'Victorian Era']
+  },
+  'Superheroes': {
+    icon: 'Zap',
+    subcategories: ['Anti-Heroes', 'DC Comics', 'Marvel', 'Origin Stories', 'Superhero Teams']
+  },
+  'Survival': {
+    icon: 'Compass',
+    subcategories: ['Adaptation', 'Castaways', 'Isolation', 'Natural Disasters', 'Wilderness']
+  },
+  'Time Travel': {
+    icon: 'Clock',
+    subcategories: ['Dystopian Future', 'Parallel Universes', 'Temporal Paradoxes', 'Time Loops', 'Time Machines']
+  },
+  'Vampires': {
+    icon: 'Moon',
+    subcategories: ['Immortality', 'Transformation', 'Vampire Clans', 'Vampire Hunters', 'Vampire Romance']
+  },
+  'Zombies': {
+    icon: 'Skull',
+    subcategories: ['Infection', 'Post-Apocalyptic World', 'Scientific Experiments', 'Survivors', 'Zombie Apocalypse']
   }
 } as const;

@@ -18,11 +18,12 @@ serve(async (req) => {
 
     const { ip, userId } = await req.json();
 
+    console.log('🔍 Incoming request → IP:', ip, '| User ID:', userId);
+
     if (!ip) {
       throw new Error('IP address is required');
     }
 
-    // Check if user is premium
     let isPremium = false;
     if (userId) {
       const { data: user } = await supabase
@@ -30,11 +31,10 @@ serve(async (req) => {
         .select('is_premium')
         .eq('id', userId)
         .single();
-      
+
       isPremium = user?.is_premium ?? false;
     }
 
-    // Get or create search record
     const { data: searchRecord } = await supabase
       .from('ip_searches')
       .select('*')
@@ -44,7 +44,6 @@ serve(async (req) => {
     const limit = isPremium ? PREMIUM_LIMIT : DAILY_LIMIT;
 
     if (!searchRecord) {
-      // Create new record
       await supabase
         .from('ip_searches')
         .insert({
@@ -64,13 +63,12 @@ serve(async (req) => {
       );
     }
 
-    // Check if we need to reset daily count
     const lastSearchDate = new Date(searchRecord.last_search);
     const today = new Date();
     if (lastSearchDate.getUTCDate() !== today.getUTCDate() ||
         lastSearchDate.getUTCMonth() !== today.getUTCMonth() ||
         lastSearchDate.getUTCFullYear() !== today.getUTCFullYear()) {
-      
+
       await supabase
         .from('ip_searches')
         .update({
@@ -90,7 +88,6 @@ serve(async (req) => {
       );
     }
 
-    // Check if limit reached
     if (searchRecord.search_count >= limit) {
       return new Response(
         JSON.stringify({
@@ -106,7 +103,6 @@ serve(async (req) => {
       );
     }
 
-    // Increment search count
     await supabase
       .from('ip_searches')
       .update({
@@ -126,6 +122,7 @@ serve(async (req) => {
     );
 
   } catch (error) {
+    console.error('❌ Error in search-limit function:', error);
     return new Response(
       JSON.stringify({
         error: error instanceof Error ? error.message : 'An error occurred',

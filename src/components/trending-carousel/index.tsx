@@ -227,7 +227,7 @@ export function TrendingCarousel({ isDark }: TrendingCarouselProps) {
                 loading="lazy"
                 decoding="async"
                 fetchpriority="low"
-                crossorigin="anonymous"
+                crossOrigin="anonymous"
                 draggable="false"
                 onLoad={handleImageLoad}
                 onError={(e) => {

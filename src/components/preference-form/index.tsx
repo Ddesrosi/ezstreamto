@@ -99,22 +99,7 @@ function PreferenceForm({ isDark, onSearch, onError }: PreferenceFormProps) {
     window.open('https://www.buymeacoffee.com/EzStreamTo', '_blank');
     setShowPremiumModal(false);
   };
-
-  // Check search limits on component mount
-  useEffect(() => {
-    async function checkSearchLimits() {
-      try {
-        const searchValidation = await validateSearch();
-        if (searchValidation.remaining !== undefined) {
-          setRemainingSearches(searchValidation.remaining);
-        }
-      } catch (error) {
-        console.error('Failed to check search limits:', error);
-      }
-    }
-    checkSearchLimits();
-  }, []);
-
+  
   const handleSearch = useCallback(async () => {
     console.log('🔍 handleSearch triggered with:', {
       contentType,

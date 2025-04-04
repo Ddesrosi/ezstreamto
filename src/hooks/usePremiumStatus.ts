@@ -1,18 +1,31 @@
 import { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabaseClient';
 
 export function usePremiumStatus() {
-  const [isPremium, setIsPremium] = useState(true); // Set to true for testing
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [isPremium, setIsPremium] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    // Simulate loading state
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsPremium(true);
-      setIsLoading(false);
-    }, 500);
+    const checkPremiumStatus = async () => {
+      try {
+        // Check if user has unlimited searches
+        const { data: supporter } = await supabase
+          .from('supporters')
+          .select('unlimited_searches')
+          .eq('verified', true)
+          .single();
+
+        setIsPremium(!!supporter?.unlimited_searches);
+      } catch (error) {
+        console.error('Error checking premium status:', error);
+        setIsPremium(false);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkPremiumStatus();
   }, []);
 
-  return { isPremium, isLoading, error };
+  return { isPremium, isLoading };
 }

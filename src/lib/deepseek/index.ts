@@ -2,25 +2,8 @@ import type { Movie } from '@/types';
 import { buildSearchPrompt } from './promptBuilder';
 import { enrichMovieWithPoster } from '../tmdb';
 import { findPerfectMatch } from '../perfect-match';
-import { BASIC_USER_LIMIT, PREMIUM_USER_LIMIT, API_CONFIG } from '@/config';
-import { fetchMoviesFromTMDB } from '../tmdb';
-
-
-// Fallback to mock data in development if API key is not available
-const MOCK_RESULTS = [
-  {
-    id: '1',
-    title: 'Sample Movie',
-    year: 2024,
-    rating: 8.5,
-    description: 'A sample movie for development.',
-    duration: 120,
-    language: 'EN',
-    genres: ['Action', 'Adventure'],
-    imageUrl: API_CONFIG.fallbackImage,
-    streamingPlatforms: ['Netflix', 'Amazon Prime']
-  }
-];
+import { BASIC_USER_LIMIT, PREMIUM_USER_LIMIT } from '@/config';
+import { fetchMovieListFromDeepseek } from './deepseek-client';
 
 class RecommendationError extends Error {
   constructor(message: string) {
@@ -61,16 +44,19 @@ export async function getMovieRecommendations(preferences: SearchPreferences): P
     });
 
     const prompt = buildSearchPrompt(preferences);
-    console.log('📝 Built search prompt:', {
-      length: prompt.length,
-      firstLine: prompt.split('\n')[0]
-    });
+    console.log('📝 Prompt sent to Deepseek:\n' + prompt);
+    console.log('🔑 Keywords:', preferences.keywords);
 
-    // Use TMDB API directly since Deepseek is not available
-    console.log('📡 Fetching movies from TMDB...');
-    const results = await fetchMoviesFromTMDB(preferences);
+    // 🔄 Fetch raw movies from Deepseek AI
+    const rawMovies = await fetchMovieListFromDeepseek(prompt);
+    console.log(`🎯 Deepseek returned ${rawMovies.length} movie(s)`);
 
-    // Handle Perfect Match if enabled
+    // 🔍 Enrich results with posters, streaming, trailers, etc.
+    const enrichedResults: Movie[] = await Promise.all(
+      rawMovies.map((m) => enrichMovieWithPoster(m))
+    );
+
+    // 🔎 If Perfect Match is requested
     if (preferences.isPerfectMatch && preferences.isPremium) {
       console.log('🎯 Perfect Match enabled, fetching perfect match...');
       try {
@@ -88,28 +74,23 @@ export async function getMovieRecommendations(preferences: SearchPreferences): P
           recommendationsCount: perfectMatch.insights?.recommendations?.length
         });
 
-        return { results, perfectMatch };
+        return { results: enrichedResults, perfectMatch };
       } catch (error) {
         console.error('❌ Perfect Match error:', error);
-        // Continue with regular results if perfect match fails
       }
     }
 
-    console.log('✅ TMDB results:', {
-      count: results.length,
-      firstMovie: results[0]?.title
+    // ✂️ Slice results depending on user level
+    const limit = preferences.isPremium ? PREMIUM_USER_LIMIT : BASIC_USER_LIMIT;
+    const finalResults = enrichedResults.slice(0, limit);
+
+    console.log('✅ Final results ready:', {
+      count: finalResults.length,
+      limit,
+      isPremium: preferences.isPremium
     });
 
-    // Slice results based on user limits
-    const limitedResults = results.slice(0, preferences.isPremium ? PREMIUM_USER_LIMIT : BASIC_USER_LIMIT);
-
-    console.log('✨ Limited results:', {
-      count: limitedResults.length,
-      isPremium: preferences.isPremium,
-      limit: preferences.isPremium ? PREMIUM_USER_LIMIT : BASIC_USER_LIMIT
-    });
-
-    return { results: limitedResults };
+    return { results: finalResults };
   } catch (error) {
     console.error('❌ Movie recommendation error:', {
       name: error.name,
@@ -121,6 +102,7 @@ export async function getMovieRecommendations(preferences: SearchPreferences): P
   }
 }
 
+// Types
 export interface SearchPreferences {
   contentType: string | null;
   selectedMoods: string[];

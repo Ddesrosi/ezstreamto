@@ -1,4 +1,5 @@
-import { getIP } from "./get-ip";
+import { getClientIp as getIP } from "./get-ip";
+
 
 export async function validateSearch() {
   try {

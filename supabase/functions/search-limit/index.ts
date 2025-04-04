@@ -2,7 +2,7 @@ import { serve } from 'https://deno.fresh.dev/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.7';
 import { corsHeaders } from '../_shared/cors.ts';
 
-const DAILY_LIMIT = 5;
+const FREE_LIMIT = 5;
 const PREMIUM_LIMIT = 100;
 
 serve(async (req) => {
@@ -16,24 +16,25 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const { ip, userId } = await req.json();
+    const { ip } = await req.json();
 
-    console.log('🔍 Incoming request → IP:', ip, '| User ID:', userId);
+    console.log('🔍 Incoming request → IP:', ip);
 
     if (!ip) {
       throw new Error('IP address is required');
     }
 
+    // ✅ Vérifie uniquement si verified = true et unlimited_search = true
     let isPremium = false;
-    if (userId) {
-      const { data: user } = await supabase
-        .from('users')
-        .select('is_premium')
-        .eq('id', userId)
-        .single();
+    const { data: supporter } = await supabase
+      .from('supporters')
+      .select('verified, unlimited_search')
+      .eq('ip_address', ip)
+      .eq('verified', true)
+      .eq('unlimited_search', true)
+      .single();
 
-      isPremium = user?.is_premium ?? false;
-    }
+    isPremium = !!supporter;
 
     const { data: searchRecord } = await supabase
       .from('ip_searches')
@@ -41,7 +42,7 @@ serve(async (req) => {
       .eq('ip_address', ip)
       .single();
 
-    const limit = isPremium ? PREMIUM_LIMIT : DAILY_LIMIT;
+    const limit = isPremium ? PREMIUM_LIMIT : FREE_LIMIT;
 
     if (!searchRecord) {
       await supabase
@@ -63,31 +64,6 @@ serve(async (req) => {
       );
     }
 
-    const lastSearchDate = new Date(searchRecord.last_search);
-    const today = new Date();
-    if (lastSearchDate.getUTCDate() !== today.getUTCDate() ||
-        lastSearchDate.getUTCMonth() !== today.getUTCMonth() ||
-        lastSearchDate.getUTCFullYear() !== today.getUTCFullYear()) {
-
-      await supabase
-        .from('ip_searches')
-        .update({
-          search_count: 1,
-          last_search: today.toISOString()
-        })
-        .eq('ip_address', ip);
-
-      return new Response(
-        JSON.stringify({
-          canSearch: true,
-          remaining: limit - 1,
-          total: limit,
-          isPremium
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
     if (searchRecord.search_count >= limit) {
       return new Response(
         JSON.stringify({
@@ -95,9 +71,9 @@ serve(async (req) => {
           remaining: 0,
           total: limit,
           isPremium,
-          message: isPremium 
-            ? 'Premium search limit reached for today'
-            : 'Daily search limit reached. Upgrade to premium for more searches!'
+          message: isPremium
+            ? 'Premium search limit reached.'
+            : 'You have used all your free searches. Support us to get unlimited access!'
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -120,7 +96,6 @@ serve(async (req) => {
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
-
   } catch (error) {
     console.error('❌ Error in search-limit function:', error);
     return new Response(
@@ -128,7 +103,7 @@ serve(async (req) => {
         error: error instanceof Error ? error.message : 'An error occurred',
         canSearch: false
       }),
-      { 
+      {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }

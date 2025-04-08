@@ -29,6 +29,7 @@ interface PreferenceFormProps {
 function PreferenceForm({ isDark, onSearch, onError }: PreferenceFormProps) {
   // Content Type
   const [contentType, setContentType] = useState<'movie' | 'tv' | null>(null);
+  const [hasLoadedSearchCredits, setHasLoadedSearchCredits] = useState(false);
   
   // Preferences
   const [selectedMoods, setSelectedMoods] = useState<string[]>([]);
@@ -41,7 +42,7 @@ function PreferenceForm({ isDark, onSearch, onError }: PreferenceFormProps) {
   const [ratingRange, setRatingRange] = useState({ min: 0, max: 10 });
   const [activeRatingPreset, setActiveRatingPreset] = useState<string | null>('Any Rating');
 
-  // UI State
+   // UI State
   const [isSearching, setIsSearching] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [searchProgress, setSearchProgress] = useState(0);
@@ -50,6 +51,20 @@ function PreferenceForm({ isDark, onSearch, onError }: PreferenceFormProps) {
   const [remainingSearches, setRemainingSearches] = useState<number | null>(null);
   const [showPremiumModal, setShowPremiumModal] = useState(false);
   const { isPremium, isLoading: isPremiumLoading } = usePremiumStatus();
+
+  // ✅ Ajoute ceci ici, juste après les hooks UI
+ useEffect(() => {
+  if (hasLoadedSearchCredits) return;
+
+  console.log("🧪 validateSearch('check') called on page load");
+
+  validateSearch("check").then(result => {
+    if (typeof result.remaining === 'number') {
+      setRemainingSearches(result.remaining);
+      setHasLoadedSearchCredits(true);
+    }
+  });
+}, [hasLoadedSearchCredits]);
 
   // Perfect Match
   const [isPerfectMatchEnabled, setIsPerfectMatchEnabled] = useState(false);
@@ -108,9 +123,10 @@ function PreferenceForm({ isDark, onSearch, onError }: PreferenceFormProps) {
       isPremium,
       isPerfectMatch: isPerfectMatchEnabled && isPremium
     });
+
     let progressInterval: number | null = null;
 
-    if (!contentType) {
+       if (!contentType) {
       onError('Please select a content type first');
       return;
     }
@@ -119,6 +135,19 @@ function PreferenceForm({ isDark, onSearch, onError }: PreferenceFormProps) {
       setIsSearching(true);
       setShowModal(true);
       setSearchProgress(0);
+
+      // ✅ Vérifier les crédits sans consommer
+const checkResult = await validateSearch("check");
+console.log("🔍 Check result:", checkResult);
+
+if (!checkResult.canSearch) {
+  setSearchLimitMessage(checkResult.message || 'Search limit reached');
+  setShowLimitToast(true);
+  setShowPremiumModal(true);
+  setIsSearching(false);
+  setShowModal(false);
+  return;
+}
 
       // Start progress animation
       const progressInterval = setInterval(() => {
@@ -157,12 +186,20 @@ function PreferenceForm({ isDark, onSearch, onError }: PreferenceFormProps) {
       });
 
       console.log('📥 Raw API response:', response);
+      if (!response || !response.results) {
+        throw new Error('Invalid response format from recommendation service');
+      }
+
       const { results, perfectMatch } = response;
       console.log('🎬 Parsed results:', {
         count: results?.length,
         firstMovie: results?.[0],
         hasPerfectMatch: !!perfectMatch
       });
+
+      // ✅ Consommer un crédit après succès
+const consumeResult = await validateSearch("consume");
+setRemainingSearches(consumeResult.remaining);
 
       if (!results || results.length === 0) {
         throw new Error('No results found. Please try different preferences.');
@@ -175,8 +212,9 @@ function PreferenceForm({ isDark, onSearch, onError }: PreferenceFormProps) {
         resultsCount: results.length,
         remaining: searchValidation.remaining
       });
-
-      onSearch(results, searchValidation.remaining, response.perfectMatch);
+      
+      setRemainingSearches(searchValidation.remaining);
+      onSearch(results, consumeResult.remaining, response.perfectMatch);
       setIsSearching(false);
       setShowModal(false);
       setSearchProgress(0);
@@ -218,9 +256,11 @@ function PreferenceForm({ isDark, onSearch, onError }: PreferenceFormProps) {
             </div>
           ) : (
             <p className="text-xs sm:text-sm font-medium">
-              {remainingSearches === 1 
-                ? '1 free search remaining'
-                : `${remainingSearches} free searches remaining`}
+              {remainingSearches === null
+  ? ''
+  : remainingSearches === 1 
+    ? '1 free search remaining'
+    : `${remainingSearches} free searches remaining`}
             </p>
           )}
         </div>

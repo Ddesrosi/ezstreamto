@@ -1,6 +1,7 @@
 import type { Movie } from '@/types';
 import { buildSearchPrompt } from './promptBuilder';
-import { enrichMovieWithPoster } from '../tmdb';
+import { enrichMovieWithPoster, FALLBACK_IMAGE } from '../tmdb';
+
 import { findPerfectMatch } from '../perfect-match';
 import { BASIC_USER_LIMIT, PREMIUM_USER_LIMIT } from '@/config';
 import { fetchMovieListFromDeepseek } from './deepseek-client';
@@ -43,17 +44,49 @@ export async function getMovieRecommendations(preferences: SearchPreferences): P
       isPerfectMatch: preferences.isPerfectMatch
     });
 
+
     const prompt = buildSearchPrompt(preferences);
     console.log('📝 Prompt sent to Deepseek:\n' + prompt);
     console.log('🔑 Keywords:', preferences.keywords);
 
     // 🔄 Fetch raw movies from Deepseek AI
-    const rawMovies = await fetchMovieListFromDeepseek(prompt);
-    console.log(`🎯 Deepseek returned ${rawMovies.length} movie(s)`);
+    const response = await fetchMovieListFromDeepseek(prompt);
+    
+    if (!response || !response.rawMovies) {
+      console.error('❌ Invalid response structure:', response);
+      throw new RecommendationError('Invalid response from Deepseek: Missing movie data');
+    }
+
+    if (!Array.isArray(response.rawMovies)) {
+      console.error('❌ Invalid movies data type:', typeof response.rawMovies);
+      throw new RecommendationError('Invalid response from Deepseek: Movie data is not an array');
+    }
+
+    console.log("📦 Response received from Deepseek:", {
+      movieCount: response.rawMovies.length,
+      remaining: response.remaining,
+      isPremium: response.isPremium
+    });
 
     // 🔍 Enrich results with posters, streaming, trailers, etc.
-    const enrichedResults: Movie[] = await Promise.all(
-      rawMovies.map((m) => enrichMovieWithPoster(m))
+    const enrichedResults = await Promise.all(
+      response.rawMovies.map(async (movie) => {
+        // Ensure movie object has required fields
+        const movieWithDefaults = {
+          id: crypto.randomUUID(),
+          title: movie.title,
+          year: movie.year || new Date().getFullYear(),
+          rating: movie.rating || 0,
+          duration: movie.duration || 'Movie',
+          language: movie.language || 'EN',
+          genres: movie.genres || [],
+          description: movie.description || '',
+          imageUrl: movie.imageUrl || FALLBACK_IMAGE,
+          streamingPlatforms: []
+        };
+        
+        return enrichMovieWithPoster(movieWithDefaults);
+      })
     );
 
     // 🔎 If Perfect Match is requested

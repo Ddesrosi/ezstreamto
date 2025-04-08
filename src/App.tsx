@@ -60,8 +60,8 @@ function App() {
     // Ensure state updates happen in the correct order
     setError(null);
     console.log('🔄 Updating state...');
-    setSearchResults(results);
     setShowResults(true);
+    setSearchResults(results);
     setPerfectMatch(perfectMatchResult);
 
     if (remaining !== undefined) {

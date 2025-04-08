@@ -2,7 +2,7 @@ import { serve } from 'https://deno.fresh.dev/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.7';
 import { corsHeaders } from '../_shared/cors.ts';
 
-const DAILY_LIMIT = 5;
+const LIFETIME_LIMIT = 5;
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -15,7 +15,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const { ip } = await req.json();
+    const { ip, mode } = await req.json();
 
     if (!ip) {
       throw new Error('IP address is required');
@@ -40,68 +40,57 @@ serve(async (req) => {
       );
     }
 
-    // Get or create search record
+    // Get current search record
     const { data: searchRecord } = await supabase
       .from('ip_searches')
       .select('*')
       .eq('ip_address', ip)
       .single();
 
-    // Reset daily searches if needed
-    const now = new Date();
-    const lastSearch = searchRecord ? new Date(searchRecord.last_search) : null;
-    const needsReset = !lastSearch || 
-      lastSearch.getUTCDate() !== now.getUTCDate() ||
-      lastSearch.getUTCMonth() !== now.getUTCMonth() ||
-      lastSearch.getUTCFullYear() !== now.getUTCFullYear();
+    const currentCount = searchRecord?.search_count ?? 0;
 
-    if (needsReset) {
-      await supabase
-        .from('ip_searches')
-        .upsert({ 
-          ip_address: ip, 
-          search_count: 1,
-          last_search: now.toISOString()
-        });
-
-      return new Response(
-        JSON.stringify({ 
-          status: 'ok',
-          canSearch: true,
-          remaining: DAILY_LIMIT - 1,
-          total: DAILY_LIMIT
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    if (searchRecord && searchRecord.search_count >= DAILY_LIMIT) {
+    // If limit reached, block search
+    if (currentCount >= LIFETIME_LIMIT) {
       return new Response(
         JSON.stringify({ 
           status: 'limit_reached',
           canSearch: false,
-          message: 'Daily search limit reached. Support us to get unlimited searches!'
+          remaining: 0,
+          message: 'You have used all your free searches. Support us to get unlimited searches!'
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Increment search count
-    const newCount = (searchRecord?.search_count || 0) + 1;
+    // If mode is 'check', return remaining count without increment
+    if (mode === 'check') {
+      return new Response(
+        JSON.stringify({
+          status: 'ok',
+          canSearch: true,
+          remaining: LIFETIME_LIMIT - currentCount,
+          total: LIFETIME_LIMIT
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Otherwise (mode === 'consume'), increment search count
+    const newCount = currentCount + 1;
     await supabase
       .from('ip_searches')
       .upsert({ 
         ip_address: ip,
         search_count: newCount,
-        last_search: now.toISOString()
+        last_search: new Date().toISOString()
       });
 
     return new Response(
       JSON.stringify({
         status: 'ok',
         canSearch: true,
-        remaining: DAILY_LIMIT - newCount,
-        total: DAILY_LIMIT
+        remaining: LIFETIME_LIMIT - newCount,
+        total: LIFETIME_LIMIT
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

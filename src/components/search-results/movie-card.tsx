@@ -3,7 +3,7 @@ import { API_CONFIG } from "@/config";
 import { mapTMDBGenres } from "@/lib/constants/genres";
 import type { Movie } from '@/types';
 import { motion } from 'framer-motion';
-import { Star, Youtube, Facebook, Phone, X } from 'lucide-react';
+import { Star, Youtube, Facebook, Phone, X, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '../ui/button';
 import { getPlatformStyle } from '@/lib/constants/platforms';
 import { platformNameMap } from '@/lib/constants/platform-aliases';
@@ -168,21 +168,41 @@ function MovieCard({ movie, isDark }: MovieCardProps) {
           ))}
         </div>
 
-        <div className={`text-xs ${isDark ? 'text-blue-200/70' : 'text-gray-600'}`}>
-          <p className={isExpanded ? '' : 'line-clamp-3'}>{movie.description}</p>
-          {movie.description.length > 100 && (
-            <button
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className={cn(
+            "text-xs space-y-1",
+            isDark ? 'text-blue-200/70' : 'text-gray-600'
+          )}
+        >
+          <p className={cn(
+            "transition-all duration-200",
+            !isExpanded && 'line-clamp-4'
+          )}>
+            {movie.description}
+          </p>
+          {movie.description.length > 150 && (
+            <motion.button
               onClick={() => setIsExpanded(!isExpanded)}
-              className={`text-xs mt-1 font-medium ${
+              className={cn(
+                "flex items-center gap-1 text-xs font-medium transition-colors w-full justify-center mt-1",
                 isDark 
                   ? 'text-blue-400 hover:text-blue-300' 
                   : 'text-blue-600 hover:text-blue-500'
-              }`}
+              )}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
             >
-              {isExpanded ? 'Read Less' : 'Read More'}
-            </button>
+              <span>{isExpanded ? 'Show Less' : 'Read More'}</span>
+              {isExpanded ? (
+                <ChevronUp className="h-3 w-3" />
+              ) : (
+                <ChevronDown className="h-3 w-3" />
+              )}
+            </motion.button>
           )}
-        </div>
+        </motion.div>
 
         <Button
           onClick={handleTrailerClick}

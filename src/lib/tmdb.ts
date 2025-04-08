@@ -2,10 +2,10 @@ import { API_CONFIG } from '@/config';
 import { Movie } from '@/types';
 import { mapTMDBGenres, genreMap } from './constants/genres';
 import type { SearchPreferences } from './deepseek/types';
-import { RateLimiter } from './utils/rate-limiter';
-import { retryWithBackoff } from './utils/retry';
+import { RateLimiter } from './utils/rate-limiter'; 
+import { retryWithBackoff } from './utils/retry'; 
 
-export const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba';
+export const FALLBACK_IMAGE = API_CONFIG.fallbackImage;
 
 console.log('🔍 TMDB Config:', {
   imageBaseUrl: API_CONFIG.tmdb.imageBaseUrl,
@@ -51,7 +51,7 @@ interface TMDBRequestOptions extends RequestInit {
 async function tmdbRequest<T>(
   endpoint: string,
   options: TMDBRequestOptions = {}
-): Promise<T> {
+): Promise<T | null> {
   const apiKey = API_CONFIG.tmdb.apiKey;
   const {
     timeout = API_CONFIG.tmdb.timeout,
@@ -292,7 +292,7 @@ export async function enrichMovieWithPoster(movieOrTitle: Movie | string, year?:
         language: 'EN',
         genres: [],
         description: '',
-        imageUrl: FALLBACK_IMAGE,
+        imageUrl: API_CONFIG.fallbackImage,
         streamingPlatforms: []
       };
     } else {
@@ -306,21 +306,28 @@ export async function enrichMovieWithPoster(movieOrTitle: Movie | string, year?:
       hasImage: !!movie.imageUrl
     });
 
-    // Validate movie ID
-    if (!movie.id || movie.id === 'undefined') {
-      console.warn('⚠️ Invalid movie ID:', movie.title);
+    // Search for movie by title and year
+    const searchUrl = `/search/${movie.duration === 'TV Series' ? 'tv' : 'movie'}?query=${encodeURIComponent(movie.title)}&year=${movie.year}`;
+    const searchResults = await tmdbRequest<{ results: any[] }>(searchUrl);
+
+    if (!searchResults?.results?.length) {
+      console.warn(`❌ No TMDB results found for ${movie.title} (${movie.year})`);
       return {
         ...movie,
         imageUrl: API_CONFIG.fallbackImage,
-        youtubeUrl: `https://www.youtube.com/results?search_query=${encodeURIComponent(`${movie.title} trailer`)}`,
+        youtubeUrl: `https://www.youtube.com/results?search_query=${encodeURIComponent(`${movie.title} ${movie.year} trailer`)}`,
         streamingPlatforms: []
       };
     }
 
-    const details = await tmdbRequest(`/${movie.duration === 'TV Series' ? 'tv' : 'movie'}/${movie.id}?append_to_response=videos,watch/providers`);
-
-    if (details === null) {
-      console.warn(`❌ TMDB details not found for ${movie.title} (ID: ${movie.id})`);
+    // Get first result details
+    const firstResult = searchResults.results[0];
+    const details = await tmdbRequest(
+      `/${movie.duration === 'TV Series' ? 'tv' : 'movie'}/${firstResult.id}?append_to_response=videos,watch/providers`
+    );
+    
+    if (!details) {
+      console.warn(`❌ Failed to get details for ${movie.title}`);
       return {
         ...movie,
         imageUrl: API_CONFIG.fallbackImage,

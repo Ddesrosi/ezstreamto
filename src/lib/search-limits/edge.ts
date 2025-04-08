@@ -1,10 +1,12 @@
 import { getClientIp as getIP } from "./get-ip";
 
+type Mode = 'check' | 'consume';
 
-export async function validateSearch() {
+export async function validateSearch(mode: Mode = 'check') {
   try {
     const ip = await getIP();
-    console.log('🔍 Validating search for IP via Edge Function:', ip);
+    console.log(`🔍 Validating search (${mode}) for IP:`, ip);
+    console.log("📍 Called validateSearch(\"check\")");
 
     const response = await fetch('https://acmpivmrokzblypxdxbu.functions.supabase.co/search-limit', {
       method: 'POST',
@@ -12,21 +14,26 @@ export async function validateSearch() {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
       },
-      body: JSON.stringify({ ip })
+      body: JSON.stringify({
+        ip,
+        mode: mode === 'check' ? 'check' : 'consume'
+      })
     });
 
-    const result = await response.json();
-    console.log('✅ Edge Function result:', result);
+    // ✅ Nouveau log ici
+    console.log("📨 Request sent with body:", { ip, mode });
 
+    const result = await response.json();
+    console.log('✅ validateSearch returned', result);
     return result;
   } catch (error) {
-    console.error('❌ validateSearch via Edge error:', error);
+    console.error('❌ validateSearch error:', error);
     return {
       canSearch: true,
       remaining: 4,
       total: 5,
       isPremium: false,
-      message: 'Default fallback response – validation failed'
+      message: 'Default fallback – validation failed'
     };
   }
 }

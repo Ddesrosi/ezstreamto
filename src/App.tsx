@@ -13,6 +13,8 @@ import { Footer } from './components/layout/footer';
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import Disclaimer from './pages/Disclaimer';
 import Privacy from './pages/Privacy';
+import { supabase } from './lib/supabaseClient';
+import { useRef } from 'react';
 
 function App() {
   const [isDark, setIsDark] = useState(true);
@@ -31,9 +33,47 @@ function App() {
     };
   } | undefined>();
 
+  const hasLoggedRef = useRef(false);
+
   useEffect(() => {
     setShareMessage(getRandomShareMessage());
   }, []);
+
+ useEffect(() => {
+  const logPageView = async () => {
+  console.log('📌 logPageView() called in App.tsx');
+
+    // ✅ Double protection anti-duplicata
+    if (hasLoggedRef.current || sessionStorage.getItem('hasLoggedPageView')) {
+      console.log('⏭️ Page view already logged this session');
+      return;
+    }
+
+    hasLoggedRef.current = true;
+
+    try {
+      const response = await fetch('https://api.ipify.org?format=json');
+      const data = await response.json();
+      const ip = data.ip;
+
+      const { error } = await supabase.from('page_views').insert([
+        { ip_address: ip }
+      ]);
+
+      if (error) {
+        console.error('❌ Failed to log page view:', error.message);
+      } else {
+        console.log('✅ Page view logged with IP:', ip);
+        sessionStorage.setItem('hasLoggedPageView', 'true');
+      }
+    } catch (err) {
+      console.error('❌ Error getting IP address:', err);
+    }
+  };
+
+  logPageView();
+}, []);
+
 
   const toggleTheme = () => {
     setIsDark(!isDark);

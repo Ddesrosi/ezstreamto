@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Film, Sun, Coffee, Zap, Heart, Brain, Compass, Clock, Search, Star, Tv2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Button } from '../ui/button';
@@ -30,6 +30,7 @@ function PreferenceForm({ isDark, onSearch, onError }: PreferenceFormProps) {
   // Content Type
   const [contentType, setContentType] = useState<'movie' | 'tv' | null>(null);
   const [hasLoadedSearchCredits, setHasLoadedSearchCredits] = useState(false);
+  const loggedRef = useRef(false);
   
   // Preferences
   const [selectedMoods, setSelectedMoods] = useState<string[]>([]);
@@ -49,21 +50,31 @@ function PreferenceForm({ isDark, onSearch, onError }: PreferenceFormProps) {
   const [showLimitToast, setShowLimitToast] = useState(false);
   const [searchLimitMessage, setSearchLimitMessage] = useState('');
   const [remainingSearches, setRemainingSearches] = useState<number | null>(null);
+  useEffect(() => {
+  if (remainingSearches !== null) {
+    console.log("🧮 Remaining searches state:", remainingSearches);
+  }
+}, [remainingSearches]); // Ajout de remainingSearches comme dépendance pour réagir aux changements
+
+
   const [showPremiumModal, setShowPremiumModal] = useState(false);
   const { isPremium, isLoading: isPremiumLoading } = usePremiumStatus();
-
-  // ✅ Ajoute ceci ici, juste après les hooks UI
- useEffect(() => {
-  if (hasLoadedSearchCredits) return;
-
-  console.log("🧪 validateSearch('check') called on page load");
-
-  validateSearch("check").then(result => {
-    if (typeof result.remaining === 'number') {
+  
+  useEffect(() => {
+  async function fetchInitialSearchCredits() {
+    try {
+      const result = await validateSearch('check');
+      console.log('📦 Initial search credits fetched:', result.remaining);
       setRemainingSearches(result.remaining);
-      setHasLoadedSearchCredits(true);
+    } catch (error) {
+      console.error('❌ Failed to fetch initial search credits:', error);
     }
-  });
+  }
+
+  if (!hasLoadedSearchCredits) {
+    fetchInitialSearchCredits();
+    setHasLoadedSearchCredits(true);
+  }
 }, [hasLoadedSearchCredits]);
 
   // Perfect Match
@@ -115,124 +126,131 @@ function PreferenceForm({ isDark, onSearch, onError }: PreferenceFormProps) {
     setShowPremiumModal(false);
   };
   
-  const handleSearch = useCallback(async () => {
-    console.log('🔍 handleSearch triggered with:', {
+const handleSearch = useCallback(async () => {
+  console.log("🧩 handleSearch() called – DEBUG LOG –", new Date().toISOString());
+
+  console.log("🧪 handleSearch called");
+
+  console.log('🔍 handleSearch triggered with:', {
+    contentType,
+    moods: selectedMoods.length,
+    genres: selectedGenres.length,
+    isPremium,
+    isPerfectMatch: isPerfectMatchEnabled && isPremium
+  });
+
+  let progressInterval: number | null = null;
+
+  if (!contentType) {
+    onError('Please select a content type first');
+    return;
+  }
+
+  try {
+    setIsSearching(true);
+    setShowModal(true);
+    setSearchProgress(0);
+
+    // ✅ Vérifier les crédits sans consommer
+    const checkResult = await validateSearch("check");
+    console.log("🔍 Check result:", checkResult);
+
+    // Mise à jour du nombre de crédits restants avant la consommation
+    setRemainingSearches(checkResult.remaining);
+
+    // Log avant la consommation pour vérifier les crédits restants
+    console.log("📦 Remaining searches before consumption:", remainingSearches);
+
+    if (!checkResult.canSearch) {
+      setSearchLimitMessage(checkResult.message || 'Search limit reached');
+      setShowLimitToast(true);
+      setShowPremiumModal(true);
+      setIsSearching(false);
+      setShowModal(false);
+      return; // On arrête ici et on ne consomme pas de crédit.
+    }
+
+    // ✅ Lancer l'animation de progression
+    progressInterval = setInterval(() => {
+      setSearchProgress(prev => {
+        if (prev >= 85) {
+          clearInterval(progressInterval);
+          return 85;
+        }
+        return prev + Math.random() * 5;
+      });
+    }, 300);
+
+    // 🔍 Récupération des résultats (Deepseek + TMDB)
+    const response = await getMovieRecommendations({
       contentType,
-      moods: selectedMoods.length,
-      genres: selectedGenres.length,
+      selectedMoods,
+      selectedGenres,
+      keywords: isPremium ? keywords : [],
+      yearRange,
+      specificYear: isPremium && specificYearInput ? parseInt(specificYearInput) : null,
+      ratingRange,
       isPremium,
       isPerfectMatch: isPerfectMatchEnabled && isPremium
     });
 
-    let progressInterval: number | null = null;
-
-       if (!contentType) {
-      onError('Please select a content type first');
-      return;
+    console.log('📥 Raw API response:', response);
+    if (!response || !response.results) {
+      throw new Error('Invalid response format from recommendation service');
     }
 
-    try {
-      setIsSearching(true);
-      setShowModal(true);
-      setSearchProgress(0);
+    const { results, perfectMatch } = response;
+    console.log('🎬 Parsed results:', {
+      count: results?.length,
+      firstMovie: results?.[0],
+      hasPerfectMatch: !!perfectMatch
+    });
 
-      // ✅ Vérifier les crédits sans consommer
-const checkResult = await validateSearch("check");
-console.log("🔍 Check result:", checkResult);
-
-if (!checkResult.canSearch) {
-  setSearchLimitMessage(checkResult.message || 'Search limit reached');
-  setShowLimitToast(true);
-  setShowPremiumModal(true);
-  setIsSearching(false);
-  setShowModal(false);
-  return;
-}
-
-      // Start progress animation
-      const progressInterval = setInterval(() => {
-        setSearchProgress(prev => {
-          if (prev >= 85) {
-            clearInterval(progressInterval);
-            return 85;
-          }
-          return prev + Math.random() * 5;
-        });
-      }, 300);
-
-      const searchValidation = await validateSearch();
-      console.log('✅ Search validation:', searchValidation);
-      
-      if (!searchValidation.canSearch) {
-        setSearchLimitMessage(searchValidation.message || 'Search limit reached');
-        setShowLimitToast(true);
-        setShowPremiumModal(true);
-        clearInterval(progressInterval);
-        setIsSearching(false);
-        setShowModal(false);
-        return;
-      }
-
-      const response = await getMovieRecommendations({
-        contentType,
-        selectedMoods,
-        selectedGenres,
-        keywords: isPremium ? keywords : [],
-        yearRange,
-        specificYear: isPremium && specificYearInput ? parseInt(specificYearInput) : null,
-        ratingRange,
-        isPremium,
-        isPerfectMatch: isPerfectMatchEnabled && isPremium
-      });
-
-      console.log('📥 Raw API response:', response);
-      if (!response || !response.results) {
-        throw new Error('Invalid response format from recommendation service');
-      }
-
-      const { results, perfectMatch } = response;
-      console.log('🎬 Parsed results:', {
-        count: results?.length,
-        firstMovie: results?.[0],
-        hasPerfectMatch: !!perfectMatch
-      });
-
-      // ✅ Consommer un crédit après succès
-const consumeResult = await validateSearch("consume");
-setRemainingSearches(consumeResult.remaining);
-
-      if (!results || results.length === 0) {
-        throw new Error('No results found. Please try different preferences.');
-      }
-
-      clearInterval(progressInterval);
-      setSearchProgress(100);
-      
-      console.log('🚀 Calling onSearch with:', {
-        resultsCount: results.length,
-        remaining: searchValidation.remaining
-      });
-      
-      setRemainingSearches(searchValidation.remaining);
-      onSearch(results, consumeResult.remaining, response.perfectMatch);
-      setIsSearching(false);
-      setShowModal(false);
-      setSearchProgress(0);
-
-    } catch (error) {
-      console.error('❌ Search error:', error);
-      setIsSearching(false);
-      setShowModal(false);
-      clearInterval(progressInterval);
-      setSearchProgress(0);
-      const errorMessage = error instanceof Error ? error.message : 'Unable to get recommendations';
-      onError(errorMessage);
+    if (!results || results.length === 0) {
+      throw new Error('No results found. Please try different preferences.');
     }
-  }, [
-    contentType, selectedMoods, selectedGenres,
-    keywords, yearRange, ratingRange, onSearch, onError,
-    isPremium, specificYearInput, isPerfectMatchEnabled
-  ]);
+
+    // ✅ Crédit consommé maintenant
+    console.log("🧩 Before consuming search credit - remaining:", remainingSearches);  // Nouveau log avant la consommation
+    
+setRemainingSearches(response.remaining);
+    
+    clearInterval(progressInterval);
+    setSearchProgress(100);
+
+    console.log('🚀 Calling onSearch with:', {
+      resultsCount: results.length,
+      remaining: response.remaining
+    });
+
+    onSearch(results, response.remaining, perfectMatch);
+    setIsSearching(false);
+    setShowModal(false);
+    setSearchProgress(0);
+
+  } catch (error) {
+    console.error('❌ Search error:', error);
+    setIsSearching(false);
+    setShowModal(false);
+    clearInterval(progressInterval);
+    setSearchProgress(0);
+    const errorMessage = error instanceof Error ? error.message : 'Unable to get recommendations';
+    onError(errorMessage);
+  }
+}, [
+  contentType,
+  selectedMoods,
+  selectedGenres,
+  keywords,
+  yearRange,
+  ratingRange,
+  onSearch,
+  onError,
+  isPremium,
+  specificYearInput,
+  isPerfectMatchEnabled
+]);
+
 
   const SearchCreditsSection = () => (
     <motion.div
@@ -483,24 +501,25 @@ setRemainingSearches(consumeResult.remaining);
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {timePresets.map(preset => (
-                  <Button
-                    key={preset.label}
-                    variant={activePreset === preset.label ? 'primary' : 'secondary'}
-                    onClick={() => {
-                      if (activePreset === preset.label) {
-                        // Reset to default if clicking the active preset
-                        setActivePreset(null);
-                        setYearRange({ from: 1920, to: new Date().getFullYear() });
-                        setSliderValue([1920, new Date().getFullYear()]);
-                      } else {
-                        handlePresetClick(preset);
-                      }
-                    }}
-                    className="flex items-center justify-center gap-2"
-                  >
-                    <preset.icon className="h-4 w-4" />
-                    <span className="text-sm">{preset.label}</span>
-                  </Button>
+               <Button
+  key={preset.label}
+  variant={activePreset === preset.label ? 'primary' : 'secondary'}
+  onClick={() => {
+    if (activePreset === preset.label) {
+      // Reset to default if clicking the active preset
+      setActivePreset(null);
+      setYearRange({ from: 1920, to: new Date().getFullYear() });
+      setSliderValue([1920, new Date().getFullYear()]);
+    } else {
+      handlePresetClick(preset);
+    }
+  }}
+  className="flex items-center justify-center gap-2"
+>
+  <preset.icon className="h-4 w-4" />
+  <span className="text-sm">{preset.label}</span>
+</Button>
+   
                 ))}
               </div>
             </div>
@@ -562,23 +581,24 @@ setRemainingSearches(consumeResult.remaining);
 
             {/* Find Matches Button */}
             <Button 
-              size="lg" 
-              className="w-full h-12 sm:h-14 text-base sm:text-lg transition-all duration-300 mt-6"
-              onClick={() => {
-                console.log('🔍 Search button clicked');
-                handleSearch();
-              }}
-              disabled={isSearching || !contentType || selectedMoods.length === 0 || selectedGenres.length === 0}
-            >
-              {isSearching ? (
-                <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  <span>Finding Matches...</span>
-                </div>
-              ) : (
-                <span>Find What to Watch</span>
-              )}
-            </Button>
+  size="lg" 
+  className="w-full h-12 sm:h-14 text-base sm:text-lg transition-all duration-300 mt-6"
+  onClick={() => {
+    console.log('🟩 Search button clicked — TIMESTAMP:', new Date().toISOString());
+    handleSearch();
+  }}
+  disabled={isSearching || !contentType || selectedMoods.length === 0 || selectedGenres.length === 0}
+>
+  {isSearching ? (
+    <div className="flex items-center gap-2">
+      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+      <span>Finding Matches...</span>
+    </div>
+  ) : (
+    <span>Find What to Watch</span>
+  )}
+</Button>
+
           </div>
         </div>
       </div>

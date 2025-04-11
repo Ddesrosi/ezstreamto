@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 import { Header } from './components/layout/header';
 import PreferenceForm from './components/preference-form';
@@ -40,7 +40,7 @@ function App() {
     document.documentElement.classList.toggle('dark');
   };
 
-  const handleSearch = (
+  const handleSearch = useCallback((
     results: Movie[], 
     remaining?: number,
     perfectMatchResult?: typeof perfectMatch
@@ -51,6 +51,8 @@ function App() {
       hasPerfectMatch: !!perfectMatchResult
     });
 
+    console.log('Remaining searches received:', remaining);
+
     if (!results || results.length === 0) {
       console.warn('❌ No results received');
       setError('No results found. Please try different preferences.');
@@ -59,33 +61,27 @@ function App() {
 
     // Ensure state updates happen in the correct order
     setError(null);
-    console.log('🔄 Updating state...');
     setShowResults(true);
     setSearchResults(results);
     setPerfectMatch(perfectMatchResult);
 
-    if (remaining !== undefined) {
-      setRemainingSearches(remaining);
-    }
-    
-    console.log('✅ State updated:', {
-      showResults: true,
-      resultsCount: results.length,
-      error: null
-    });
+  if (remaining !== undefined) {
+  console.log("✅ App.tsx → setting remainingSearches to:", remaining);
+  setRemainingSearches(remaining);
+}
 
     // Force scroll after state updates
     requestAnimationFrame(() => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     });
-  };
+  }, []);
 
-  const handleError = (errorMessage: string) => {
+  const handleError = useCallback((errorMessage: string) => {
     console.error('❌ Search error:', errorMessage);
     setShowResults(false);
     setSearchResults([]);
     setError(errorMessage);
-  };
+  }, []);
 
   const handleBack = () => {
     console.log('⬅️ Going back to search');

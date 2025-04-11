@@ -26,6 +26,8 @@ function validatePreferences(preferences: SearchPreferences): void {
 
 export async function getMovieRecommendations(preferences: SearchPreferences): Promise<{
   results: Movie[];
+  perfectMatch?: any;
+  remaining?: number;
 }> {
   console.log('🎬 Starting movie recommendations:', {
     contentType: preferences.contentType,
@@ -44,14 +46,13 @@ export async function getMovieRecommendations(preferences: SearchPreferences): P
       isPerfectMatch: preferences.isPerfectMatch
     });
 
-
     const prompt = buildSearchPrompt(preferences);
     console.log('📝 Prompt sent to Deepseek:\n' + prompt);
     console.log('🔑 Keywords:', preferences.keywords);
 
     // 🔄 Fetch raw movies from Deepseek AI
     const response = await fetchMovieListFromDeepseek(prompt);
-    
+
     if (!response || !response.rawMovies) {
       console.error('❌ Invalid response structure:', response);
       throw new RecommendationError('Invalid response from Deepseek: Missing movie data');
@@ -71,7 +72,6 @@ export async function getMovieRecommendations(preferences: SearchPreferences): P
     // 🔍 Enrich results with posters, streaming, trailers, etc.
     const enrichedResults = await Promise.all(
       response.rawMovies.map(async (movie) => {
-        // Ensure movie object has required fields
         const movieWithDefaults = {
           id: crypto.randomUUID(),
           title: movie.title,
@@ -84,12 +84,11 @@ export async function getMovieRecommendations(preferences: SearchPreferences): P
           imageUrl: movie.imageUrl || FALLBACK_IMAGE,
           streamingPlatforms: []
         };
-        
+
         return enrichMovieWithPoster(movieWithDefaults);
       })
     );
 
-    // 🔎 If Perfect Match is requested
     if (preferences.isPerfectMatch && preferences.isPremium) {
       console.log('🎯 Perfect Match enabled, fetching perfect match...');
       try {
@@ -107,13 +106,16 @@ export async function getMovieRecommendations(preferences: SearchPreferences): P
           recommendationsCount: perfectMatch.insights?.recommendations?.length
         });
 
-        return { results: enrichedResults, perfectMatch };
+        return {
+          results: enrichedResults,
+          perfectMatch,
+          remaining: response.remaining
+        };
       } catch (error) {
         console.error('❌ Perfect Match error:', error);
       }
     }
 
-    // ✂️ Slice results depending on user level
     const limit = preferences.isPremium ? PREMIUM_USER_LIMIT : BASIC_USER_LIMIT;
     const finalResults = enrichedResults.slice(0, limit);
 
@@ -123,7 +125,10 @@ export async function getMovieRecommendations(preferences: SearchPreferences): P
       isPremium: preferences.isPremium
     });
 
-    return { results: finalResults };
+    return {
+      results: finalResults,
+      remaining: response.remaining
+    };
   } catch (error) {
     console.error('❌ Movie recommendation error:', {
       name: error.name,
@@ -135,7 +140,6 @@ export async function getMovieRecommendations(preferences: SearchPreferences): P
   }
 }
 
-// Types
 export interface SearchPreferences {
   contentType: string | null;
   selectedMoods: string[];

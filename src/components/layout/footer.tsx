@@ -15,27 +15,27 @@ export function Footer({ isDark }: FooterProps) {
 
   return (
     <footer className={cn(
-      "w-full border-t py-4 sm:py-6 relative z-10",
+      "w-full border-t py-2 sm:py-3 relative z-0", // ✅ Réduit la hauteur et z-index plus bas
       isDark ? 'bg-[#0A1A3F] border-blue-900/30' : 'bg-white border-gray-200'
     )}>
       <div className="container mx-auto px-4">
-        <div className="flex flex-col items-center gap-4">
+        <div className="flex flex-col items-center gap-3">
           {/* Contact Button */}
-          <Button
-            onClick={() => setShowContactForm(true)}
-            className={cn(
-              "flex items-center gap-1.5 px-4 py-1.5 text-sm rounded-full transition-all",
-              isDark 
-                ? 'bg-blue-900/20 hover:bg-blue-900/30 text-blue-200' 
-                : 'bg-blue-50 hover:bg-blue-100 text-blue-600'
-            )}
-          >
-            <Mail className="w-3.5 h-3.5" />
-            Contact Us
-          </Button>
-          
-          {/* Links */}
-          <div className="flex items-center gap-4 text-xs">
+        <Button
+  onClick={() => setShowContactForm(true)}
+  className={cn(
+    "flex items-center justify-center gap-1 px-6 py-1 text-sm rounded-full transition-all",
+    isDark 
+      ? 'bg-blue-900/20 hover:bg-blue-900/30 text-blue-200' 
+      : 'bg-blue-50 hover:bg-blue-100 text-blue-600'
+  )}
+>
+  <Mail className="w-4 h-4" />
+  Contact Us
+</Button>
+
+          {/* Footer Links + Copyright - compact */}
+          <div className="flex flex-wrap justify-center items-center gap-x-4 gap-y-1 text-xs text-center">
             <Link
               to="/privacy"
               className={cn(
@@ -55,15 +55,10 @@ export function Footer({ isDark }: FooterProps) {
             >
               Disclaimer
             </Link>
+            <span className={isDark ? 'text-blue-200/50' : 'text-gray-400'}>
+              © {new Date().getFullYear()} EzStreamTo - All Rights Reserved
+            </span>
           </div>
-          
-          {/* Copyright */}
-          <p className={cn(
-            "text-xs text-center",
-            isDark ? 'text-blue-200/50' : 'text-gray-400'
-          )}>
-            © {new Date().getFullYear()} EzStreamTo - All Rights Reserved
-          </p>
         </div>
       </div>
 

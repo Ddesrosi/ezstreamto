@@ -36,7 +36,7 @@ export function buildSearchPrompt(preferences: SearchPreferences): string {
   if (specificYear && isPremium) {
     promptLines.push(`- Specific Year: ${specificYear}`);
   } else if (yearRange?.from && yearRange?.to) {
-    promptLines.push(`- Release between ${yearRange.from} and ${yearRange.to}`);
+    promptLines.push(`- Release between 1970 and ${yearRange.to}`);
   }
 
   // Optional: Keywords (Premium only)
@@ -52,7 +52,8 @@ export function buildSearchPrompt(preferences: SearchPreferences): string {
   promptLines.push(
     `\nRules:`,
     `- Do NOT include any movie classified as \"Documentary\" unless \"Documentary\" was explicitly selected as a genre.`,
-    `- Only include movies or series that are available at least in English.`
+    `- Only include movies or series that are available at least in English.`,
+    `- Only include content released from 1970 onwards.`
   );
 
   promptLines.push(

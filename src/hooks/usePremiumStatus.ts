@@ -6,18 +6,19 @@ import { validateSearch } from '@/lib/search-limits/edge';
 export function usePremiumStatus() {
   const [isPremium, setIsPremium] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const hasFetched = useRef(false);
+  const checkInProgress = useRef<Promise<void> | null>(null);
 
   useEffect(() => {
-    if (hasFetched.current) return;
-    hasFetched.current = true;
-
     const checkPremiumStatus = async () => {
       try {
+        if (checkInProgress.current) {
+          await checkInProgress.current;
+          return;
+        }
+
+        const promise = (async () => {
         console.log("💎 Checking Premium status...");
         console.log("💎 validateSearch('check') from usePremiumStatus");
-
-        await validateSearch('check'); // Ne fait que checker, ne compte pas
 
         const ip = await getClientIp();
 
@@ -41,6 +42,11 @@ export function usePremiumStatus() {
         }
 
         setIsPremium(!!supporter?.unlimited_searches);
+        })();
+
+        checkInProgress.current = promise;
+        await promise;
+        checkInProgress.current = null;
       } catch (error) {
         console.error('❌ Error checking Premium status:', error);
         setIsPremium(false);
@@ -50,6 +56,10 @@ export function usePremiumStatus() {
     };
 
     checkPremiumStatus();
+
+    return () => {
+      checkInProgress.current = null;
+    };
   }, []);
 
   return { isPremium, isLoading };

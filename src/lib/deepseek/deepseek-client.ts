@@ -34,14 +34,19 @@ export async function fetchMovieListFromDeepseek(prompt: string) {
   try {
     const deepseekResponse = JSON.parse(responseData.rawText);
 
-    if (
-      !deepseekResponse?.choices?.[0]?.message?.content
-    ) {
+    if (!deepseekResponse?.choices?.[0]?.message?.content) {
       console.error("❌ Invalid Deepseek response structure:", deepseekResponse);
       throw new Error("Invalid response structure from Deepseek");
     }
 
-    movieData = JSON.parse(deepseekResponse.choices[0].message.content);
+    let content = deepseekResponse.choices[0].message.content;
+
+    // 🧼 Nettoyer le bloc Markdown s'il existe
+    if (content.includes("```")) {
+      content = content.replace(/```(?:json)?/g, "").trim();
+    }
+
+    movieData = JSON.parse(content);
 
     if (!Array.isArray(movieData)) {
       console.error("❌ Movie data is not an array:", movieData);

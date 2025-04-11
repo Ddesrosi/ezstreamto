@@ -43,107 +43,65 @@ export default function SearchResults({
   const [showLocalPremiumModal, setShowLocalPremiumModal] = useState(false);
   const [loadingError, setLoadingError] = useState<string | null>(null);
 
+  const [localRemainingSearches, setLocalRemainingSearches] = useState<number | null>(null);
+
   useEffect(() => {
-    const checkSearches = async () => {
-      try {
-        const result = await validateSearch('check');
-        setRemainingSearches(result.remaining);
-      } catch (error) {
-        console.error('Failed to check remaining searches:', error);
-      }
-    };
-    checkSearches();
-  }, []);
+    if (typeof remainingSearches === 'number') {
+      setLocalRemainingSearches(remainingSearches);
+    }
+  }, [remainingSearches]);
 
-  // ✅ Only return early if perfectMatch is valid
-  if (perfectMatch?.movie && perfectMatch?.insights) {
-    console.log('🎯 Rendering Perfect Match view:', {
-      movie: perfectMatch.movie.title,
-      hasInsights: !!perfectMatch.insights,
-      recommendationsCount: perfectMatch.insights?.recommendations?.length
-    });
+  const handleUpgrade = () => {
+    window.open('https://www.buymeacoffee.com/EzStreamTo', '_blank');
+    setShowLocalPremiumModal(false);
+  };
 
-    return (
-      <div className="w-full">
-        <div className={`sticky top-0 z-10 pb-3 sm:pb-4 ${isDark ? 'bg-[#040B14]/90' : 'bg-gray-50/90'} backdrop-blur-sm`}>
-          <div className="flex items-center justify-between mb-2">
-            <Button variant="ghost" onClick={onBack} className="hover:bg-transparent text-sm sm:text-base">
-              ← Back to Search
-            </Button>
-          </div>
-          <div>
-            <h2 className={`text-lg sm:text-2xl font-bold ${isDark ? 'text-blue-100' : 'text-gray-900'} flex items-center gap-2`}>
-              <Sparkles className="h-5 w-5 text-amber-400" />
-              Perfect Match: {perfectMatch.movie.title}
-            </h2>
-            <p className={`text-xs sm:text-sm ${isDark ? 'text-blue-200/70' : 'text-gray-600'}`}>
-              AI-powered recommendation based on your preferences
+  const SearchCreditsSection = () => (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className={cn(
+        "w-full max-w-lg mx-auto p-3 sm:p-6 rounded-lg text-center",
+        isDark 
+          ? isPremium ? 'bg-blue-900/20 text-blue-200' : 'bg-gradient-to-r from-amber-500 to-amber-600 text-white'
+          : isPremium ? 'bg-blue-50 text-blue-600' : 'bg-gradient-to-r from-amber-500 to-amber-600 text-white'
+      )}
+    >
+      <div className="flex flex-col sm:flex-row items-center justify-center gap-2">
+        {isPremium ? (
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
+              <Coffee className="h-3.5 w-3.5 text-amber-400" />
+              <span className="font-medium">Premium</span>
+            </div>
+            <p className="text-sm font-medium">
+              Unlimited searches available
             </p>
           </div>
-        </div>
+        ) : (
+          <p className="text-sm font-medium">
+            {typeof localRemainingSearches !== 'number' ? (
+              'Checking your available searches...'
+            ) : localRemainingSearches === 1 ? (
+              '1 free search remaining'
+            ) : (
+              `${localRemainingSearches} free searches remaining`
+            )}
+          </p>
+        )}
 
-        <div className="space-y-6 mb-6">
-          <PerfectMatchCard
-            movie={perfectMatch.movie}
-            insights={perfectMatch.insights}
-            isDark={isDark}
-          />
-        </div>
+        {!isPremium && (
+          <Button
+            onClick={() => setShowLocalPremiumModal(true)}
+            className="whitespace-nowrap text-sm h-10 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
+          >
+            <Coffee className="h-4 w-4 mr-1.5" />
+            Get Unlimited Searches
+          </Button>
+        )}
       </div>
-    );
-  }
-
-  if (!Array.isArray(results) || results.length === 0) {
-    return (
-      <div className="w-full text-center py-8 sm:py-12">
-        <p className={`text-base sm:text-lg ${isDark ? 'text-blue-200' : 'text-gray-600'}`}>
-          No results found. Please try different preferences.
-        </p>
-        <Button variant="ghost" onClick={onBack} className="mt-4">
-          ← Back to Search
-        </Button>
-      </div>
-    );
-  }
-
-  useEffect(() => {
-    setIsLoading(true);
-    setLoadingError(null);
-    setDisplayedResults([]);
-
-    try {
-      const initialBatch = results.slice(0, ITEMS_PER_BATCH);
-      setDisplayedResults(initialBatch);
-    } catch (error) {
-      setLoadingError(error instanceof Error ? error.message : 'Failed to load results');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [results]);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      if (isLoading) return;
-
-      const isNearBottom = 
-        window.innerHeight + window.scrollY >= 
-        document.documentElement.scrollHeight - 200;
-
-      if (isNearBottom && displayedResults.length < results.length) {
-        setIsLoading(true);
-        const nextBatch = results.slice(
-          displayedResults.length,
-          displayedResults.length + ITEMS_PER_BATCH
-        );
-
-        setDisplayedResults(prev => [...prev, ...nextBatch]);
-        setIsLoading(false);
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [displayedResults.length, isLoading, results]);
+    </motion.div>
+  );
 
   const handleLoadMore = () => {
     setIsLoading(true);
@@ -156,59 +114,27 @@ export default function SearchResults({
     setIsLoading(false);
   };
 
-  const handleUpgrade = () => {
-    window.open('https://www.buymeacoffee.com/EzStreamTo', '_blank');
-    setShowLocalPremiumModal(false);
-  };
-
-  const SearchCreditsSection = () => (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className={cn(
-        "w-full max-w-lg mx-auto p-3 sm:p-6 rounded-lg text-center transition-all duration-300",
-        isDark 
-          ? isPremium ? 'bg-blue-900/20 text-blue-200' : 'bg-gradient-to-r from-amber-500 to-amber-600 text-white'
-          : isPremium ? 'bg-blue-50 text-blue-600' : 'bg-gradient-to-r from-amber-500 to-amber-600 text-white'
-      )}
-    >
-      <div className="flex items-center justify-center gap-2">
-        {isPremium ? (
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1.5">
-              <Coffee className="h-3.5 w-3.5 text-amber-400" />
-              <span className="font-medium">Premium</span>
-            </div>
-            <p className="text-xs sm:text-sm font-medium">
-              Unlimited searches available
-            </p>
-          </div>
-        ) : (
-          <p className="text-xs sm:text-sm font-medium">
-            {remainingSearches === 1 
-              ? '1 free search remaining'
-              : `${remainingSearches} free searches remaining`}
-          </p>
-        )}
-      </div>
-
-      {!isPremium && (
-        <div className="flex justify-center mt-3 sm:mt-4">
-          <Button
-            onClick={() => setShowLocalPremiumModal(true)}
-            className="text-sm sm:text-base h-10 sm:h-12 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
-          >
-            <Coffee className="h-4 w-4 mr-1.5" />
-            Get Unlimited Searches
-          </Button>
-        </div>
-      )}
-    </motion.div>
-  );
+  useEffect(() => {
+    setIsLoading(true);
+    setLoadingError(null);
+    setDisplayedResults([]);
+    try {
+      const initialBatch = results.slice(0, ITEMS_PER_BATCH);
+      setDisplayedResults(initialBatch);
+    } catch (error) {
+      setLoadingError(error instanceof Error ? error.message : 'Failed to load results');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [results]);
 
   return (
     <div className="w-full">
-      <PremiumModal />
+      <PremiumModal 
+        isOpen={showLocalPremiumModal}
+        onClose={() => setShowLocalPremiumModal(false)}
+        onUpgrade={handleUpgrade}
+      />
 
       <div className={`sticky top-0 z-10 pb-3 sm:pb-4 ${isDark ? 'bg-[#040B14]/90' : 'bg-gray-50/90'} backdrop-blur-sm`}>
         <div className="flex items-center justify-between mb-2">
@@ -261,7 +187,9 @@ export default function SearchResults({
           </Button>
         )}
 
-        <SearchCreditsSection />
+        <div className="w-full">
+          <SearchCreditsSection />
+        </div>
       </div>
     </div>
   );

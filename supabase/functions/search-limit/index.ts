@@ -11,16 +11,15 @@ serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
-  // ✅ Log forcé dès que la function démarre (avant même le try)
-  console.log("🟢 Edge Function `search-limit` déclenchée !");
+  console.log("🟢 Edge Function `search-limit` triggered!");
 
   try {
     const body = await req.json();
     const ip = body.ip;
-    const mode = body.mode === "check" ? "check" : "consume";
+    const mode = body.mode || "check"; // Default to "check" mode
 
-    console.log("📦 Mode reçu:", mode);
-    console.log("🌐 IP reçue:", ip);
+    console.log("📦 Mode:", mode);
+    console.log("🌐 IP:", ip);
 
     if (!ip) {
       return new Response(JSON.stringify({ error: "IP address is required" }), {
@@ -29,7 +28,7 @@ serve(async (req) => {
       });
     }
 
-    // ✅ Premium users: unlimited
+    // Check for premium status first
     const { data: supporter } = await supabase
       .from("supporters")
       .select("ip_address")
@@ -57,8 +56,13 @@ serve(async (req) => {
     if (error) throw error;
 
     const currentCount = searchData?.search_count || 0;
+    const isNewDay = searchData?.last_search 
+      ? new Date(searchData.last_search).getDate() !== new Date().getDate()
+      : true;
 
+    // If mode is "check", just return the current status
     if (mode === "check") {
+      console.log("✅ Check mode - not incrementing count");
       const remaining = Math.max(0, maxSearches - currentCount);
       return new Response(JSON.stringify({
         canSearch: remaining > 0,
@@ -69,8 +73,10 @@ serve(async (req) => {
       }), { headers: corsHeaders });
     }
 
-    // CONSUME
-    if (currentCount >= maxSearches) {
+    // Handle consume mode
+    console.log("🔄 Consume mode - validating search");
+
+    if (currentCount >= maxSearches && !isNewDay) {
       return new Response(JSON.stringify({
         canSearch: false,
         remaining: 0,
@@ -80,27 +86,36 @@ serve(async (req) => {
       }), { headers: corsHeaders });
     }
 
-    let updatedCount = currentCount + 1;
+    // Reset count if it's a new day
+    const newCount = isNewDay ? 1 : currentCount + 1;
 
     if (searchData) {
       const { error: updateError } = await supabase
         .from("ip_searches")
-        .update({ search_count: updatedCount })
+        .update({ 
+          search_count: newCount,
+          last_search: new Date().toISOString()
+        })
         .eq("ip_address", ip);
 
       if (updateError) throw updateError;
     } else {
       const { error: insertError } = await supabase
         .from("ip_searches")
-        .insert({ ip_address: ip, search_count: 1 });
+        .insert({ 
+          ip_address: ip, 
+          search_count: 1,
+          last_search: new Date().toISOString()
+        });
 
       if (insertError) throw insertError;
-      updatedCount = 1;
     }
+
+    console.log("✅ Search count updated:", newCount);
 
     return new Response(JSON.stringify({
       canSearch: true,
-      remaining: Math.max(0, maxSearches - updatedCount),
+      remaining: Math.max(0, maxSearches - newCount),
       total: maxSearches,
       isPremium: false,
       message: "Search recorded"

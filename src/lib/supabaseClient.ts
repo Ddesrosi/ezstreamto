@@ -1,5 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
-import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../config';
+
+// ✅ On utilise les variables VITE_ reconnues par Vite + Netlify
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 console.log('🔑 Initializing Supabase with:', { 
   url: SUPABASE_URL,
@@ -54,7 +57,6 @@ export const supabase = getSupabaseClient();
   try {
     console.log("🔍 Testing Supabase connection...");
     
-    // Test with a simple query to check connection
     const { data, error } = await supabase
       .from('ip_searches')
       .select('count')
@@ -66,7 +68,6 @@ export const supabase = getSupabaseClient();
       console.error("Details:", error.details);
       console.error("Status:", error.code);
       
-      // Check for specific error types
       if (error.code === 'PGRST301') {
         console.error("❌ Database connection error - check your database URL");
       } else if (error.code === '401') {

@@ -1,4 +1,5 @@
 import { getClientIp as getIP } from "./get-ip";
+import { getOrCreateUUID } from "../get-uuid"; // ✅ ajout ici
 
 type Mode = 'check' | 'consume';
 
@@ -12,6 +13,7 @@ export async function validateSearch(mode: Mode = 'check') {
 
   try {
     const ip = await getIP();
+    const uuid = getOrCreateUUID(); // ✅ récupération du UUID
 
     console.log(`📍 Called validateSearch("${mode}")`);
 
@@ -25,7 +27,7 @@ export async function validateSearch(mode: Mode = 'check') {
       return await cachedRequest;
     }
 
-    const body = { ip, mode };
+    const body = { ip, uuid, mode }; // ✅ UUID ajouté au corps de la requête
     console.log("📤 Request sent with body:", body); // 🆕 Ajout ici
 
     // Create promise for the request
@@ -41,7 +43,6 @@ export async function validateSearch(mode: Mode = 'check') {
       console.log('✅ validateSearch returned', result);
       return result;
     });
-
 
     // Cache the request promise
     requestCache.set(cacheKey, requestPromise);

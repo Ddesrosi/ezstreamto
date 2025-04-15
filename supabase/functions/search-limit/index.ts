@@ -16,19 +16,21 @@ serve(async (req) => {
   try {
     const body = await req.json();
     const ip = body.ip;
+    const uuid = body.uuid || null;
     const mode = body.mode || "check"; // Default to "check" mode
 
     console.log("📦 Mode:", mode);
     console.log("🌐 IP:", ip);
+    console.log("🆔 UUID:", uuid);
 
-    if (!ip) {
-      return new Response(JSON.stringify({ error: "IP address is required" }), {
+    if (!ip && !uuid) {
+      return new Response(JSON.stringify({ error: "IP or UUID is required" }), {
         status: 400,
         headers: corsHeaders,
       });
     }
 
-    // Check for premium status first
+    // Check for premium status by IP only
     const { data: supporter } = await supabase
       .from("supporters")
       .select("ip_address")
@@ -47,10 +49,12 @@ serve(async (req) => {
     }
 
     const maxSearches = 5;
+
+    // 🔍 Recherche par UUID en priorité, sinon par IP
     const { data: searchData, error } = await supabase
       .from("ip_searches")
       .select("*")
-      .eq("ip_address", ip)
+      .eq(uuid ? "uuid" : "ip_address", uuid || ip)
       .maybeSingle();
 
     if (error) throw error;
@@ -60,7 +64,7 @@ serve(async (req) => {
       ? new Date(searchData.last_search).getDate() !== new Date().getDate()
       : true;
 
-    // If mode is "check", just return the current status
+    // 🟡 Mode "check" : on retourne juste l'état
     if (mode === "check") {
       console.log("✅ Check mode - not incrementing count");
       const remaining = Math.max(0, maxSearches - currentCount);
@@ -73,7 +77,7 @@ serve(async (req) => {
       }), { headers: corsHeaders });
     }
 
-    // Handle consume mode
+    // 🔁 Mode "consume" : on incrémente
     console.log("🔄 Consume mode - validating search");
 
     if (currentCount >= maxSearches && !isNewDay) {
@@ -86,7 +90,6 @@ serve(async (req) => {
       }), { headers: corsHeaders });
     }
 
-    // Reset count if it's a new day
     const newCount = isNewDay ? 1 : currentCount + 1;
 
     if (searchData) {
@@ -96,16 +99,18 @@ serve(async (req) => {
           search_count: newCount,
           last_search: new Date().toISOString()
         })
-        .eq("ip_address", ip);
+        .eq(uuid ? "uuid" : "ip_address", uuid || ip);
 
       if (updateError) throw updateError;
     } else {
       const { error: insertError } = await supabase
         .from("ip_searches")
         .insert({ 
-          ip_address: ip, 
+          ip_address: ip || null,
+          uuid: uuid || null,
           search_count: 1,
-          last_search: new Date().toISOString()
+          last_search: new Date().toISOString(),
+          created_at: new Date().toISOString()
         });
 
       if (insertError) throw insertError;

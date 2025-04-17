@@ -1,4 +1,4 @@
-import { serve } from 'https://deno.fresh.dev/std@0.177.0/http/server.ts';
+import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.7';
 import { corsHeaders } from '../_shared/cors.ts';
 
@@ -15,19 +15,19 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const { ip, mode } = await req.json();
+    const { ip, uuid, mode } = await req.json();
 
-    if (!ip) {
-      throw new Error('IP address is required');
+    if (!ip && !uuid) {
+      throw new Error('IP address or UUID is required');
     }
 
-    // Check if user has unlimited searches
+    // Check if user has unlimited searches via IP or UUID
     const { data: supporter } = await supabase
       .from('supporters')
       .select('unlimited_searches')
-      .eq('ip_address', ip)
+      .or(`ip_address.eq.${ip},visitor_uuid.eq.${uuid}`)
       .eq('verified', true)
-      .single();
+      .maybeSingle();
 
     if (supporter?.unlimited_searches) {
       return new Response(
@@ -45,7 +45,7 @@ serve(async (req) => {
       .from('ip_searches')
       .select('*')
       .eq('ip_address', ip)
-      .single();
+      .maybeSingle();
 
     const currentCount = searchRecord?.search_count ?? 0;
 

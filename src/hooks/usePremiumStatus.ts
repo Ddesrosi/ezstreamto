@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { getClientIp } from '@/lib/search-limits/get-ip';
+import { getOrCreateUUID } from '@/lib/search-limits/get-uuid';
 
 const PREMIUM_CHECK_INTERVAL = 60000; // Check every minute
 
@@ -19,36 +20,36 @@ export function usePremiumStatus() {
         }
 
         const promise = (async () => {
-        console.log("💎 Checking Premium status", new Date().toISOString());
+          console.log("💎 Checking Premium status", new Date().toISOString());
 
-        const ip = await getClientIp();
+          const ip = await getClientIp();
+          const visitorId = getOrCreateUUID();
 
-        if (!ip) {
-          console.warn('⚠️ No IP address found, cannot check Premium status.');
-          setIsPremium(false);
-          return;
-        }
+          if (!ip && !visitorId) {
+            console.warn('⚠️ No IP or UUID found, cannot check Premium status.');
+            setIsPremium(false);
+            return;
+          }
 
-        const { data: supporter, error } = await supabase
-          .from('supporters')
-          .select('unlimited_searches, email, support_status, support_date')
-          .or(`ip_address.eq.${ip},email.is_not.null,transaction_id.is_not.null`)
-          .eq('verified', true)
-          .eq('support_status', 'active')
-          .maybeSingle();
+          const { data: supporter, error } = await supabase
+  .from('supporters')
+  .select('unlimited_searches, email, support_status, support_date')
+  .or(`ip_address.eq.${ip},visitor_uuid.eq.${visitorId}`)
+  .eq('verified', true)
+  .maybeSingle();
 
-        if (error) {
-          console.error('❌ Supabase error when checking Premium:', error);
-          setIsPremium(false);
-          return;
-        }
+          if (error) {
+            console.error('❌ Supabase error when checking Premium:', error);
+            setIsPremium(false);
+            return;
+          }
 
-        console.log('✅ Premium check result:', {
-          ...supporter,
-          checkedAt: new Date().toISOString()
-        });
+          console.log('✅ Premium check result:', {
+            ...supporter,
+            checkedAt: new Date().toISOString()
+          });
 
-        setIsPremium(!!supporter?.unlimited_searches);
+          setIsPremium(!!supporter?.unlimited_searches);
         })();
 
         checkInProgress.current = promise;
@@ -63,7 +64,7 @@ export function usePremiumStatus() {
     };
 
     checkPremiumStatus();
-    
+
     // Set up interval to check premium status
     checkInterval.current = window.setInterval(checkPremiumStatus, PREMIUM_CHECK_INTERVAL);
 

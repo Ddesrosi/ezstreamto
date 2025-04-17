@@ -1,12 +1,14 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { getClientIp } from '@/lib/search-limits/get-ip';
-import { validateSearch } from '@/lib/search-limits/edge';
+
+const PREMIUM_CHECK_INTERVAL = 60000; // Check every minute
 
 export function usePremiumStatus() {
   const [isPremium, setIsPremium] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const checkInProgress = useRef<Promise<void> | null>(null);
+  const checkInterval = useRef<number | null>(null);
 
   useEffect(() => {
     const checkPremiumStatus = async () => {
@@ -17,8 +19,7 @@ export function usePremiumStatus() {
         }
 
         const promise = (async () => {
-        console.log("💎 Checking Premium status...");
-        console.log("💎 validateSearch('check') from usePremiumStatus");
+        console.log("💎 Checking Premium status", new Date().toISOString());
 
         const ip = await getClientIp();
 
@@ -30,9 +31,10 @@ export function usePremiumStatus() {
 
         const { data: supporter, error } = await supabase
           .from('supporters')
-          .select('unlimited_searches')
-          .eq('ip_address', ip)
+          .select('unlimited_searches, email, support_status, support_date')
+          .or(`ip_address.eq.${ip},email.is_not.null,transaction_id.is_not.null`)
           .eq('verified', true)
+          .eq('support_status', 'active')
           .maybeSingle();
 
         if (error) {
@@ -40,6 +42,11 @@ export function usePremiumStatus() {
           setIsPremium(false);
           return;
         }
+
+        console.log('✅ Premium check result:', {
+          ...supporter,
+          checkedAt: new Date().toISOString()
+        });
 
         setIsPremium(!!supporter?.unlimited_searches);
         })();
@@ -56,9 +63,15 @@ export function usePremiumStatus() {
     };
 
     checkPremiumStatus();
+    
+    // Set up interval to check premium status
+    checkInterval.current = window.setInterval(checkPremiumStatus, PREMIUM_CHECK_INTERVAL);
 
     return () => {
       checkInProgress.current = null;
+      if (checkInterval.current) {
+        window.clearInterval(checkInterval.current);
+      }
     };
   }, []);
 

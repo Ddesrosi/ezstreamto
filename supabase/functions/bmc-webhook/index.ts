@@ -97,7 +97,7 @@ serve(async (req) => {
     if (ip) {
       const { data: ipMatch, error: ipError } = await supabase
         .from("ip_searches")
-        .select("uuid")
+        .select("id") // ✅ Correction ici
         .eq("ip_address", ip)
         .maybeSingle();
 
@@ -111,7 +111,7 @@ serve(async (req) => {
         }));
       }
 
-      visitor_uuid = ipMatch?.uuid || null;
+      visitor_uuid = ipMatch?.id || null; // ✅ Correction ici aussi
     }
 
     const { error } = await supabase.from("supporters").insert([

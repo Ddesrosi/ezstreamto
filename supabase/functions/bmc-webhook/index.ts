@@ -86,6 +86,24 @@ serve(async (req) => {
       }
     );
 
+    // 🔍 Récupérer l’adresse IP du visiteur via headers
+    const ip =
+      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      req.headers.get("x-real-ip") ||
+      null;
+
+    // 🔍 Rechercher le visitor_uuid à partir de l’IP dans ip_searches
+    let visitor_uuid = null;
+    if (ip) {
+      const { data: ipMatch } = await supabase
+        .from("ip_searches")
+        .select("uuid")
+        .eq("ip_address", ip)
+        .maybeSingle();
+
+      visitor_uuid = ipMatch?.uuid || null;
+    }
+
     const { error } = await supabase.from("supporters").insert([
       {
         email,
@@ -96,6 +114,7 @@ serve(async (req) => {
         support_status: support_type || null,
         support_date: new Date().toISOString(),
         created_at: new Date().toISOString(),
+        visitor_uuid, // ✅ ajout ici
         metadata: {
           platform: "buymeacoffee",
           supporter_name: supporter_name || null,
@@ -120,7 +139,8 @@ serve(async (req) => {
       message: "Support record inserted successfully",
       transaction_id,
       email,
-      amount
+      amount,
+      visitor_uuid
     }));
 
     return new Response("✅ Success", { status: 200 });

@@ -101,6 +101,14 @@ serve(async (req) => {
         .eq("ip_address", ip)
         .maybeSingle();
 
+      // 🧪 Log du résultat de la recherche UUID par IP
+      console.log(JSON.stringify({
+        code: "IP_LOOKUP_RESULT",
+        message: "Result of lookup from ip_searches",
+        ip,
+        ipMatch
+      }));
+
       if (ipError) {
         console.error(JSON.stringify({
           code: "IP_LOOKUP_ERROR",
@@ -111,7 +119,7 @@ serve(async (req) => {
         }));
       }
 
-      visitor_uuid = ipMatch?.id || null; // ✅ Correction ici aussi
+      visitor_uuid = ipMatch?.id || null;
     }
 
     const { error } = await supabase.from("supporters").insert([

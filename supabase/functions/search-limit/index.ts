@@ -30,13 +30,13 @@ serve(async (req) => {
       });
     }
 
-    // Check for premium status by IP only
-    const { data: supporter } = await supabase
-      .from("supporters")
-      .select("ip_address")
-      .eq("ip_address", ip)
-      .eq("verified", true)
-      .maybeSingle();
+ // Check for premium status by UUID or IP
+const { data: supporter } = await supabase
+  .from("supporters")
+  .select("unlimited_searches")
+  .or(`visitor_uuid.eq.${uuid},ip_address.eq.${ip}`)
+  .eq("verified", true)
+  .maybeSingle();
 
     if (supporter) {
       return new Response(JSON.stringify({

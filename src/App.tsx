@@ -16,6 +16,7 @@ import Privacy from './pages/Privacy';
 import PremiumSuccess from './pages/PremiumSuccess';
 import { supabase } from './lib/supabaseClient';
 import { useRef } from 'react';
+import { getOrCreateUUID } from '@/lib/search-limits/get-uuid';
 
 function App() {
   const [isDark, setIsDark] = useState(true);
@@ -35,6 +36,11 @@ function App() {
   } | undefined>();
 
   const hasLoggedRef = useRef(false);
+
+  useEffect(() => {
+  const uuid = getOrCreateUUID();
+  console.log("🔐 UUID initialized in App.tsx:", uuid);
+}, []);
 
   useEffect(() => {
     setShareMessage(getRandomShareMessage());

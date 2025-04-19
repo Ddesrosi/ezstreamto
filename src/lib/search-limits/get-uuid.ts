@@ -12,3 +12,4 @@ export function getOrCreateUUID(): string {
 
   return uuid;
 }
+

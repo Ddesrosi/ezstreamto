@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Crown, X, Check, Loader2, Coffee } from 'lucide-react';
 import { Button } from './button';
 import { usePremiumUpgrade } from '@/hooks/usePremiumUpgrade';
+import { getOrCreateUUID } from '@/lib/search-limits/get-uuid';
 
 interface PremiumModalProps {
   isOpen: boolean;
@@ -13,6 +14,7 @@ interface PremiumModalProps {
 export function PremiumModal({ isOpen, onClose, onUpgrade }: PremiumModalProps) {
   const [isHovering, setIsHovering] = useState(false);
   const { upgradeToPremium, isProcessing, error } = usePremiumUpgrade();
+  const uuid = getOrCreateUUID();
 
   const benefits = [
     'Unlimited Searches',
@@ -23,8 +25,8 @@ export function PremiumModal({ isOpen, onClose, onUpgrade }: PremiumModalProps) 
 
   const handleUpgrade = async () => {
     try {
-      // Open Buy Me a Coffee in a new window
-      window.open('https://www.buymeacoffee.com/EzStreamTo', '_blank');
+      const redirectUrl = encodeURIComponent(`https://ezstreamto.com/premium-success?uuid=${uuid}`);
+      window.location.href = `https://www.buymeacoffee.com/EzStreamTo?redirect_url=${redirectUrl}`;
       
       // Close the modal
       onClose();

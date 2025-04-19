@@ -18,6 +18,7 @@ import { PremiumBadge } from '../ui/premium-badge';
 import { PremiumModal } from '../ui/premium-modal';
 import { usePremiumStatus } from '@/hooks/usePremiumStatus';
 import { PremiumFeatureWrapper } from '../ui/premium-feature-wrapper';
+import { getOrCreateUUID } from '@/lib/search-limits/get-uuid';
 import { PerfectMatch } from '../ui/perfect-match';
 
 interface PreferenceFormProps {
@@ -59,6 +60,7 @@ function PreferenceForm({ isDark, onSearch, onError }: PreferenceFormProps) {
 
   const [showPremiumModal, setShowPremiumModal] = useState(false);
   const { isPremium, isLoading: isPremiumLoading } = usePremiumStatus();
+  const uuid = getOrCreateUUID();
   
   useEffect(() => {
   async function fetchInitialSearchCredits() {
@@ -285,12 +287,12 @@ setRemainingSearches(response.remaining);
 
         {!isPremium && (
           <div className="w-full sm:w-auto">
-            <Button
-              onClick={() => setShowPremiumModal(true)}
+            <a
+              href={`https://www.buymeacoffee.com/EzStreamTo?redirect_url=${encodeURIComponent(`https://ezstreamto.com/premium-success?uuid=${uuid}`)}`}
               className="w-full sm:w-auto h-9 sm:h-10 text-xs sm:text-sm px-3 sm:px-4 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
             >
               Get Unlimited Searches
-            </Button>
+            </a>
           </div>
         )}
       </div>

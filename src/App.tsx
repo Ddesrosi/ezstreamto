@@ -13,6 +13,7 @@ import { Footer } from './components/layout/footer';
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import Disclaimer from './pages/Disclaimer';
 import Privacy from './pages/Privacy';
+import PremiumSuccess from './pages/PremiumSuccess';
 import { supabase } from './lib/supabaseClient';
 import { useRef } from 'react';
 
@@ -137,6 +138,7 @@ function App() {
       <Routes>
         <Route path="/disclaimer" element={<Disclaimer />} />
         <Route path="/privacy" element={<Privacy />} />
+        <Route path="/premium-success" element={<PremiumSuccess />} />
         <Route path="/" element={
           <div className={`min-h-screen flex flex-col relative transition-colors duration-200 ${
             isDark ? 'bg-[#040B14] text-white' : 'bg-gray-50 text-gray-900'

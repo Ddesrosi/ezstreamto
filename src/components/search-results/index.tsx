@@ -11,6 +11,7 @@ import { PremiumModal } from '../ui/premium-modal';
 import { PerfectMatchCard } from './perfect-match-card';
 import type { PerfectMatchInsights } from '@/lib/perfect-match';
 import { USER_LIMITS } from '@/config';
+import { getOrCreateUUID } from '@/lib/search-limits/get-uuid';
 
 interface SearchResultsProps {
   results: Movie[];
@@ -42,6 +43,7 @@ export default function SearchResults({
   const [isLoading, setIsLoading] = useState(true);
   const [showLocalPremiumModal, setShowLocalPremiumModal] = useState(false);
   const [loadingError, setLoadingError] = useState<string | null>(null);
+  const uuid = getOrCreateUUID();
 
   const [localRemainingSearches, setLocalRemainingSearches] = useState<number | null>(null);
 
@@ -91,13 +93,13 @@ export default function SearchResults({
         )}
 
         {!isPremium && (
-          <Button
-            onClick={() => setShowLocalPremiumModal(true)}
-            className="whitespace-nowrap text-sm h-10 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
+          <a
+            href={`https://www.buymeacoffee.com/EzStreamTo?redirect_url=${encodeURIComponent(`https://ezstreamto.com/premium-success?uuid=${uuid}`)}`}
+            className="whitespace-nowrap text-sm h-10 px-4 py-2 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium flex items-center gap-2"
           >
             <Coffee className="h-4 w-4 mr-1.5" />
             Get Unlimited Searches
-          </Button>
+          </a>
         )}
       </div>
     </motion.div>

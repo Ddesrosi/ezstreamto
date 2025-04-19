@@ -75,15 +75,16 @@ serve(async (req) => {
       );
     }
 
-    // Otherwise (mode === 'consume'), increment search count
-    const newCount = currentCount + 1;
-    await supabase
-      .from('ip_searches')
-      .upsert({ 
-        ip_address: ip,
-        search_count: newCount,
-        last_search: new Date().toISOString()
-      });
+  // Otherwise (mode === 'consume'), increment search count
+const newCount = currentCount + 1;
+await supabase
+  .from('ip_searches')
+  .upsert({ 
+    id: uuid, // ✅ on force l'UUID comme identifiant unique
+    ip_address: ip,
+    search_count: newCount,
+    last_search: new Date().toISOString()
+  });
 
     return new Response(
       JSON.stringify({

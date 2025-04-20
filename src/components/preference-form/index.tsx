@@ -166,17 +166,16 @@ const handleSearch = useCallback(async () => {
     setSearchProgress(0);
 
     // ✅ Vérifier les crédits sans consommer
-    const checkResult = await validateSearch("check");
-    console.log("🔍 Check result:", checkResult);
+    const result = await validateSearch("check", visitorUUID); // 👈 Ajoute cette ligne ici
 
     // Mise à jour du nombre de crédits restants avant la consommation
-    setRemainingSearches(checkResult.remaining);
+    setRemainingSearches(result.remaining);
 
     // Log avant la consommation pour vérifier les crédits restants
-    console.log("📦 Remaining searches before consumption:", remainingSearches);
+    console.log("📦 Remaining searches before consumption:", result.remaining);
 
-    if (!checkResult.canSearch) {
-      setSearchLimitMessage(checkResult.message || 'Search limit reached');
+    if (!result.canSearch) {
+      setSearchLimitMessage(result.message || 'Search limit reached');
       setShowLimitToast(true);
       setShowPremiumModal(true);
       setIsSearching(false);
@@ -237,10 +236,15 @@ const handleSearch = useCallback(async () => {
       remaining: response.remaining
     });
 
-    onSearch(results, response.remaining, perfectMatch);
-    setIsSearching(false);
-    setShowModal(false);
-    setSearchProgress(0);
+   onSearch(results, response.remaining, perfectMatch);
+
+// ✅ Consomme un crédit après une recherche réussie
+await validateSearch("consume", visitorUUID);
+console.log("🧾 Search credit consumed");
+
+setIsSearching(false);
+setShowModal(false);
+setSearchProgress(0);
 
   } catch (error) {
     console.error('❌ Search error:', error);

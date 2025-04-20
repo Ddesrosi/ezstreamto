@@ -16,12 +16,12 @@ serve(async (req) => {
   try {
     const body = await req.json();
     const ip = body.ip;
-    const uuid = body.uuid || null;
-    const mode = body.mode || "check"; // Default to "check" mode
+    let uuid = body.uuid || null;
+    const mode = body.mode || "check";
 
     console.log("📦 Mode:", mode);
     console.log("🌐 IP:", ip);
-    console.log("🆔 UUID:", uuid);
+    console.log("🆔 UUID (before validation):", uuid);
 
     if (!ip && !uuid) {
       return new Response(JSON.stringify({ error: "IP or UUID is required" }), {
@@ -30,11 +30,17 @@ serve(async (req) => {
       });
     }
 
-    // Check for premium status by IP only
+    // Validate UUID format
+    if (uuid && typeof uuid !== "string") {
+      console.warn("❌ Invalid UUID format: UUID must be a string");
+      uuid = null;
+    }
+
+    // Check for premium status
     const { data: supporter } = await supabase
       .from("supporters")
-      .select("ip_address")
-      .eq("ip_address", ip)
+      .select("unlimited_searches")
+      .or(`ip_address.eq.${ip},visitor_uuid.eq.${uuid}`)
       .eq("verified", true)
       .maybeSingle();
 
@@ -50,7 +56,6 @@ serve(async (req) => {
 
     const maxSearches = 5;
 
-    // 🔍 Recherche par UUID en priorité, sinon par IP
     const { data: searchData, error } = await supabase
       .from("ip_searches")
       .select("*")
@@ -60,11 +65,10 @@ serve(async (req) => {
     if (error) throw error;
 
     const currentCount = searchData?.search_count || 0;
-    const isNewDay = searchData?.last_search 
+    const isNewDay = searchData?.last_search
       ? new Date(searchData.last_search).getDate() !== new Date().getDate()
       : true;
 
-    // 🟡 Mode "check" : on retourne juste l'état
     if (mode === "check") {
       console.log("✅ Check mode - not incrementing count");
       const remaining = Math.max(0, maxSearches - currentCount);
@@ -77,7 +81,6 @@ serve(async (req) => {
       }), { headers: corsHeaders });
     }
 
-    // 🔁 Mode "consume" : on incrémente
     console.log("🔄 Consume mode - validating search");
 
     if (currentCount >= maxSearches && !isNewDay) {
@@ -92,30 +95,38 @@ serve(async (req) => {
 
     const newCount = isNewDay ? 1 : currentCount + 1;
 
-   if (searchData) {
-  const { error: updateError } = await supabase
-    .from("ip_searches")
-    .update({ 
-      uuid: uuid ? uuid.toLowerCase() : null,
-      search_count: newCount,
-      last_search: new Date().toISOString()
-    })
-    .eq(uuid ? "uuid" : "ip_address", uuid || ip);
+    if (searchData) {
+      const { error: updateError } = await supabase
+        .from("ip_searches")
+        .update({
+          uuid: uuid ? uuid.toLowerCase() : null,
+          search_count: newCount,
+          last_search: new Date().toISOString()
+        })
+        .eq(uuid ? "uuid" : "ip_address", uuid || ip);
 
       if (updateError) throw updateError;
     } else {
-     console.log("📨 Inserting row with values:", {
-  ip_address: ip || null,
-  uuid: uuid || null,
-  search_count: 1,
-  last_search: new Date().toISOString(),
-  created_at: new Date().toISOString()
-});
+      console.log("📨 Inserting row with values:", {
+        ip_address: ip,
+        uuid,
+        search_count: 1,
+        last_search: new Date().toISOString(),
+        created_at: new Date().toISOString()
+      });
+
+      if (!ip) {
+        console.error("❌ IP address is null, cannot insert new record");
+        return new Response(JSON.stringify({ error: "IP address is required for new searches" }), {
+          status: 400,
+          headers: corsHeaders,
+        });
+      }
 
       const { error: insertError } = await supabase
         .from("ip_searches")
-        .insert({ 
-          ip_address: ip || null,
+        .insert({
+          ip_address: ip,
           uuid: uuid ? uuid.toString() : null,
           search_count: 1,
           last_search: new Date().toISOString(),

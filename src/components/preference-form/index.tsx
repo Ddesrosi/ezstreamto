@@ -223,11 +223,11 @@ const handleSearch = useCallback(async () => {
       throw new Error('No results found. Please try different preferences.');
     }
 
-    // ✅ Crédit consommé maintenant
+       // ✅ Crédit consommé maintenant
     console.log("🧩 Before consuming search credit - remaining:", remainingSearches);  // Nouveau log avant la consommation
-    
+
     setRemainingSearches(response.remaining);
-    
+
     clearInterval(progressInterval);
     setSearchProgress(100);
 
@@ -236,7 +236,10 @@ const handleSearch = useCallback(async () => {
       remaining: response.remaining
     });
 
-   onSearch(results, response.remaining, perfectMatch);
+   await validateSearch("consume", visitorUUID);
+console.log("🧾 Search credit consumed");
+
+onSearch(results, response.remaining - 1, perfectMatch);
 
 // ✅ Consomme un crédit après une recherche réussie
 await validateSearch("consume", visitorUUID);

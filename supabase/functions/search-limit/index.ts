@@ -96,7 +96,7 @@ serve(async (req) => {
   const { error: updateError } = await supabase
     .from("ip_searches")
     .update({ 
-      uuid: uuid || null, // ✅ Nouvelle ligne pour stocker le UUID
+      uuid: uuid ? uuid.toLowerCase() : null,
       search_count: newCount,
       last_search: new Date().toISOString()
     })

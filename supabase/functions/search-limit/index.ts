@@ -30,13 +30,13 @@ serve(async (req) => {
       });
     }
 
- // Check for premium status by UUID or IP
-const { data: supporter } = await supabase
-  .from("supporters")
-  .select("unlimited_searches")
-  .or(`visitor_uuid.eq.${uuid},ip_address.eq.${ip}`)
-  .eq("verified", true)
-  .maybeSingle();
+    // Check for premium status by IP only
+    const { data: supporter } = await supabase
+      .from("supporters")
+      .select("ip_address")
+      .eq("ip_address", ip)
+      .eq("verified", true)
+      .maybeSingle();
 
     if (supporter) {
       return new Response(JSON.stringify({
@@ -92,14 +92,15 @@ const { data: supporter } = await supabase
 
     const newCount = isNewDay ? 1 : currentCount + 1;
 
-    if (searchData) {
-      const { error: updateError } = await supabase
-        .from("ip_searches")
-        .update({ 
-          search_count: newCount,
-          last_search: new Date().toISOString()
-        })
-        .eq(uuid ? "uuid" : "ip_address", uuid || ip);
+   if (searchData) {
+  const { error: updateError } = await supabase
+    .from("ip_searches")
+    .update({ 
+      uuid: uuid || null, // ✅ Nouvelle ligne pour stocker le UUID
+      search_count: newCount,
+      last_search: new Date().toISOString()
+    })
+    .eq(uuid ? "uuid" : "ip_address", uuid || ip);
 
       if (updateError) throw updateError;
     } else {

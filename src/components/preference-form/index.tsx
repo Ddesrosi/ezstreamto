@@ -25,9 +25,10 @@ interface PreferenceFormProps {
   isDark: boolean;
   onSearch: (results: Movie[], remaining?: number, perfectMatch?: any) => void;
   onError: (message: string) => void;
+  visitorUUID: string;
 }
 
-function PreferenceForm({ isDark, onSearch, onError }: PreferenceFormProps) {
+function PreferenceForm({ isDark, onSearch, onError, visitorUUID }: PreferenceFormProps) {
   // Content Type
   const [contentType, setContentType] = useState<'movie' | 'tv' | null>(null);
   const [hasLoadedSearchCredits, setHasLoadedSearchCredits] = useState(false);
@@ -65,7 +66,7 @@ function PreferenceForm({ isDark, onSearch, onError }: PreferenceFormProps) {
   useEffect(() => {
   async function fetchInitialSearchCredits() {
     try {
-      const result = await validateSearch('check');
+      const result = await validateSearch('check', visitorUUID);
       console.log('📦 Initial search credits fetched:', result.remaining);
       setRemainingSearches(result.remaining);
     } catch (error) {

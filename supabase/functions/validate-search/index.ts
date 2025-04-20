@@ -75,18 +75,15 @@ serve(async (req) => {
       );
     }
 
- // Otherwise (mode === 'consume'), increment search count
-const newCount = currentCount + 1;
-await supabase
-  .from('ip_searches')
-  .upsert({ 
-    id: uuid,                      // ✅ UUID fourni par le site
-    ip_address: ip,
-    search_count: newCount,
-    last_search: new Date().toISOString()
-  }, {
-    onConflict: 'ip_address'       // 🔁 Indique que le conflit se gère sur ip_address
-  });
+    // Otherwise (mode === 'consume'), increment search count
+    const newCount = currentCount + 1;
+    await supabase
+      .from('ip_searches')
+      .upsert({ 
+        ip_address: ip,
+        search_count: newCount,
+        last_search: new Date().toISOString()
+      });
 
     return new Response(
       JSON.stringify({

@@ -6,14 +6,14 @@ type Mode = 'check' | 'consume';
 const requestCache = new Map<string, Promise<any>>();
 const CACHE_TTL = 5000; // 5 seconds
 
-export async function validateSearch(mode: Mode = 'check') {
+export async function validateSearch(mode: Mode = 'check', uuid?: string) {
   if (mode === "check") {
     console.trace("🧪 TRACE: validateSearch('check') call stack");
   }
 
   try {
     const ip = await getIP();
-    const uuid = getOrCreateUUID(); // ✅ récupération du UUID
+    const finalUUID = uuid || getOrCreateUUID(); // ✅ Utilise le paramètre si fourni, sinon fallback
 
     console.log(`📍 Called validateSearch("${mode}")`);
 
@@ -27,7 +27,8 @@ export async function validateSearch(mode: Mode = 'check') {
       return await cachedRequest;
     }
 
-    const body = { ip, uuid, mode }; // ✅ UUID ajouté au corps de la requête
+    const body = { ip, uuid: finalUUID, mode }; // ✅ Correction ici
+
     console.log("📤 Request sent with body:", body); // 🆕 Ajout ici
 
     // Create promise for the request

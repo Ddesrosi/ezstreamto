@@ -37,14 +37,20 @@ function App() {
 
   const hasLoggedRef = useRef(false);
 
-  useEffect(() => {
-  const uuid = getOrCreateUUID();
-  console.log("🔐 UUID initialized in App.tsx:", uuid);
-}, []);
+  const visitorUUID = getOrCreateUUID(); // ✅ UUID stable utilisé partout
+console.log("🧭 visitorUUID initialized in App.tsx:", visitorUUID);
 
-  useEffect(() => {
+  const visitorUUIDRef = useRef<string | null>(null); // ✅ Stockera le UUID de manière stable
+
+    useEffect(() => {
     setShareMessage(getRandomShareMessage());
   }, []);
+
+  useEffect(() => {
+  const uuid = getOrCreateUUID();
+  visitorUUIDRef.current = uuid;
+  console.log("🧭 UUID initialized in App.tsx:", uuid);
+}, []);
 
  useEffect(() => {
   const logPageView = async () => {
@@ -230,6 +236,7 @@ function App() {
                         isDark={isDark} 
                         onSearch={handleSearch}
                         onError={handleError}
+                        visitorUUID={visitorUUID}
                       />
                     </div>
                   </div>

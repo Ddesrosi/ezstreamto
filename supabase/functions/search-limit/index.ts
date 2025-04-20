@@ -104,6 +104,14 @@ serve(async (req) => {
 
       if (updateError) throw updateError;
     } else {
+     console.log("📨 Inserting row with values:", {
+  ip_address: ip || null,
+  uuid: uuid || null,
+  search_count: 1,
+  last_search: new Date().toISOString(),
+  created_at: new Date().toISOString()
+});
+
       const { error: insertError } = await supabase
         .from("ip_searches")
         .insert({ 

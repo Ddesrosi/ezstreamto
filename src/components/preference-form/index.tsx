@@ -141,6 +141,17 @@ const handleSearch = useCallback(async () => {
     isPremium,
     isPerfectMatch: isPerfectMatchEnabled && isPremium
   });
+  
+  console.log("🔍 handleSearch triggered with preferences:", {
+    contentType,
+    moods: selectedMoods,
+    genres: selectedGenres,
+    keywords,
+    yearRange,
+    ratingRange,
+    isPremium,
+    isPerfectMatch: isPerfectMatchEnabled
+  });
 
   let progressInterval: number | null = null;
 
@@ -216,7 +227,7 @@ const handleSearch = useCallback(async () => {
     // ✅ Crédit consommé maintenant
     console.log("🧩 Before consuming search credit - remaining:", remainingSearches);  // Nouveau log avant la consommation
     
-setRemainingSearches(response.remaining);
+    setRemainingSearches(response.remaining);
     
     clearInterval(progressInterval);
     setSearchProgress(100);
@@ -251,7 +262,8 @@ setRemainingSearches(response.remaining);
   onError,
   isPremium,
   specificYearInput,
-  isPerfectMatchEnabled
+  isPerfectMatchEnabled,
+  remainingSearches
 ]);
 
 
@@ -278,10 +290,10 @@ setRemainingSearches(response.remaining);
           ) : (
             <p className="text-xs sm:text-sm font-medium">
               {remainingSearches === null
-  ? ''
-  : remainingSearches === 1 
-    ? '1 free search remaining'
-    : `${remainingSearches} free searches remaining`}
+                ? ''
+                : remainingSearches === 1 
+                  ? '1 free search remaining'
+                  : `${remainingSearches} free searches remaining`}
             </p>
           )}
         </div>
@@ -450,7 +462,7 @@ setRemainingSearches(response.remaining);
               isEnabled={isPerfectMatchEnabled}
               onToggle={(enabled: boolean) => {
                 if (!isPremium) {
-                  onPremiumClick();
+                  setShowPremiumModal(true);
                   return;
                 }
                 setIsPerfectMatchEnabled(enabled);
@@ -504,25 +516,24 @@ setRemainingSearches(response.remaining);
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {timePresets.map(preset => (
-               <Button
-  key={preset.label}
-  variant={activePreset === preset.label ? 'primary' : 'secondary'}
-  onClick={() => {
-    if (activePreset === preset.label) {
-      // Reset to default if clicking the active preset
-      setActivePreset(null);
-      setYearRange({ from: 1920, to: new Date().getFullYear() });
-      setSliderValue([1920, new Date().getFullYear()]);
-    } else {
-      handlePresetClick(preset);
-    }
-  }}
-  className="flex items-center justify-center gap-2"
->
-  <preset.icon className="h-4 w-4" />
-  <span className="text-sm">{preset.label}</span>
-</Button>
-   
+                  <Button
+                    key={preset.label}
+                    variant={activePreset === preset.label ? 'primary' : 'secondary'}
+                    onClick={() => {
+                      if (activePreset === preset.label) {
+                        // Reset to default if clicking the active preset
+                        setActivePreset(null);
+                        setYearRange({ from: 1920, to: new Date().getFullYear() });
+                        setSliderValue([1920, new Date().getFullYear()]);
+                      } else {
+                        handlePresetClick(preset);
+                      }
+                    }}
+                    className="flex items-center justify-center gap-2"
+                  >
+                    <preset.icon className="h-4 w-4" />
+                    <span className="text-sm">{preset.label}</span>
+                  </Button>
                 ))}
               </div>
             </div>
@@ -584,24 +595,23 @@ setRemainingSearches(response.remaining);
 
             {/* Find Matches Button */}
             <Button 
-  size="lg" 
-  className="w-full h-12 sm:h-14 text-base sm:text-lg transition-all duration-300 mt-6"
-  onClick={() => {
-    console.log('🟩 Search button clicked — TIMESTAMP:', new Date().toISOString());
-    handleSearch();
-  }}
-  disabled={isSearching || !contentType || selectedMoods.length === 0 || selectedGenres.length === 0}
->
-  {isSearching ? (
-    <div className="flex items-center gap-2">
-      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-      <span>Finding Matches...</span>
-    </div>
-  ) : (
-    <span>Find What to Watch</span>
-  )}
-</Button>
-
+              size="lg" 
+              className="w-full h-12 sm:h-14 text-base sm:text-lg transition-all duration-300 mt-6"
+              onClick={() => {
+                console.log('🟩 Search button clicked — TIMESTAMP:', new Date().toISOString());
+                handleSearch();
+              }}
+              disabled={isSearching || !contentType || selectedMoods.length === 0 || selectedGenres.length === 0}
+            >
+              {isSearching ? (
+                <div className="flex items-center gap-2">
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <span>Finding Matches...</span>
+                </div>
+              ) : (
+                <span>Find What to Watch</span>
+              )}
+            </Button>
           </div>
         </div>
       </div>

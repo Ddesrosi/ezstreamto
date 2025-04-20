@@ -98,10 +98,12 @@ console.log("🧭 visitorUUID initialized in App.tsx:", visitorUUID);
     remaining?: number,
     perfectMatchResult?: typeof perfectMatch
   ) => {
-    console.log('📥 App.tsx handleSearch called with:', {
-      resultsCount: results?.length,
-      remaining,
-      hasPerfectMatch: !!perfectMatchResult
+    console.log('🔍 Search Results Debug:', {
+      hasResults: !!results,
+      resultsLength: results?.length,
+      remaining: remaining,
+      hasPerfectMatch: !!perfectMatchResult,
+      firstResult: results?.[0]
     });
 
     console.log('Remaining searches received:', remaining);
@@ -117,6 +119,12 @@ console.log("🧭 visitorUUID initialized in App.tsx:", visitorUUID);
     setShowResults(true);
     setSearchResults(results);
     setPerfectMatch(perfectMatchResult);
+    console.log('✅ States updated:', {
+      error: null,
+      showResults: true,
+      resultsLength: results.length,
+      hasPerfectMatch: !!perfectMatchResult
+    });
 
   if (remaining !== undefined) {
   console.log("✅ App.tsx → setting remainingSearches to:", remaining);
@@ -209,6 +217,15 @@ console.log("🧭 visitorUUID initialized in App.tsx:", visitorUUID);
                     isDark ? 'bg-red-900/20 text-red-200' : 'bg-red-100 text-red-800'
                   }`}>
                     {error}
+                  </div>
+                )}
+
+                {/* Debug info */}
+                {import.meta.env.DEV && (
+                  <div className="fixed bottom-4 right-4 bg-black/80 text-white p-2 rounded text-xs z-50">
+                    showResults: {String(showResults)}<br />
+                    resultsCount: {searchResults.length}<br />
+                    error: {error || 'none'}
                   </div>
                 )}
 

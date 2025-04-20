@@ -1,7 +1,6 @@
 import type { Movie } from '@/types';
 import { buildSearchPrompt } from './promptBuilder';
 import { enrichMovieWithPoster, FALLBACK_IMAGE } from '../tmdb';
-
 import { findPerfectMatch } from '../perfect-match';
 import { BASIC_USER_LIMIT, PREMIUM_USER_LIMIT } from '@/config';
 import { fetchMovieListFromDeepseek } from './deepseek-client';
@@ -51,7 +50,13 @@ export async function getMovieRecommendations(preferences: SearchPreferences): P
     console.log('🔑 Keywords:', preferences.keywords);
 
     // 🔄 Fetch raw movies from Deepseek AI
+
+    console.log("📨 Prompt sent to Deepseek:", prompt);
+
     const response = await fetchMovieListFromDeepseek(prompt);
+
+    console.log("🪵 Deepseek full response:", response);
+console.log("🪵 rawText:", response?.rawText);
 
     if (!response || !response.rawMovies) {
       console.error('❌ Invalid response structure:', response);

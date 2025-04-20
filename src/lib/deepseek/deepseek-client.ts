@@ -24,22 +24,39 @@ export async function fetchMovieListFromDeepseek(prompt: string) {
   }
 
   const responseData = await res.json();
+  const { rawText, rawMovies } = responseData;
 
-  if (!responseData.rawText) {
-    console.error("❌ Missing rawText in Deepseek proxy response:", responseData);
+  if (!rawText && !rawMovies) {
+    console.error("❌ Missing both rawText and rawMovies in Deepseek proxy response:", responseData);
     throw new Error("Invalid response from Deepseek proxy.");
   }
 
   let movieData;
+
   try {
-    const deepseekResponse = JSON.parse(responseData.rawText);
+    let content = "";
 
-    if (!deepseekResponse?.choices?.[0]?.message?.content) {
-      console.error("❌ Invalid Deepseek response structure:", deepseekResponse);
-      throw new Error("Invalid response structure from Deepseek");
+    if (rawText) {
+      console.log("🪵 Received rawText from Deepseek.");
+      const deepseekResponse = JSON.parse(rawText);
+
+      if (!deepseekResponse?.choices?.[0]?.message?.content) {
+        console.error("❌ Invalid Deepseek response structure:", deepseekResponse);
+        throw new Error("Invalid response structure from Deepseek");
+      }
+
+      content = deepseekResponse.choices[0].message.content;
+
+    } else if (rawMovies) {
+      console.log("🪵 Received rawMovies from Deepseek (new format).");
+
+      if (!rawMovies?.choices?.[0]?.message?.content) {
+        console.error("❌ Invalid rawMovies response structure:", rawMovies);
+        throw new Error("Invalid rawMovies structure: Missing content");
+      }
+
+      content = rawMovies.choices[0].message.content;
     }
-
-    let content = deepseekResponse.choices[0].message.content;
 
     // 🧼 Nettoyer le bloc Markdown s'il existe
     if (content.includes("```")) {

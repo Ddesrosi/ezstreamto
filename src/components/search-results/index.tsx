@@ -39,6 +39,14 @@ export default function SearchResults({
   setShowPremiumModal,
   perfectMatch 
 }: SearchResultsProps) {
+  console.log('🎬 SearchResults rendered:', {
+    resultsCount: results?.length,
+    remainingSearches,
+    isPremium,
+    hasPerfectMatch: !!perfectMatch,
+    firstResult: results?.[0]
+  });
+
   const [displayedResults, setDisplayedResults] = useState<Movie[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showLocalPremiumModal, setShowLocalPremiumModal] = useState(false);

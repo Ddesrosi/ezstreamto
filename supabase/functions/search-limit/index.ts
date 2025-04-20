@@ -108,7 +108,7 @@ serve(async (req) => {
         .from("ip_searches")
         .insert({ 
           ip_address: ip || null,
-          uuid: uuid || null,
+          uuid: uuid ? uuid.toString() : null,
           search_count: 1,
           last_search: new Date().toISOString(),
           created_at: new Date().toISOString()

@@ -47,7 +47,9 @@ export default function PremiumSuccess() {
         }
 
         // Étape 3 — Statut Premium confirmé ✅
-       if (data && data.verified) {
+       console.log('🔎 Full Supabase response:', data);
+
+if (data && data.verified === true) {
   console.log('✅ Premium confirmed via Supabase:', data);
   localStorage.setItem('isPremium', 'true');
   setStatus('success');

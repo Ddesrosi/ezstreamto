@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/supabaseClient';
 
 export default function PremiumSuccess() {
+  console.log('👋 PremiumSuccess.tsx is rendered');
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [status, setStatus] = useState<'checking' | 'success' | 'waiting' | 'error'>('checking');
@@ -14,8 +15,7 @@ export default function PremiumSuccess() {
   const maxRetries = 5;
 
   useEffect(() => {
-    console.log('👋 PremiumSuccess.tsx is rendered');
-
+   
     const checkPremiumDirectly = async () => {
       try {
         // Étape 1 — Identifier le UUID (priorité : URL > localStorage > fallback)

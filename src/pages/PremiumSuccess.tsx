@@ -14,6 +14,8 @@ export default function PremiumSuccess() {
   const maxRetries = 5;
 
   useEffect(() => {
+    console.log('👋 PremiumSuccess.tsx is rendered');
+
     const checkPremiumDirectly = async () => {
       try {
         // Étape 1 — Identifier le UUID (priorité : URL > localStorage > fallback)

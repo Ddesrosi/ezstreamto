@@ -47,13 +47,18 @@ export default function PremiumSuccess() {
         }
 
         // Étape 3 — Statut Premium confirmé ✅
-        if (data && data.verified) {
-          console.log('✅ Premium confirmed via Supabase:', data);
-          localStorage.setItem('isPremium', 'true');
-          setStatus('success');
-          console.log('✅ Premium status detected, redirecting in 2.5s');
-          setTimeout(() => navigate('/'), 2500);
-        } 
+       if (data && data.verified) {
+  console.log('✅ Premium confirmed via Supabase:', data);
+  localStorage.setItem('isPremium', 'true');
+  setStatus('success');
+
+  console.log('⏳ Waiting 2.5s before navigating to homepage');
+  setTimeout(() => {
+    console.log('🚀 Navigating to homepage now');
+    navigate('/');
+  }, 2500);
+}
+
         // Étape 4 — Pas encore Premium, on attend et on réessaie
         else if (retryCount < maxRetries) {
           console.warn('⏳ Not yet verified – retrying...');

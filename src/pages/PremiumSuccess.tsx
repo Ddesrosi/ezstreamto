@@ -21,10 +21,10 @@ export default function PremiumSuccess() {
         const localStorageUUID = localStorage.getItem('visitor_id');
         const uuid = urlUUID || localStorageUUID || getOrCreateUUID();
 
-     if (urlUUID) {
-  localStorage.setItem('visitor_id', urlUUID); // forcé
-  console.log('✅ UUID from URL stored in localStorage:', urlUUID);
-  window.location.reload(); // recharge la page avec le bon UUID actif
+       if (urlUUID && urlUUID !== localStorage.getItem('visitor_id')) {
+  console.log('♻️ UUID in URL detected, storing and reloading:', urlUUID);
+  localStorage.setItem('visitor_id', urlUUID);
+  window.location.replace('/premium-success');
   return;
 }
 

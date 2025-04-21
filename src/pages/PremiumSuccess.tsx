@@ -21,10 +21,12 @@ export default function PremiumSuccess() {
         const localStorageUUID = localStorage.getItem('visitor_id');
         const uuid = urlUUID || localStorageUUID || getOrCreateUUID();
 
-        if (urlUUID && urlUUID !== localStorageUUID) {
-          localStorage.setItem('visitor_id', uuid);
-          console.log('✅ UUID from URL stored in localStorage:', uuid);
-        }
+     if (urlUUID) {
+  localStorage.setItem('visitor_id', urlUUID); // forcé
+  console.log('✅ UUID from URL stored in localStorage:', urlUUID);
+  window.location.reload(); // recharge la page avec le bon UUID actif
+  return;
+}
 
         console.log('🔍 Checking Supabase for UUID:', uuid);
 

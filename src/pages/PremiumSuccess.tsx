@@ -21,13 +21,13 @@ export default function PremiumSuccess() {
         const localStorageUUID = localStorage.getItem('visitor_id');
         const uuid = urlUUID || localStorageUUID || getOrCreateUUID();
 
-       if (urlUUID && urlUUID !== localStorage.getItem('visitor_id')) {
+  if (urlUUID && urlUUID !== localStorage.getItem('visitor_id')) {
   console.log('♻️ UUID in URL detected, storing and reloading:', urlUUID);
   localStorage.setItem('visitor_id', urlUUID);
-  window.location.replace('/premium-success');
+  window.location.href = window.location.href; // recharge avec ?uuid= intact
   return;
 }
-
+      
         console.log('🔍 Checking Supabase for UUID:', uuid);
 
         // Étape 2 — Vérifier si ce UUID est Premium dans Supabase

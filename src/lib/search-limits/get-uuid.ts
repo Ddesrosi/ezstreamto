@@ -5,11 +5,19 @@ export function getOrCreateUUID(): string {
   const urlParams = new URLSearchParams(window.location.search);
   const uuidFromURL = urlParams.get('uuid');
 
-  if (uuidFromURL) {
-    console.log('♻️ UUID from URL detected in getOrCreateUUID:', uuidFromURL);
-    localStorage.setItem(key, uuidFromURL);
-    return uuidFromURL;
+ if (uuidFromURL && uuidFromURL !== localStorage.getItem(key)) {
+  console.log('♻️ UUID from URL detected in getOrCreateUUID:', uuidFromURL);
+  localStorage.setItem(key, uuidFromURL);
+
+  // 🛑 Recharge la page uniquement si ce n’est pas déjà fait
+  if (!sessionStorage.getItem('uuid_reload_done')) {
+    sessionStorage.setItem('uuid_reload_done', 'true');
+    window.location.href = window.location.href; // recharge avec ?uuid intact
   }
+
+  // 💡 Stoppe l’exécution ici en attendant le reload
+  return uuidFromURL;
+}
 
   // 🧠 2. Sinon, on regarde dans localStorage
   let uuid = localStorage.getItem(key);

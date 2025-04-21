@@ -160,6 +160,8 @@ console.log("🧭 visitorUUID initialized in App.tsx:", visitorUUID);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  console.log("🔁 Current pathname:", window.location.pathname);
+  
   return (
     <Router>
       <Routes>

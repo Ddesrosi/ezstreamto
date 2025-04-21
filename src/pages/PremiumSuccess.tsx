@@ -80,7 +80,8 @@ export default function PremiumSuccess() {
     checkPremiumDirectly();
   }, [navigate, searchParams, retryCount]);
 
-  console.log('👋 PremiumSuccess.tsx is rendered');
+ console.log("🟦 JSX is now rendering for PremiumSuccess"); 
+ console.log('👋 PremiumSuccess.tsx is rendered');
 
   return (
     <div className="min-h-screen bg-[#040B14] flex items-center justify-center p-4">

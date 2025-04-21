@@ -8,6 +8,7 @@ import { Movie } from './types';
 import { Helmet } from 'react-helmet-async';
 import { AnimatedHeader } from './components/animated-header';
 import { usePremiumStatus } from '@/hooks/usePremiumStatus';
+import { usePollForPremiumStatus } from '@/hooks/usePollForPremiumStatus';
 import { getRandomShareMessage } from '@/lib/utils';
 import { Footer } from './components/layout/footer';
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
@@ -36,6 +37,11 @@ function App() {
   } | undefined>();
 
   const hasLoggedRef = useRef(false);
+
+  const prePaymentUUID = localStorage.getItem('pre_payment_uuid');
+const shouldPoll = remainingSearches === 0 || !!prePaymentUUID;
+
+usePollForPremiumStatus(shouldPoll);
 
   const visitorUUID = getOrCreateUUID(); // ✅ UUID stable utilisé partout
 console.log("🧭 visitorUUID initialized in App.tsx:", visitorUUID);

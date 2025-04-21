@@ -3,53 +3,76 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Coffee, Loader2 } from 'lucide-react';
 import { getOrCreateUUID } from '@/lib/search-limits/get-uuid';
-import { validateSearch } from '@/lib/search-limits/edge';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/lib/supabaseClient';
 
 export default function PremiumSuccess() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const [status, setStatus] = useState<'checking' | 'success' | 'waiting'>('checking');
+  const [status, setStatus] = useState<'checking' | 'success' | 'waiting' | 'error'>('checking');
   const [retryCount, setRetryCount] = useState(0);
   const maxRetries = 5;
 
   useEffect(() => {
-    const checkPremium = async () => {
+    const checkPremiumDirectly = async () => {
       try {
-        // Get UUID from URL or localStorage
+        // Étape 1 — Identifier le UUID (priorité : URL > localStorage > fallback)
         const urlUUID = searchParams.get('uuid');
         const localStorageUUID = localStorage.getItem('visitor_id');
         const uuid = urlUUID || localStorageUUID || getOrCreateUUID();
 
-        // Store UUID if from URL
-        if (urlUUID) {
+        if (urlUUID && urlUUID !== localStorageUUID) {
           localStorage.setItem('visitor_id', uuid);
-          console.log('✅ Stored UUID:', uuid);
+          console.log('✅ UUID from URL stored in localStorage:', uuid);
         }
 
-        // Check Premium status
-        const result = await validateSearch('check');
-        console.log('🔍 Premium check result:', result);
+        console.log('🔍 Checking Supabase for UUID:', uuid);
 
-        if (result.isPremium || result.canSearch) {
-          setStatus('success');
+        // Étape 2 — Vérifier si ce UUID est Premium dans Supabase
+        const { data, error } = await supabase
+          .from('supporters')
+          .select('visitor_uuid, verified')
+          .eq('visitor_uuid', uuid)
+          .eq('verified', true)
+          .maybeSingle();
+
+        if (error) {
+          console.error('❌ Supabase check error:', error.message);
+          setStatus('error');
+          return;
+        }
+
+        // Étape 3 — Statut Premium confirmé ✅
+        if (data && data.verified) {
+          console.log('✅ Premium confirmed via Supabase:', data);
           localStorage.setItem('isPremium', 'true');
-          setTimeout(() => navigate('/'), 2000);
-        } else if (retryCount < maxRetries) {
+          setStatus('success');
+          setTimeout(() => navigate('/'), 2500);
+        } 
+        // Étape 4 — Pas encore Premium, on attend et on réessaie
+        else if (retryCount < maxRetries) {
+          console.warn('⏳ Not yet verified – retrying...');
           setStatus('waiting');
           setRetryCount(prev => prev + 1);
-          setTimeout(checkPremium, 3000);
+          setTimeout(checkPremiumDirectly, 3000);
+        } 
+        // Étape 5 — Trop de tentatives, échec
+        else {
+          console.error('❌ Max retries reached without Premium confirmation.');
+          setStatus('error');
         }
-      } catch (error) {
-        console.error('❌ Premium check error:', error);
+      } catch (err) {
+        console.error('❌ Unexpected error:', err);
         if (retryCount < maxRetries) {
-          setTimeout(checkPremium, 3000);
+          setTimeout(checkPremiumDirectly, 3000);
           setRetryCount(prev => prev + 1);
+        } else {
+          setStatus('error');
         }
       }
     };
 
-    checkPremium();
+    checkPremiumDirectly();
   }, [navigate, searchParams, retryCount]);
 
   return (
@@ -83,15 +106,19 @@ export default function PremiumSuccess() {
           {status === 'checking' && 'Validating Your Purchase'}
           {status === 'waiting' && 'Almost There!'}
           {status === 'success' && 'Premium Access Granted!'}
+          {status === 'error' && 'Verification Failed'}
         </h1>
 
         <p className={cn(
           "text-lg",
-          status === 'success' ? 'text-green-200' : 'text-blue-100'
+          status === 'success' ? 'text-green-200' :
+          status === 'error' ? 'text-red-200' :
+          'text-blue-100'
         )}>
           {status === 'checking' && 'Please wait while we verify your payment...'}
           {status === 'waiting' && "We are processing your purchase. This may take a few moments..."}
           {status === 'success' && 'Redirecting you to your Premium experience...'}
+          {status === 'error' && "We couldn't verify your purchase. Please contact us."}
         </p>
 
         {status === 'waiting' && retryCount > 0 && (

@@ -89,23 +89,38 @@ serve(async (req) => {
     // IP Lookup
     if (ip) {
       try {
-        const { data: ipMatch, error: ipError } = await supabase
-          .from("ip_searches")
-          .select("id")
-          .eq("ip_address", ip)
-          .maybeSingle();
+        
+       const { data: ipMatches, error: ipError } = await supabase
+  .from("ip_searches")
+  .select("uuid")
+  .eq("ip_address", ip)
+  .order("last_search", { ascending: false })
+  .limit(1);
 
-        if (ipError) {
-          console.error(JSON.stringify({
-            code: "IP_LOOKUP_ERROR",
-            message: "Error looking up visitor_uuid from ip_searches.",
-            dbError: ipError.message,
-            ip: ip,
-            severity: "WARNING"
-          }));
-        }
+if (ipError) {
+  console.error(JSON.stringify({
+    code: "IP_LOOKUP_ERROR",
+    message: "Error looking up uuid from ip_searches.",
+    ip,
+    dbError: ipError.message,
+    severity: "WARNING"
+  }));
+}
 
-        visitor_uuid = ipMatch?.id || null;
+const visitor_uuid = ipMatches?.[0]?.uuid || null;
+
+
+if (ipError) {
+  console.error(JSON.stringify({
+    code: "IP_LOOKUP_ERROR",
+    message: "Error looking up visitor_uuid from ip_searches.",
+    dbError: ipError.message,
+    ip: ip,
+    severity: "WARNING"
+  }));
+}
+
+visitor_uuid = ipMatch?.uuid || null;
 
         console.log(JSON.stringify({
           code: "IP_LOOKUP_RESULT",
@@ -126,6 +141,8 @@ serve(async (req) => {
     }
 
     // Check for existing transaction ID
+    console.log("🧾 Ready to insert supporter. UUID used:", visitor_uuid);
+
     const { data: existingSupport, error: existingSupportError } = await supabase
       .from('supporters')
       .select('id')
@@ -165,6 +182,7 @@ serve(async (req) => {
           support_date: new Date().toISOString(),
           created_at: new Date().toISOString(),
           visitor_uuid: visitor_uuid,
+          source_ip: ip,
           metadata: {
             platform: 'buymeacoffee',
             supporter_name: supporter_name || null,

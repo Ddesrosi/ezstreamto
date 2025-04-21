@@ -47,6 +47,7 @@ export default function PremiumSuccess() {
           console.log('✅ Premium confirmed via Supabase:', data);
           localStorage.setItem('isPremium', 'true');
           setStatus('success');
+          console.log('✅ Premium status detected, redirecting in 2.5s');
           setTimeout(() => navigate('/'), 2500);
         } 
         // Étape 4 — Pas encore Premium, on attend et on réessaie
@@ -74,6 +75,8 @@ export default function PremiumSuccess() {
 
     checkPremiumDirectly();
   }, [navigate, searchParams, retryCount]);
+
+  console.log('👋 PremiumSuccess.tsx is rendered');
 
   return (
     <div className="min-h-screen bg-[#040B14] flex items-center justify-center p-4">

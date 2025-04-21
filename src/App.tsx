@@ -15,6 +15,7 @@ import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import Disclaimer from './pages/Disclaimer';
 import Privacy from './pages/Privacy';
 import PremiumSuccess from './pages/PremiumSuccess';
+import RedirectWithUUID from './pages/RedirectWithUUID';
 import { supabase } from './lib/supabaseClient';
 import { useRef } from 'react';
 import { getOrCreateUUID } from '@/lib/search-limits/get-uuid';
@@ -164,6 +165,7 @@ console.log("🧭 visitorUUID initialized in App.tsx:", visitorUUID);
       <Routes>
         <Route path="/disclaimer" element={<Disclaimer />} />
         <Route path="/privacy" element={<Privacy />} />
+        <Route path="/redirect-with-uuid" element={<RedirectWithUUID />} />
         <Route path="/premium-success" element={<PremiumSuccess />} />
         <Route path="/" element={
           <div className={`min-h-screen flex flex-col relative transition-colors duration-200 ${

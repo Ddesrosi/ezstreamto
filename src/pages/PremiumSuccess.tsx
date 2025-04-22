@@ -21,10 +21,12 @@ export default function PremiumSuccess() {
         const localStorageUUID = localStorage.getItem('visitor_id');
         const uuid = urlUUID || localStorageUUID || getOrCreateUUID();
 
+        console.log('🧾 UUIDs:', { urlUUID, localStorageUUID, resolved: uuid });
+
         if (urlUUID && urlUUID !== localStorage.getItem('visitor_id')) {
           console.log('♻️ UUID in URL detected, storing and reloading:', urlUUID);
           localStorage.setItem('visitor_id', urlUUID);
-          window.location.href = window.location.href;
+          window.location.href = window.location.href; // recharge avec ?uuid= intact
           return;
         }
 
@@ -32,7 +34,7 @@ export default function PremiumSuccess() {
 
         const { data, error } = await supabase
           .from('supporters')
-          .select('visitor_uuid, verified')
+          .select('visitor_uuid, verified, unlimited_searches')
           .eq('visitor_uuid', uuid)
           .eq('verified', true)
           .maybeSingle();
@@ -80,8 +82,7 @@ export default function PremiumSuccess() {
     checkPremiumDirectly();
   }, [navigate, searchParams, retryCount]);
 
-  console.log("🟦 JSX is now rendering for PremiumSuccess"); 
-  console.log('👋 PremiumSuccess.tsx is rendered');
+  console.log('🟦 JSX is now rendering for PremiumSuccess');
 
   return (
     <div className="min-h-screen bg-[#040B14] flex items-center justify-center p-4">
@@ -138,4 +139,3 @@ export default function PremiumSuccess() {
     </div>
   );
 }
-

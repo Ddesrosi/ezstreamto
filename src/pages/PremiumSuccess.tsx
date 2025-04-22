@@ -15,24 +15,21 @@ export default function PremiumSuccess() {
   const maxRetries = 5;
 
   useEffect(() => {
-   
     const checkPremiumDirectly = async () => {
       try {
-        // Étape 1 — Identifier le UUID (priorité : URL > localStorage > fallback)
         const urlUUID = searchParams.get('uuid');
         const localStorageUUID = localStorage.getItem('visitor_id');
         const uuid = urlUUID || localStorageUUID || getOrCreateUUID();
 
-  if (urlUUID && urlUUID !== localStorage.getItem('visitor_id')) {
-  console.log('♻️ UUID in URL detected, storing and reloading:', urlUUID);
-  localStorage.setItem('visitor_id', urlUUID);
-  window.location.href = window.location.href; // recharge avec ?uuid= intact
-  return;
-}
-      
+        if (urlUUID && urlUUID !== localStorage.getItem('visitor_id')) {
+          console.log('♻️ UUID in URL detected, storing and reloading:', urlUUID);
+          localStorage.setItem('visitor_id', urlUUID);
+          window.location.href = window.location.href;
+          return;
+        }
+
         console.log('🔍 Checking Supabase for UUID:', uuid);
 
-        // Étape 2 — Vérifier si ce UUID est Premium dans Supabase
         const { data, error } = await supabase
           .from('supporters')
           .select('visitor_uuid, verified')
@@ -40,36 +37,32 @@ export default function PremiumSuccess() {
           .eq('verified', true)
           .maybeSingle();
 
+        console.log('📦 Supabase returned (raw):', { data, error });
+
         if (error) {
           console.error('❌ Supabase check error:', error.message);
           setStatus('error');
           return;
         }
 
-        // Étape 3 — Statut Premium confirmé ✅
-       console.log('🔎 Full Supabase response:', data);
+        console.log('🔎 Full Supabase response:', data);
 
-if (data && data.verified === true) {
-  console.log('✅ Premium confirmed via Supabase:', data);
-  localStorage.setItem('isPremium', 'true');
-  setStatus('success');
+        if (data && data.verified === true) {
+          console.log('✅ Premium confirmed via Supabase:', data);
+          localStorage.setItem('isPremium', 'true');
+          setStatus('success');
 
-  console.log('⏳ Waiting 2.5s before navigating to homepage');
-  setTimeout(() => {
-    console.log('🚀 Navigating to homepage now');
-    navigate('/');
-  }, 2500);
-}
-
-        // Étape 4 — Pas encore Premium, on attend et on réessaie
-        else if (retryCount < maxRetries) {
+          console.log('⏳ Waiting 2.5s before navigating to homepage');
+          setTimeout(() => {
+            console.log('🚀 Navigating to homepage now');
+            navigate('/');
+          }, 2500);
+        } else if (retryCount < maxRetries) {
           console.warn('⏳ Not yet verified – retrying...');
           setStatus('waiting');
           setRetryCount(prev => prev + 1);
           setTimeout(checkPremiumDirectly, 3000);
-        } 
-        // Étape 5 — Trop de tentatives, échec
-        else {
+        } else {
           console.error('❌ Max retries reached without Premium confirmation.');
           setStatus('error');
         }
@@ -87,8 +80,8 @@ if (data && data.verified === true) {
     checkPremiumDirectly();
   }, [navigate, searchParams, retryCount]);
 
- console.log("🟦 JSX is now rendering for PremiumSuccess"); 
- console.log('👋 PremiumSuccess.tsx is rendered');
+  console.log("🟦 JSX is now rendering for PremiumSuccess"); 
+  console.log('👋 PremiumSuccess.tsx is rendered');
 
   return (
     <div className="min-h-screen bg-[#040B14] flex items-center justify-center p-4">
@@ -145,3 +138,4 @@ if (data && data.verified === true) {
     </div>
   );
 }
+

@@ -4,30 +4,33 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/logo.svg" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="color-scheme" content="dark light" />
 
-    <title>EzStreamTo - Find Where to Watch Movies & TV Shows</title>
-    <meta name="title" content="EzStreamTo - Find Where to Watch Movies & TV Shows" />
-    <meta name="description" content="Discover where to watch your favorite movies and TV shows across streaming platforms. Get personalized recommendations based on your mood and preferences." />
-    <meta name="keywords" content="movie streaming, TV shows, where to watch, streaming platforms, movie finder, what to watch, entertainment recommendations" />
+    <title>EzStreamTo | Find Movies & Shows Across Streaming Services</title>
+    <meta name="title" content="EzStreamTo | Find Movies & Shows Across Streaming Services" />
+    <meta name="description" content="Instantly find where to stream movies and TV shows. Get personalized recommendations based on your mood and discover content across Netflix, Disney+, and more." />
+    <meta name="keywords" content="streaming finder, movie search, TV shows, Netflix, Disney+, streaming platforms, watch movies online, entertainment guide" />
 
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://www.ezstreamto.com/" />
-    <meta property="og:title" content="EzStreamTo - Find Your Next Watch" />
-    <meta property="og:description" content="Find where to watch your favorite movies and TV shows. Get personalized streaming recommendations based on your preferences." />
+    <meta property="og:title" content="EzStreamTo | Find Movies & Shows Across Streaming Services" />
+    <meta property="og:description" content="Instantly find where to stream movies and TV shows. Get personalized recommendations based on your mood and discover content across all platforms." />
     <meta property="og:image" content="https://www.ezstreamto.com/social-preview.jpg" />
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image" />
     <meta property="twitter:url" content="https://www.ezstreamto.com/" />
-    <meta property="twitter:title" content="EzStreamTo - Find Your Next Watch" />
-    <meta property="twitter:description" content="Find where to watch your favorite movies and TV shows. Get personalized streaming recommendations based on your preferences." />
+    <meta property="twitter:title" content="EzStreamTo | Find Movies & Shows Across Streaming Services" />
+    <meta property="twitter:description" content="Instantly find where to stream movies and TV shows. Get personalized recommendations based on your mood and discover content across all platforms." />
     <meta property="twitter:image" content="https://www.ezstreamto.com/social-preview.jpg" />
 
     <meta name="theme-color" content="#040B14" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="author" content="EzStreamTo" />
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large" />
+    <link rel="canonical" href="https://www.ezstreamto.com/" />
 
     <!-- Structured Data -->
     <script type="application/ld+json">
@@ -35,10 +38,12 @@
         "@context": "https://schema.org",
         "@type": "WebApplication",
         "name": "EzStreamTo",
-        "description": "Find where to watch movies and TV shows across streaming platforms",
+        "description": "Instantly find where to stream movies and TV shows. Get personalized recommendations based on your mood and discover content across all platforms.",
         "url": "https://www.ezstreamto.com",
         "applicationCategory": "Entertainment",
         "operatingSystem": "Web",
+        "browserRequirements": "Requires JavaScript",
+        "softwareVersion": "1.0.0",
         "offers": {
           "@type": "Offer",
           "price": "0",
@@ -48,6 +53,11 @@
           "@type": "AggregateRating",
           "ratingValue": "4.8",
           "ratingCount": "1250"
+        },
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": "https://www.ezstreamto.com/search?q={search_term_string}",
+          "query-input": "required name=search_term_string"
         }
       }
     </script>

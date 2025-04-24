@@ -119,8 +119,8 @@ if (ipError) {
     severity: "WARNING"
   }));
 }
-
-visitor_uuid = ipMatch?.uuid || null;
+        
+visitor_uuid = ipMatches?.[0]?.uuid || null;
 
         console.log(JSON.stringify({
           code: "IP_LOOKUP_RESULT",
@@ -210,6 +210,22 @@ visitor_uuid = ipMatch?.uuid || null;
         amount: amount,
         visitor_uuid: visitor_uuid
       }));
+
+      // 📨 Send payload to Make.com for sending email with redirect link
+await fetch("https://hook.us1.make.com/cywd3qzow6ha9b5r3hlhnljbx4dktvo4", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    email,
+    uuid: visitor_uuid,
+    transaction_id,
+    supporter_name,
+    support_type,
+    message,
+    redirect_url: `https://ezstreamto.com/redirect-with-uuid?uuid=${visitor_uuid}`
+  })
+});
+
       return new Response("Success", { status: 200 });
 
     } catch (dbError) {

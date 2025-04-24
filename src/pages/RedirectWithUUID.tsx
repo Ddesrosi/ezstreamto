@@ -10,7 +10,7 @@ export default function RedirectWithUUID() {
 
     if (uuid) {
       console.log('🔁 Storing visitor_id from URL:', uuid);
-      localStorage.setItem('visitor_id', uuid);
+      localStorage.setItem('visitor_uuid', uuid);
 
       // Recharger sans le ?uuid pour éviter toute redondance
       setTimeout(() => {

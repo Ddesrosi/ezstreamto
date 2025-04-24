@@ -107,7 +107,7 @@ if (ipError) {
   }));
 }
 
-const visitor_uuid = ipMatches?.[0]?.uuid || null;
+visitor_uuid = ipMatches?.[0]?.uuid || null;
 
 
 if (ipError) {

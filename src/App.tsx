@@ -19,6 +19,7 @@ import RedirectWithUUID from './pages/RedirectWithUUID';
 import { supabase } from './lib/supabaseClient';
 import { useRef } from 'react';
 import { getOrCreateUUID } from '@/lib/search-limits/get-uuid';
+import { logPageView } from '@/lib/analytics/logPageView';
 
 function App() {
   const [isDark, setIsDark] = useState(true);
@@ -44,19 +45,17 @@ const shouldPoll = remainingSearches === 0 || !!prePaymentUUID;
 
 usePollForPremiumStatus(shouldPoll);
 
-  const visitorUUID = getOrCreateUUID(); // ✅ UUID stable utilisé partout
+  const visitorUUID = getOrCreateUUID(); // ✅ Génère ou récupère l'UUID
 console.log("🧭 visitorUUID initialized in App.tsx:", visitorUUID);
 
-  const visitorUUIDRef = useRef<string | null>(null); // ✅ Stockera le UUID de manière stable
+usePollForPremiumStatus(shouldPoll); // ✅ Utilise le UUID
 
-    useEffect(() => {
-    setShareMessage(getRandomShareMessage());
-  }, []);
+useEffect(() => {
+  logPageView(); // ✅ Enregistre la visite avec IP + UUID
+}, []);
 
-  useEffect(() => {
-  const uuid = getOrCreateUUID();
-  visitorUUIDRef.current = uuid;
-  console.log("🧭 UUID initialized in App.tsx:", uuid);
+useEffect(() => {
+  setShareMessage(getRandomShareMessage());
 }, []);
 
  useEffect(() => {

@@ -141,8 +141,31 @@ visitor_uuid = ipMatches?.[0]?.uuid || null;
     }
 
     // Check for existing transaction ID
-    console.log("🧾 Ready to insert supporter. UUID used:", visitor_uuid);
-
+    console.log(JSON.stringify({
+  code: "DEBUG_UUID_BEFORE_INSERTION",
+  message: "About to insert supporter row with values:",
+  visitor_uuid,
+  ip,
+  insert_data: {
+    email,
+    amount,
+    transaction_id,
+    verified: true,
+    unlimited_searches: true,
+    support_status: support_type || null,
+    support_date: new Date().toISOString(),
+    created_at: new Date().toISOString(),
+    visitor_uuid: visitor_uuid,
+    source_ip: ip,
+    metadata: {
+      platform: 'buymeacoffee',
+      supporter_name: supporter_name || null,
+      message: message || null,
+      verified_at: new Date().toISOString()
+    }
+  }
+}));
+    
     const { data: existingSupport, error: existingSupportError } = await supabase
       .from('supporters')
       .select('id')

@@ -1,5 +1,5 @@
 export function getOrCreateUUID(): string {
-  const key = 'visitor_id';
+  const key = 'visitor_uuid';
 
   // 🧠 1. Vérifie si un UUID est présent dans l’URL (ex: ?uuid=xxxx)
   const urlParams = new URLSearchParams(window.location.search);

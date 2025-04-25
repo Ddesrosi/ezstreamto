@@ -29,7 +29,10 @@ serve(async (req) => {
 
     const body = JSON.parse(rawBody);
     const { supporter_email: payer_email, amount, transaction_id } = body.data || {};
-   const ip_address = body.data?.ip_address || null;
+    const ip_address = req.headers.get("cf-connecting-ip") ||
+                   req.headers.get("x-forwarded-for")?.split(",")[0] ||
+                   null;
+
     console.log("🌍 IP address used for lookup:", ip_address);
 
    console.log("📦 Full Raw BMC body:", body);

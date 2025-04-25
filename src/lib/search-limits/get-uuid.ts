@@ -1,23 +1,32 @@
 export function getOrCreateUUID(): string {
   const key = 'visitor_uuid';
 
-  // 🧠 1. Vérifie si un UUID est présent dans l’URL (ex: ?uuid=xxxx)
+  // 🧠 1. Vérifie si un UUID est présent dans l'URL (ex: ?uuid=xxxx)
   const urlParams = new URLSearchParams(window.location.search);
   const uuidFromURL = urlParams.get('uuid');
 
- if (uuidFromURL && uuidFromURL !== localStorage.getItem(key)) {
-  console.log('♻️ UUID from URL detected in getOrCreateUUID:', uuidFromURL);
-  localStorage.setItem(key, uuidFromURL);
+  if (uuidFromURL) {
+    console.log('♻️ UUID from URL detected:', uuidFromURL);
+    
+    if (uuidFromURL !== localStorage.getItem(key)) {
+      console.log('🔄 Updating stored UUID');
+      localStorage.setItem(key, uuidFromURL);
 
-  // 🛑 Recharge la page uniquement si ce n’est pas déjà fait
-  if (!sessionStorage.getItem('uuid_reload_done')) {
-    sessionStorage.setItem('uuid_reload_done', 'true');
-    window.location.href = window.location.href; // recharge avec ?uuid intact
+      // 🛑 Recharge uniquement si nécessaire et pas déjà fait
+      if (!sessionStorage.getItem('uuid_reload_done')) {
+        sessionStorage.setItem('uuid_reload_done', 'true');
+        
+        // Remove uuid from URL but keep other params
+        const newUrl = new URL(window.location.href);
+        newUrl.searchParams.delete('uuid');
+        window.history.replaceState({}, '', newUrl.toString());
+        
+        window.location.reload();
+      }
+    }
+
+    return uuidFromURL;
   }
-
-  // 💡 Stoppe l’exécution ici en attendant le reload
-  return uuidFromURL;
-}
 
   // 🧠 2. Sinon, on regarde dans localStorage
   let uuid = localStorage.getItem(key);

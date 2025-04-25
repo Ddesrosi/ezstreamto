@@ -13,6 +13,7 @@ export default function PremiumSuccess() {
   const [status, setStatus] = useState<'checking' | 'success' | 'waiting' | 'error'>('checking');
   const [retryCount, setRetryCount] = useState(0);
   const maxRetries = 5;
+  const retryDelay = 3000; // 3 seconds between retries
 
   useEffect(() => {
     const checkPremiumDirectly = async () => {
@@ -26,7 +27,13 @@ export default function PremiumSuccess() {
         if (urlUUID && urlUUID !== localStorage.getItem('visitor_id')) {
           console.log('♻️ UUID in URL detected, storing and reloading:', urlUUID);
           localStorage.setItem('visitor_id', urlUUID);
-          window.location.href = window.location.href; // recharge avec ?uuid= intact
+          
+          // Remove uuid from URL but keep other params
+          const newUrl = new URL(window.location.href);
+          newUrl.searchParams.delete('uuid');
+          window.history.replaceState({}, '', newUrl.toString());
+          
+          window.location.reload();
           return;
         }
 
@@ -63,7 +70,7 @@ export default function PremiumSuccess() {
           console.warn('⏳ Not yet verified – retrying...');
           setStatus('waiting');
           setRetryCount(prev => prev + 1);
-          setTimeout(checkPremiumDirectly, 3000);
+          setTimeout(checkPremiumDirectly, retryDelay);
         } else {
           console.error('❌ Max retries reached without Premium confirmation.');
           setStatus('error');
@@ -71,7 +78,7 @@ export default function PremiumSuccess() {
       } catch (err) {
         console.error('❌ Unexpected error:', err);
         if (retryCount < maxRetries) {
-          setTimeout(checkPremiumDirectly, 3000);
+          setTimeout(checkPremiumDirectly, retryDelay);
           setRetryCount(prev => prev + 1);
         } else {
           setStatus('error');

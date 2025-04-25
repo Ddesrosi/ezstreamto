@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
+import crypto from "https://esm.sh/crypto-js@4.1.1";
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -8,8 +9,8 @@ serve(async (req) => {
   }
 
   try {
-    console.log("📥 BMC webhook received");
-    
+    console.log("\ud83d\udce5 BMC webhook received");
+
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
@@ -19,27 +20,10 @@ serve(async (req) => {
     const signature = req.headers.get("x-signature-sha256");
     const secret = Deno.env.get("BMC_SECRET") || '';
 
-    // Verify signature
-    const crypto = await import("https://deno.land/std@0.177.0/crypto/mod.ts");
-    const encoder = new TextEncoder();
-    const key = await crypto.subtle.importKey(
-      "raw",
-      encoder.encode(secret),
-      { name: "HMAC", hash: "SHA-256" },
-      false,
-      ["sign"]
-    );
-    const signature_array = await crypto.subtle.sign(
-      "HMAC",
-      key,
-      encoder.encode(rawBody)
-    );
-    const calculated_signature = Array.from(new Uint8Array(signature_array))
-      .map(b => b.toString(16).padStart(2, '0'))
-      .join('');
+    const calculated_signature = crypto.HmacSHA256(rawBody, secret).toString();
 
     if (calculated_signature !== signature) {
-      console.error("❌ Invalid signature");
+      console.error("\u274c Invalid signature");
       return new Response("Unauthorized", { status: 401 });
     }
 
@@ -49,14 +33,13 @@ serve(async (req) => {
                       req.headers.get("x-forwarded-for")?.split(",")[0] || 
                       null;
 
-    console.log("📦 Webhook data:", { payer_email, amount, transaction_id, ip_address });
+    console.log("\ud83d\udce6 Webhook data:", { payer_email, amount, transaction_id, ip_address });
 
     if (!payer_email || !amount || !transaction_id) {
-      console.error("❌ Missing required fields");
+      console.error("\u274c Missing required fields");
       return new Response("Invalid data", { status: 400 });
     }
 
-    // Find visitor UUID from ip_searches
     const { data: ipSearch } = await supabase
       .from('ip_searches')
       .select('uuid')
@@ -66,9 +49,8 @@ serve(async (req) => {
       .single();
 
     const visitor_uuid = ipSearch?.uuid;
-    console.log("🔍 Found visitor UUID:", visitor_uuid);
+    console.log("\ud83d\udd0d Found visitor UUID:", visitor_uuid);
 
-    // Check for existing transaction
     const { data: existingSupport } = await supabase
       .from('supporters')
       .select('id')
@@ -76,11 +58,10 @@ serve(async (req) => {
       .single();
 
     if (existingSupport) {
-      console.log("⚠️ Duplicate transaction:", transaction_id);
+      console.log("\u26a0\ufe0f Duplicate transaction:", transaction_id);
       return new Response("Transaction already processed", { status: 200 });
     }
 
-    // Insert supporter record
     const { error: insertError } = await supabase
       .from('supporters')
       .insert([{
@@ -101,11 +82,10 @@ serve(async (req) => {
       }]);
 
     if (insertError) {
-      console.error("❌ Insert error:", insertError);
+      console.error("\u274c Insert error:", insertError);
       return new Response("Database error", { status: 500 });
     }
 
-    // Send confirmation to Make.com for email
     if (visitor_uuid) {
       try {
         await fetch("https://hook.us1.make.com/cywd3qzow6ha9b5r3hlhnljbx4dktvo4", {
@@ -119,13 +99,12 @@ serve(async (req) => {
           })
         });
       } catch (error) {
-        console.error("⚠️ Make.com webhook failed:", error);
-        // Non-blocking error
+        console.error("\u26a0\ufe0f Make.com webhook failed:", error);
       }
     }
 
-    console.log("✅ Support record created successfully");
-    return new Response("Success", { 
+    console.log("\u2705 Support record created successfully");
+    return new Response("Success", {
       status: 200,
       headers: {
         ...corsHeaders,
@@ -134,10 +113,10 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    console.error("❌ Server error:", error);
+    console.error("\u274c Server error:", error);
     return new Response(
-      JSON.stringify({ error: "Internal server error" }), 
-      { 
+      JSON.stringify({ error: "Internal server error" }),
+      {
         status: 500,
         headers: {
           ...corsHeaders,

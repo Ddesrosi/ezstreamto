@@ -32,7 +32,7 @@ serve(async (req) => {
     const ip_address = req.headers.get("cf-connecting-ip") ||
                    req.headers.get("x-forwarded-for")?.split(",")[0] ||
                    null;
-
+   
     console.log("🌍 IP address used for lookup:", ip_address);
 
    console.log("📦 Full Raw BMC body:", body);
@@ -42,6 +42,8 @@ serve(async (req) => {
       return new Response("Invalid data", { status: 400 });
     }
 
+    console.log("🔍 Executing UUID lookup in ip_searches for IP:", ip_address);
+    
     const { data: ipSearch } = await supabase
       .from('ip_searches')
       .select('uuid')
@@ -49,6 +51,23 @@ serve(async (req) => {
       .order('last_search', { ascending: false })
       .limit(1)
       .single();
+
+    console.log("🔎 UUID lookup result:", ipSearch);
+
+    if (!ipSearch) {
+  console.warn("⚠️ No UUID found for IP. Fetching all matching entries...");
+  
+  const { data: ipEntries, error: ipEntriesError } = await supabase
+    .from('ip_searches')
+    .select('*')
+    .eq('ip_address', ip_address);
+
+  if (ipEntriesError) {
+    console.error("❌ Error fetching IP entries:", ipEntriesError.message);
+  } else {
+    console.log("📋 All entries for this IP:", ipEntries);
+  }
+}
 
     const visitor_uuid = ipSearch?.uuid;
     console.log("\ud83d\udd0d Found visitor UUID:", visitor_uuid);
@@ -63,6 +82,14 @@ serve(async (req) => {
       console.log("\u26a0\ufe0f Duplicate transaction:", transaction_id);
       return new Response("Transaction already processed", { status: 200 });
     }
+
+    console.log("📝 Preparing to insert into supporters with values:", {
+  email: payer_email,
+  amount,
+  transaction_id,
+  ip_address,
+  visitor_uuid
+});
 
     const { error: insertError } = await supabase
       .from('supporters')

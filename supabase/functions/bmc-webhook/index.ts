@@ -31,8 +31,8 @@ serve(async (req) => {
     const { supporter_email: payer_email, amount, transaction_id } = body.data || {};
    const ip_address = body.data?.ip_address || null;
 
-   console.log("📦 Raw BMC body.data:", body.data);
-
+   console.log("📦 Full Raw BMC body:", body);
+ 
     if (!payer_email || !amount || !transaction_id) {
       console.error("\u274c Missing required fields");
       return new Response("Invalid data", { status: 400 });

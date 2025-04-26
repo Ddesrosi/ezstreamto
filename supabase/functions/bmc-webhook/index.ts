@@ -76,7 +76,6 @@ if (!visitor_uuid) {
   }
 }
 
-    const visitor_uuid = ipSearch?.uuid;
     console.log("\ud83d\udd0d Found visitor UUID:", visitor_uuid);
 
     const { data: existingSupport } = await supabase

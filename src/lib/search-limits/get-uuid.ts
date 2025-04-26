@@ -9,6 +9,7 @@ export function getOrCreateUUID(): string {
     console.log('♻️ UUID from URL detected:', uuidFromURL);
     
     if (uuidFromURL !== localStorage.getItem(key)) {
+      localStorage.setItem('pre_payment_uuid', uuidFromURL);
       console.log('🔄 Updating stored UUID');
       localStorage.setItem(key, uuidFromURL);
 

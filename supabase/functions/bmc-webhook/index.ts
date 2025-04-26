@@ -44,35 +44,25 @@ serve(async (req) => {
 
     console.log("🔍 Executing UUID lookup in ip_searches for IP:", ip_address);
     
-   const { data: ipSearch } = await supabase
-  .from('ip_searches')
+   const { data: pageView } = await supabase
+  .from('page_views')
   .select('uuid')
   .eq('ip_address', ip_address)
-  .order('last_search', { ascending: false })
+  .order('created_at', { ascending: false })
   .limit(1)
   .single();
 
-let visitor_uuid = ipSearch?.uuid;
-console.log("🔎 UUID lookup result:", visitor_uuid);
+let visitor_uuid = pageView?.uuid;
+console.log("🔎 Visitor UUID lookup result from page_views:", visitor_uuid);
 
 if (!visitor_uuid) {
-  console.warn("⚠️ No UUID found for IP. Fetching all matching entries...");
+  console.warn("⚠️ No visitor UUID found from page_views or ip_searches. Attempting fallback...");
 
-  const { data: ipEntries, error: ipEntriesError } = await supabase
-    .from('ip_searches')
-    .select('*')
-    .eq('ip_address', ip_address);
-
-  if (ipEntriesError) {
-    console.error("❌ Error fetching IP entries:", ipEntriesError.message);
-  } else {
-    console.log("📋 All entries for this IP:", ipEntries);
-  }
-
-  // 🔁 Fallback si tout échoue : body.pre_payment_uuid
   if (body?.pre_payment_uuid) {
     console.log("🧾 Fallback: using pre_payment_uuid:", body.pre_payment_uuid);
     visitor_uuid = body.pre_payment_uuid;
+  } else {
+    console.warn("❌ No fallback UUID available.");
   }
 }
 
@@ -88,6 +78,14 @@ if (!visitor_uuid) {
       console.log("\u26a0\ufe0f Duplicate transaction:", transaction_id);
       return new Response("Transaction already processed", { status: 200 });
     }
+
+    console.log("📝 Preparing to insert into supporters with values:", {
+  email: payer_email,
+  amount,
+  transaction_id,
+  ip_address,
+  visitor_uuid
+});
 
     console.log("📝 Preparing to insert into supporters with values:", {
   email: payer_email,

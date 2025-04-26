@@ -58,8 +58,13 @@ let visitor_uuid = pageView?.uuid;
 console.log("🔎 Visitor UUID lookup result from page_views:", visitor_uuid);
 
 if (!visitor_uuid) {
-  visitor_uuid = ipSearch?.uuid;
-  console.log("🔎 UUID lookup result from ip_searches:", visitor_uuid);
+  console.log("⚡ No UUID found from page_views. Trying to fetch fallback pre_payment_uuid...");
+  if (body?.pre_payment_uuid) {
+    visitor_uuid = body.pre_payment_uuid;
+    console.log("🧾 Fallback: using pre_payment_uuid:", visitor_uuid);
+  } else {
+    console.warn("❌ No fallback UUID available.");
+  }
 }
 
 if (!visitor_uuid) {

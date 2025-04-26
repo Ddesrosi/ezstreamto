@@ -28,6 +28,8 @@ serve(async (req) => {
     }
 
     const body = JSON.parse(rawBody);
+    const pre_payment_uuid = body.data?.pre_payment_uuid || null;
+    console.log("🧾 pre_payment_uuid received from BMC:", pre_payment_uuid);
     const { supporter_email: payer_email, amount, transaction_id } = body.data || {};
     const ip_address = req.headers.get("cf-connecting-ip") ||
                    req.headers.get("x-forwarded-for")?.split(",")[0] ||
@@ -54,6 +56,11 @@ serve(async (req) => {
 
 let visitor_uuid = pageView?.uuid;
 console.log("🔎 Visitor UUID lookup result from page_views:", visitor_uuid);
+
+if (!visitor_uuid) {
+  visitor_uuid = ipSearch?.uuid;
+  console.log("🔎 UUID lookup result from ip_searches:", visitor_uuid);
+}
 
 if (!visitor_uuid) {
   console.warn("⚠️ No visitor UUID found from page_views or ip_searches. Attempting fallback...");
@@ -95,23 +102,24 @@ if (!visitor_uuid) {
   visitor_uuid
 });
 
-    const { error: insertError } = await supabase
-      .from('supporters')
-      .insert([{
-        email: payer_email,
-        amount,
-        transaction_id,
-        verified: true,
-        unlimited_searches: true,
-        ip_address,
-        visitor_uuid,
-        support_status: 'active',
-        support_date: new Date().toISOString(),
-        metadata: {
-          platform: 'buymeacoffee',
-          verified_at: new Date().toISOString()
-        }
-      }]);
+   const { error: insertError } = await supabase
+  .from('supporters')
+  .insert([{
+    email: payer_email,
+    amount,
+    transaction_id,
+    verified: true,
+    unlimited_searches: true,
+    ip_address,
+    visitor_uuid, // ✅ TRÈS IMPORTANT : insérer ici
+    support_type: 'bmc',
+    support_status: 'active',
+    support_date: new Date().toISOString(),
+    metadata: {
+      platform: 'buymeacoffee',
+      verified_at: new Date().toISOString()
+    }
+  }]);
 
     if (insertError) {
       console.error("\u274c Insert error:", insertError);

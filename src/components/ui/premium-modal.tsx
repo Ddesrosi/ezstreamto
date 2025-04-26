@@ -24,19 +24,18 @@ export function PremiumModal({ isOpen, onClose, onUpgrade }: PremiumModalProps) 
   ];
 
   const handleUpgrade = async () => {
-    try {
-      const redirectUrl = encodeURIComponent(`https://ezstreamto.com/premium-success?uuid=${uuid}`);
-      window.location.href = `https://www.buymeacoffee.com/EzStreamTo?redirect_url=${redirectUrl}`;
-      
-      // Close the modal
-      onClose();
-      
-      // Call the parent's onUpgrade callback
-      onUpgrade();
-    } catch (err) {
-      console.error('Upgrade error:', err);
-    }
-  };
+  try {
+    const uuid = getOrCreateUUID(); // D'abord tu génères ou récupères l'UUID
+    const redirectUrl = encodeURIComponent(`https://ezstreamto.com/premium-success?uuid=${uuid}`);
+    
+    window.location.href = `https://www.buymeacoffee.com/EzStreamTo?uuid=${uuid}`;
+    
+    // Close the modal
+    onClose();
+  } catch (error) {
+    console.error('Error during upgrade:', error);
+  }
+};
 
   if (!isOpen) return null;
 

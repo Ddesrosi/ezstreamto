@@ -22,6 +22,7 @@ export function PremiumFeatureWrapper({
   title
 }: PremiumFeatureWrapperProps) {
   const uuid = getOrCreateUUID();
+const redirectUrl = encodeURIComponent(`https://ezstreamto.com/premium-success?uuid=${uuid}`);
   
   if (isLoading) {
     return <div className={className}>{children}</div>;
@@ -49,11 +50,12 @@ export function PremiumFeatureWrapper({
         {/* Premium Feature Tooltip */}
         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
           <a
-            href={`https://www.buymeacoffee.com/EzStreamTo?redirect_url=${encodeURIComponent(`https://ezstreamto.com/premium-success?uuid=${uuid}`)}`}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg text-sm font-medium hover:bg-blue-700 transition-colors"
-          >
-            Get Premium to Unlock {title}
-          </a>
+  href={`https://www.buymeacoffee.com/EzStreamTo?uuid=${uuid}`}
+  className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+>
+  Get Premium to Unlock {title}
+</a>
+
         </div>
       </motion.div>
     );

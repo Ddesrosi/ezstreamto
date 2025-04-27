@@ -3,6 +3,20 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
 import crypto from "https://esm.sh/crypto-js@4.1.1";
 
+// 🔵 Fonction pour notifier Make.com
+async function notifyMakeWebhook(visitor_uuid: string) {
+  try {
+    await fetch('https://hook.us1.make.com/72rmijhq6prsglukc5eo97aouahdrs9w', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ visitor_uuid }),
+    });
+    console.log('📨 Notification envoyée à Make.com avec visitor_uuid:', visitor_uuid);
+  } catch (error) {
+    console.error('❌ Erreur en envoyant la notification à Make.com:', error);
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });

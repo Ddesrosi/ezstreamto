@@ -50,8 +50,10 @@ const redirectUrl = encodeURIComponent(`https://ezstreamto.com/premium-success?u
         {/* Premium Feature Tooltip */}
         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
           <a
-  href={`https://www.buymeacoffee.com/EzStreamTo?uuid=${uuid}`}
+  href={`https://www.buymeacoffee.com/EzStreamTo?pre_payment_uuid=${uuid}`}
   className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+  target="_blank"
+  rel="noopener noreferrer"
 >
   Get Premium to Unlock {title}
 </a>

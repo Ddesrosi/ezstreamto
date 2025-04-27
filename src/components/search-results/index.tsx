@@ -62,9 +62,10 @@ export default function SearchResults({
   }, [remainingSearches]);
 
   const handleUpgrade = () => {
-    window.open('https://www.buymeacoffee.com/EzStreamTo', '_blank');
-    setShowLocalPremiumModal(false);
-  };
+  const uuid = getOrCreateUUID();
+  window.open(`https://www.buymeacoffee.com/EzStreamTo?pre_payment_uuid=${uuid}`, '_blank');
+  setShowLocalPremiumModal(false);
+};
 
   const SearchCreditsSection = () => (
     <motion.div
@@ -100,15 +101,18 @@ export default function SearchResults({
           </p>
         )}
 
-        {!isPremium && (
-          <a
-            href={`https://www.buymeacoffee.com/EzStreamTo?redirect_url=${encodeURIComponent(`https://ezstreamto.com/premium-success?uuid=${uuid}`)}`}
-            className="whitespace-nowrap text-sm h-10 px-4 py-2 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium flex items-center gap-2"
-          >
-            <Coffee className="h-4 w-4 mr-1.5" />
-            Get Unlimited Searches
-          </a>
-        )}
+      {!isPremium && (
+  <a
+    href={`https://www.buymeacoffee.com/EzStreamTo?pre_payment_uuid=${uuid}&redirect_url=${encodeURIComponent(`https://ezstreamto.com/premium-success?uuid=${uuid}`)}`}
+    className="flex items-center gap-2 text-sm font-medium text-white bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 px-4 py-2 rounded-lg"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    <Coffee className="h-4 w-4 mr-1.5" />
+    Get Unlimited Searches
+  </a>
+)}
+
       </div>
     </motion.div>
   );

@@ -124,10 +124,11 @@ function PreferenceForm({ isDark, onSearch, onError, visitorUUID }: PreferenceFo
     setSpecificYearInput('');
   };
 
-  const handleUpgrade = () => {
-    window.open('https://www.buymeacoffee.com/EzStreamTo', '_blank');
-    setShowPremiumModal(false);
-  };
+ const handleUpgrade = () => {
+  const uuid = getOrCreateUUID();
+  window.open(`https://www.buymeacoffee.com/EzStreamTo?pre_payment_uuid=${uuid}`, '_blank');
+  setShowPremiumModal(false);
+};
   
 const handleSearch = useCallback(async () => {
   console.log("🧩 handleSearch() called – DEBUG LOG –", new Date().toISOString());
@@ -308,9 +309,10 @@ setSearchProgress(0);
         {!isPremium && (
           <div className="w-full sm:w-auto">
             <a
-              href={`https://www.buymeacoffee.com/EzStreamTo?redirect_url=${encodeURIComponent(`https://ezstreamto.com/premium-success?uuid=${uuid}`)}`}
-              className="w-full sm:w-auto h-9 sm:h-10 text-xs sm:text-sm px-3 sm:px-4 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
-            >
+  href={`https://www.buymeacoffee.com/EzStreamTo?pre_payment_uuid=${uuid}&redirect_url=${encodeURIComponent(`https://ezstreamto.com/premium-success?uuid=${uuid}`)}`}
+  className="w-full sm:w-auto h-9 sm:h-10 text-xs sm:text-sm px-3 sm:px-4 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
+>
+
               Get Unlimited Searches
             </a>
           </div>

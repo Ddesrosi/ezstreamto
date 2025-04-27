@@ -28,7 +28,7 @@ export function PremiumModal({ isOpen, onClose, onUpgrade }: PremiumModalProps) 
     const uuid = getOrCreateUUID(); // D'abord tu génères ou récupères l'UUID
     const redirectUrl = encodeURIComponent(`https://ezstreamto.com/premium-success?uuid=${uuid}`);
     
-    window.location.href = `https://www.buymeacoffee.com/EzStreamTo?uuid=${uuid}`;
+  window.location.href = `https://www.buymeacoffee.com/EzStreamTo?pre_payment_uuid=${uuid}`;
     
     // Close the modal
     onClose();

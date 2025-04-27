@@ -308,18 +308,37 @@ setSearchProgress(0);
 
         {!isPremium && (
           <div className="w-full sm:w-auto">
-            <a
-  href={`https://www.buymeacoffee.com/EzStreamTo?pre_payment_uuid=${uuid}&redirect_url=${encodeURIComponent(`https://ezstreamto.com/premium-success?uuid=${uuid}`)}`}
-  className="w-full sm:w-auto h-9 sm:h-10 text-xs sm:text-sm px-3 sm:px-4 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
+            <button
+  onClick={handlePremiumClick}
+  className="w-full sm:w-auto h-9 sm:h-10 text-xs sm:text-sm px-3 sm:px-4 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg"
 >
+  Get Unlimited Searches
+</button>
 
-              Get Unlimited Searches
-            </a>
           </div>
         )}
       </div>
     </motion.div>
   );
+
+  const handlePremiumClick = async () => {
+  try {
+    const uuid = getOrCreateUUID();
+    const { error } = await supabase
+      .from('pre_payments')
+      .insert([{ visitor_uuid: uuid }]);
+
+    if (error) {
+      console.error('❌ Error inserting pre_payment:', error);
+    } else {
+      console.log('✅ visitor_uuid inserted into pre_payments:', uuid);
+    }
+
+    window.location.href = `https://www.buymeacoffee.com/EzStreamTo?pre_payment_uuid=${uuid}&redirect_url=${encodeURIComponent(`https://ezstreamto.com/premium-success?uuid=${uuid}`)}`;
+  } catch (error) {
+    console.error('Error during premium upgrade:', error);
+  }
+};
 
   return (
     <>

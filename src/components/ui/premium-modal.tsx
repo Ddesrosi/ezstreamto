@@ -4,6 +4,7 @@ import { Crown, X, Check, Loader2, Coffee } from 'lucide-react';
 import { Button } from './button';
 import { usePremiumUpgrade } from '@/hooks/usePremiumUpgrade';
 import { getOrCreateUUID } from '@/lib/search-limits/get-uuid';
+import { supabase } from '@/lib/supabaseClient';
 
 interface PremiumModalProps {
   isOpen: boolean;
@@ -23,20 +24,32 @@ export function PremiumModal({ isOpen, onClose, onUpgrade }: PremiumModalProps) 
     'Support independent developers'
   ];
 
-  const handleUpgrade = async () => {
+ const handleUpgrade = async () => {
   try {
-    const uuid = getOrCreateUUID(); // D'abord tu génères ou récupères l'UUID
+    const uuid = getOrCreateUUID();
     const redirectUrl = encodeURIComponent(`https://ezstreamto.com/premium-success?uuid=${uuid}`);
-    
-  window.location.href = `https://www.buymeacoffee.com/EzStreamTo?pre_payment_uuid=${uuid}`;
-    
-    // Close the modal
+
+    // 🔵 1. Insérer dans pre_payments
+    const { error } = await supabase
+      .from('pre_payments')
+      .insert([{ visitor_uuid: uuid }]);
+
+    if (error) {
+      console.error('❌ Error inserting pre_payment:', error);
+    } else {
+      console.log('✅ visitor_uuid inserted into pre_payments:', uuid);
+    }
+
+    // 🔵 2. Rediriger vers BuyMeACoffee
+    window.location.href = `https://www.buymeacoffee.com/EzStreamTo?pre_payment_uuid=${uuid}`;
+
+    // 🔵 3. Fermer le modal
     onClose();
   } catch (error) {
     console.error('Error during upgrade:', error);
   }
 };
-
+  
   if (!isOpen) return null;
 
   return (

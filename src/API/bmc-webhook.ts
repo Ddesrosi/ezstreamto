@@ -68,8 +68,7 @@ export async function POST(request: Request) {
                 verified: true,
                 unlimited_searches: true,
                 ip_address: ip_address || null,
-                support_type: 'bmc',
-                support_status: 'active',
+                                support_status: 'active',
                 support_date: new Date().toISOString(),
                 metadata: {
                     platform: 'buymeacoffee',

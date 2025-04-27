@@ -4,7 +4,6 @@
   1. Changes
     - Add email field to supporters table
     - Add amount field for tracking support level
-    - Add support_type field to differentiate support methods
     - Add indexes for better query performance
 
   2. Security

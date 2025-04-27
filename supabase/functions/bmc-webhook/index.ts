@@ -117,7 +117,6 @@ if (!visitor_uuid) {
     unlimited_searches: true,
     ip_address,
     visitor_uuid, // ✅ TRÈS IMPORTANT : insérer ici
-    support_type: 'bmc',
     support_status: 'active',
     support_date: new Date().toISOString(),
     metadata: {

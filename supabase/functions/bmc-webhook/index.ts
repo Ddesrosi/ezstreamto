@@ -86,7 +86,7 @@ if (pre_payment_uuid) {
   .limit(1)
   .single();
 
-let visitor_uuid = pageView?.uuid;
+visitor_uuid = pageView?.uuid;
 console.log("🔎 Visitor UUID lookup result from page_views:", visitor_uuid);
 
 if (!visitor_uuid) {

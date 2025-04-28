@@ -12,6 +12,7 @@ import { PerfectMatchCard } from './perfect-match-card';
 import type { PerfectMatchInsights } from '@/lib/perfect-match';
 import { USER_LIMITS } from '@/config';
 import { getOrCreateUUID } from '@/lib/search-limits/get-uuid';
+import { supabase } from '@/lib/supabaseClient';
 
 interface SearchResultsProps {
   results: Movie[];
@@ -78,42 +79,28 @@ export default function SearchResults({
           : isPremium ? 'bg-blue-50 text-blue-600' : 'bg-gradient-to-r from-amber-500 to-amber-600 text-white'
       )}
     >
-      <div className="flex flex-col sm:flex-row items-center justify-center gap-2">
-        {isPremium ? (
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1.5">
-              <Coffee className="h-3.5 w-3.5 text-amber-400" />
-              <span className="font-medium">Premium</span>
-            </div>
-            <p className="text-sm font-medium">
-              Unlimited searches available
-            </p>
-          </div>
-        ) : (
-          <p className="text-sm font-medium">
-            {typeof localRemainingSearches !== 'number' ? (
-              'Checking your available searches...'
-            ) : localRemainingSearches === 1 ? (
-              '1 free search remaining'
-            ) : (
-              `${localRemainingSearches} free searches remaining`
-            )}
-          </p>
-        )}
+     <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 w-full">
+  <p className="text-xs sm:text-sm font-medium">
+    {typeof localRemainingSearches !== 'number' ? (
+      'Checking your available searches...'
+    ) : localRemainingSearches === 1 ? (
+      '1 free search remaining'
+    ) : (
+      `${localRemainingSearches} free searches remaining`
+    )}
+  </p>
 
-      {!isPremium && (
-      
-  <button
-  onClick={handlePremiumClick}
-  className="flex items-center gap-2 text-sm font-medium text-white bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 px-4 py-2 rounded-lg"
->
-  <Coffee className="h-4 w-4 mr-1.5" />
-  Get Unlimited Searches
-</button>
+  <div className="w-full sm:w-auto">
+    <button
+      onClick={handlePremiumClick}
+      type="button"
+      className="w-full sm:w-auto h-9 sm:h-10 text-xs sm:text-sm px-3 sm:px-4 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium rounded-lg transition-all duration-300"
+    >
+      Get Unlimited Searches
+    </button>
+  </div>
+</div>
 
-)}
-
-      </div>
     </motion.div>
   );
 
@@ -148,16 +135,14 @@ export default function SearchResults({
     const { error } = await supabase
       .from('pre_payments')
       .insert([{ visitor_uuid: uuid }]);
-
     if (error) {
       console.error('❌ Error inserting pre_payment:', error);
     } else {
       console.log('✅ visitor_uuid inserted into pre_payments:', uuid);
     }
-
-    window.location.href = `https://www.buymeacoffee.com/EzStreamTo?pre_payment_uuid=${uuid}&redirect_url=${encodeURIComponent(`https://ezstreamto.com/premium-success?uuid=${uuid}`)}`;
+    window.location.href = `https://www.buymeacoffee.com/EzStreamTo?pre_payment_uuid=${uuid}`;
   } catch (error) {
-    console.error('Error during premium upgrade:', error);
+    console.error('Error during upgrade:', error);
   }
 };
 

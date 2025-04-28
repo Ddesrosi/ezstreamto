@@ -19,6 +19,7 @@ import { PremiumModal } from '../ui/premium-modal';
 import { usePremiumStatus } from '@/hooks/usePremiumStatus';
 import { PremiumFeatureWrapper } from '../ui/premium-feature-wrapper';
 import { getOrCreateUUID } from '@/lib/search-limits/get-uuid';
+import { supabase } from '@/lib/supabaseClient';
 import { PerfectMatch } from '../ui/perfect-match';
 
 interface PreferenceFormProps {
@@ -306,17 +307,23 @@ setSearchProgress(0);
           )}
         </div>
 
-        {!isPremium && (
-          <div className="w-full sm:w-auto">
-            <button
-  onClick={handlePremiumClick}
-  className="w-full sm:w-auto h-9 sm:h-10 text-xs sm:text-sm px-3 sm:px-4 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg"
->
-  Get Unlimited Searches
-</button>
+      {!isPremium && (
+  <div className="w-full sm:w-auto mt-4">
+    <Button
+      variant="ghost"
+      size="md"
+      onClick={handlePremiumClick}
+      className={cn(
+        "w-full sm:w-auto text-xs sm:text-sm px-3 sm:px-4 h-9 sm:h-10",
+        "bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700",
+        "text-white font-medium rounded-lg transition-all duration-300"
+      )}
+    >
+      Get Unlimited Searches
+    </Button>
+  </div>
+)}
 
-          </div>
-        )}
       </div>
     </motion.div>
   );
@@ -327,20 +334,18 @@ setSearchProgress(0);
     const { error } = await supabase
       .from('pre_payments')
       .insert([{ visitor_uuid: uuid }]);
-
     if (error) {
       console.error('❌ Error inserting pre_payment:', error);
     } else {
       console.log('✅ visitor_uuid inserted into pre_payments:', uuid);
     }
-
-    window.location.href = `https://www.buymeacoffee.com/EzStreamTo?pre_payment_uuid=${uuid}&redirect_url=${encodeURIComponent(`https://ezstreamto.com/premium-success?uuid=${uuid}`)}`;
+    window.location.href = `https://www.buymeacoffee.com/EzStreamTo?pre_payment_uuid=${uuid}`;
   } catch (error) {
-    console.error('Error during premium upgrade:', error);
+    console.error('Error during upgrade:', error);
   }
 };
 
-  return (
+ return (
     <>
       <SearchModal 
         isOpen={showModal} 

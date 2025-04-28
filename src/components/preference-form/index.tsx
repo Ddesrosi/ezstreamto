@@ -331,17 +331,23 @@ setSearchProgress(0);
   const handlePremiumClick = async () => {
   try {
     const uuid = getOrCreateUUID();
+
+    // 🔵 1. Insérer dans pre_payments
     const { error } = await supabase
       .from('pre_payments')
       .insert([{ visitor_uuid: uuid }]);
+
     if (error) {
       console.error('❌ Error inserting pre_payment:', error);
-    } else {
-      console.log('✅ visitor_uuid inserted into pre_payments:', uuid);
+      return; // Si erreur, on stoppe ici
     }
+
+    console.log('✅ visitor_uuid inserted into pre_payments:', uuid);
+
+    // 🔵 2. Rediriger seulement après succès de l'insertion
     window.location.href = `https://www.buymeacoffee.com/EzStreamTo?pre_payment_uuid=${uuid}`;
   } catch (error) {
-    console.error('Error during upgrade:', error);
+    console.error('❌ Unexpected error during premium upgrade:', error);
   }
 };
 

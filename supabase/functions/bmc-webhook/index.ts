@@ -4,14 +4,19 @@ import { corsHeaders } from "../_shared/cors.ts";
 import crypto from "https://esm.sh/crypto-js@4.1.1";
 
 // 🔵 Fonction pour notifier Make.com
-async function notifyMakeWebhook(visitor_uuid: string) {
+async function notifyMakeWebhook(payer_email: string, visitor_uuid: string, transaction_id: string) {
   try {
     await fetch('https://hook.us1.make.com/72rmijhq6prsglukc5eo97aouahdrs9w', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ visitor_uuid }),
+      body: JSON.stringify({
+        email: payer_email,
+        uuid: visitor_uuid,
+        transaction_id,
+        redirect_url: `https://ezstreamto.com/redirect-with-uuid?uuid=${visitor_uuid}`
+      }),
     });
-    console.log('📨 Notification envoyée à Make.com avec visitor_uuid:', visitor_uuid);
+    console.log('📨 Notification envoyée à Make.com avec email + uuid + transaction_id');
   } catch (error) {
     console.error('❌ Erreur en envoyant la notification à Make.com:', error);
   }
@@ -61,7 +66,7 @@ serve(async (req) => {
       const { data: prePaymentData, error: prePaymentError } = await supabase
         .from('pre_payments')
         .select('visitor_uuid')
-        .eq('id', pre_payment_uuid)
+        .eq('visitor_uuid', pre_payment_uuid)
         .maybeSingle();
 
       if (prePaymentError) {
@@ -122,13 +127,13 @@ serve(async (req) => {
 
     console.log("✅ Supporter inserted successfully!");
 
-    if (visitor_uuid) {
-      try {
-        await notifyMakeWebhook(visitor_uuid);
-      } catch (error) {
-        console.error('⚠️ Failed to notify Make.com:', error);
-      }
-    }
+   if (visitor_uuid) {
+  try {
+    await notifyMakeWebhook(payer_email, visitor_uuid, transaction_id);
+  } catch (error) {
+    console.error('⚠️ Failed to notify Make.com:', error);
+  }
+}
 
     return new Response("Success", {
       status: 200,

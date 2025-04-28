@@ -48,6 +48,28 @@ serve(async (req) => {
 
     const body = JSON.parse(rawBody);
     const pre_payment_uuid = body.data?.pre_payment_uuid || null;
+
+    let visitor_uuid = null;
+
+if (pre_payment_uuid) {
+  console.log('🔎 Searching visitor_uuid in pre_payments table using pre_payment_uuid:', pre_payment_uuid);
+
+  const { data: prePaymentData, error: prePaymentError } = await supabase
+    .from('pre_payments')
+    .select('visitor_uuid')
+    .eq('id', pre_payment_uuid)
+    .maybeSingle();
+
+  if (prePaymentError) {
+    console.error('❌ Error fetching visitor_uuid from pre_payments:', prePaymentError);
+  } else if (prePaymentData?.visitor_uuid) {
+    visitor_uuid = prePaymentData.visitor_uuid;
+    console.log('✅ Found visitor_uuid in pre_payments:', visitor_uuid);
+  } else {
+    console.warn('⚠️ No visitor_uuid found in pre_payments for given pre_payment_uuid.');
+  }
+}
+
     const { supporter_email: payer_email, amount, transaction_id } = body.data || {};
 
     console.log("🧾 pre_payment_uuid received from BMC:", pre_payment_uuid);

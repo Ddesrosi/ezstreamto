@@ -78,24 +78,18 @@ if (pre_payment_uuid) {
 
     console.log("🔍 Executing UUID lookup in ip_searches for IP:", ip_address);
     
-   const { data: pageView } = await supabase
-  .from('page_views')
-  .select('uuid')
-  .eq('ip_address', ip_address)
-  .order('created_at', { ascending: false })
-  .limit(1)
-  .single();
+  if (pre_payment_uuid) {
+  const { data: prePaymentData, error: prePaymentError } = await supabase
+    .from('pre_payments')
+    .select('visitor_uuid')
+    .eq('id', pre_payment_uuid)
+    .single();
 
-visitor_uuid = pageView?.uuid;
-console.log("🔎 Visitor UUID lookup result from page_views:", visitor_uuid);
-
-if (!visitor_uuid) {
-  console.log("⚡ No UUID found from page_views. Trying to fetch fallback pre_payment_uuid...");
-  if (body?.pre_payment_uuid) {
-    visitor_uuid = body.pre_payment_uuid;
-    console.log("🧾 Fallback: using pre_payment_uuid:", visitor_uuid);
+  if (prePaymentData?.visitor_uuid) {
+    visitor_uuid = prePaymentData.visitor_uuid;
+    console.log('✅ Found visitor_uuid from pre_payments:', visitor_uuid);
   } else {
-    console.warn("❌ No fallback UUID available.");
+    console.warn('⚠️ No visitor_uuid found in pre_payments for ID:', pre_payment_uuid);
   }
 }
 

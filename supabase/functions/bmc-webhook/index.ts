@@ -48,7 +48,25 @@ serve(async (req) => {
     const ip_address = req.headers.get("cf-connecting-ip") ||
                    req.headers.get("x-forwarded-for")?.split(",")[0] ||
                    null;
-   
+   let visitor_uuid = null;
+
+if (pre_payment_uuid) {
+  console.log('🔎 Searching pre_payments table for visitor_uuid using pre_payment_uuid:', pre_payment_uuid);
+
+  const { data: prePayment } = await supabase
+    .from('pre_payments')
+    .select('visitor_uuid')
+    .eq('visitor_uuid', pre_payment_uuid)
+    .maybeSingle();
+
+  if (prePayment?.visitor_uuid) {
+    visitor_uuid = prePayment.visitor_uuid;
+    console.log('✅ Visitor UUID found via pre_payments table:', visitor_uuid);
+  } else {
+    console.warn('⚠️ No matching visitor_uuid found in pre_payments for pre_payment_uuid:', pre_payment_uuid);
+  }
+}
+
     console.log("🌍 IP address used for lookup:", ip_address);
 
    console.log("📦 Full Raw BMC body:", body);

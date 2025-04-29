@@ -128,7 +128,7 @@ useEffect(() => {
     setPerfectMatch(undefined);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-
+  
   console.log("🔁 Current pathname:", window.location.pathname);
   
   return (
@@ -136,7 +136,6 @@ useEffect(() => {
       <Routes>
         <Route path="/disclaimer" element={<Disclaimer />} />
         <Route path="/privacy" element={<Privacy />} />
-        <Route path="/redirect-with-uuid" element={<RedirectWithUUID />} />
         <Route path="/premium-success" element={<PremiumSuccess />} />
         <Route path="/redirect-with-email" element={<RedirectWithEmail />} />
         <Route path="/" element={

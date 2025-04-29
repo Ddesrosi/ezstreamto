@@ -7,15 +7,15 @@ import crypto from "https://esm.sh/crypto-js@4.1.1";
 async function notifyMakeWebhook(payer_email: string, visitor_uuid: string, transaction_id: string) {
   try {
     await fetch('https://hook.us1.make.com/72rmijhq6prsglukc5eo97aouahdrs9w', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email: payer_email,
-        uuid: visitor_uuid,
-        transaction_id,
-        redirect_url: `https://ezstreamto.com/redirect-with-uuid?uuid=${visitor_uuid}`
-      }),
-    });
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    email: payer_email,
+    transaction_id,
+    amount
+  }),
+});
+
     console.log('📨 Notification envoyée à Make.com avec email + uuid + transaction_id');
   } catch (error) {
     console.error('❌ Erreur en envoyant la notification à Make.com:', error);

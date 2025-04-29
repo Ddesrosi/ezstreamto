@@ -20,6 +20,7 @@ import { supabase } from './lib/supabaseClient';
 import { useRef } from 'react';
 import { getOrCreateUUID } from '@/lib/search-limits/get-uuid';
 import { logPageView } from '@/lib/analytics/logPageView';
+import RedirectWithEmail from '@/pages/RedirectWithEmail';
 
 function App() {
   const [isDark, setIsDark] = useState(true);
@@ -137,6 +138,7 @@ useEffect(() => {
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/redirect-with-uuid" element={<RedirectWithUUID />} />
         <Route path="/premium-success" element={<PremiumSuccess />} />
+        <Route path="/redirect-with-email" element={<RedirectWithEmail />} />
         <Route path="/" element={
           <div className={`min-h-screen flex flex-col relative transition-colors duration-200 ${
             isDark ? 'bg-[#040B14] text-white' : 'bg-gray-50 text-gray-900'

@@ -80,8 +80,6 @@ if (pre_payment_uuid) {
       return new Response("Invalid data", { status: 400 });
     }
 
-  let visitor_uuid = null;
-
 if (payer_email) {
   console.log('🔎 Searching visitor_uuid in pre_payments table using payer_email:', payer_email);
 

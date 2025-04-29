@@ -48,30 +48,7 @@ serve(async (req) => {
 
     const body = JSON.parse(rawBody);
     const pre_payment_uuid = body.data?.pre_payment_uuid || null;
-
-    let visitor_uuid = null;
-
-if (pre_payment_uuid) {
-  console.log('🔎 Searching visitor_uuid in pre_payments table using pre_payment_uuid:', pre_payment_uuid);
-
-  const { data: prePaymentData, error: prePaymentError } = await supabase
-    .from('pre_payments')
-    .select('visitor_uuid')
-    .eq('id', pre_payment_uuid)
-    .maybeSingle();
-
-  if (prePaymentError) {
-    console.error('❌ Error fetching visitor_uuid from pre_payments:', prePaymentError);
-  } else if (prePaymentData?.visitor_uuid) {
-    visitor_uuid = prePaymentData.visitor_uuid;
-    console.log('✅ Found visitor_uuid in pre_payments:', visitor_uuid);
-  } else {
-    console.warn('⚠️ No visitor_uuid found in pre_payments for given pre_payment_uuid.');
-  }
-}
-
-    const { supporter_email: payer_email, amount, transaction_id } = body.data || {};
-
+    const { supporter_email: payer_email, amount, transaction_id } = body.data || {}; // 🔵 déplacé ici
     console.log("🧾 pre_payment_uuid received from BMC:", pre_payment_uuid);
     console.log("📦 Full Raw BMC body:", body);
 
@@ -80,26 +57,45 @@ if (pre_payment_uuid) {
       return new Response("Invalid data", { status: 400 });
     }
 
-if (payer_email) {
-  console.log('🔎 Searching visitor_uuid in pre_payments table using payer_email:', payer_email);
+    let visitor_uuid = null;
 
-  const { data: prePaymentData, error: prePaymentError } = await supabase
-    .from('pre_payments')
-    .select('visitor_uuid')
-    .eq('email', payer_email)
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    if (pre_payment_uuid) {
+      console.log("🔍 Searching visitor_uuid in pre_payments using pre_payment_uuid:", pre_payment_uuid);
 
-  if (prePaymentError) {
-    console.error('❌ Error fetching from pre_payments by email:', prePaymentError);
-  } else if (prePaymentData?.visitor_uuid) {
-    visitor_uuid = prePaymentData.visitor_uuid;
-    console.log('✅ Found visitor_uuid from pre_payments by email:', visitor_uuid);
-  } else {
-    console.warn('⚠️ No visitor_uuid found in pre_payments for this email.');
-  }
-}
+      const { data: prePayment, error: prePaymentError } = await supabase
+        .from('pre_payments')
+        .select('visitor_uuid')
+        .eq('id', pre_payment_uuid)
+        .maybeSingle();
+
+      if (prePaymentError) {
+        console.error("❌ Error fetching from pre_payments:", prePaymentError);
+      } else if (prePayment?.visitor_uuid) {
+        visitor_uuid = prePayment.visitor_uuid;
+        console.log("✅ visitor_uuid found via pre_payments:", visitor_uuid);
+      }
+    }
+
+    if (payer_email) {
+      console.log('🔎 Searching visitor_uuid in pre_payments table using payer_email:', payer_email);
+
+      const { data: prePaymentData, error: prePaymentError } = await supabase
+        .from('pre_payments')
+        .select('visitor_uuid')
+        .eq('email', payer_email)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (prePaymentError) {
+        console.error('❌ Error fetching from pre_payments by email:', prePaymentError);
+      } else if (prePaymentData?.visitor_uuid) {
+        visitor_uuid = prePaymentData.visitor_uuid;
+        console.log('✅ Found visitor_uuid from pre_payments by email:', visitor_uuid);
+      } else {
+        console.warn('⚠️ No visitor_uuid found in pre_payments for this email.');
+      }
+    }
 
     if (!visitor_uuid) {
       console.warn('⚠️ No visitor_uuid could be found, fallback to null.');
@@ -149,13 +145,13 @@ if (payer_email) {
 
     console.log("✅ Supporter inserted successfully!");
 
-   if (visitor_uuid) {
-  try {
-    await notifyMakeWebhook(payer_email, visitor_uuid, transaction_id);
-  } catch (error) {
-    console.error('⚠️ Failed to notify Make.com:', error);
-  }
-}
+    if (visitor_uuid) {
+      try {
+        await notifyMakeWebhook(payer_email, visitor_uuid, transaction_id);
+      } catch (error) {
+        console.error('⚠️ Failed to notify Make.com:', error);
+      }
+    }
 
     return new Response("Success", {
       status: 200,

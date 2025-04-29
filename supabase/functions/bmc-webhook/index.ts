@@ -80,26 +80,28 @@ if (pre_payment_uuid) {
       return new Response("Invalid data", { status: 400 });
     }
 
-    let visitor_uuid = null;
+  let visitor_uuid = null;
 
-    if (pre_payment_uuid) {
-      console.log('🔎 Searching visitor_uuid in pre_payments table using pre_payment_uuid:', pre_payment_uuid);
+if (payer_email) {
+  console.log('🔎 Searching visitor_uuid in pre_payments table using payer_email:', payer_email);
 
-      const { data: prePaymentData, error: prePaymentError } = await supabase
-        .from('pre_payments')
-        .select('visitor_uuid')
-        .eq('visitor_uuid', pre_payment_uuid)
-        .maybeSingle();
+  const { data: prePaymentData, error: prePaymentError } = await supabase
+    .from('pre_payments')
+    .select('visitor_uuid')
+    .eq('email', payer_email)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
 
-      if (prePaymentError) {
-        console.error('❌ Error fetching from pre_payments:', prePaymentError);
-      } else if (prePaymentData) {
-        visitor_uuid = prePaymentData.visitor_uuid;
-        console.log('✅ Found visitor_uuid in pre_payments:', visitor_uuid);
-      } else {
-        console.warn('⚠️ No visitor_uuid found in pre_payments.');
-      }
-    }
+  if (prePaymentError) {
+    console.error('❌ Error fetching from pre_payments by email:', prePaymentError);
+  } else if (prePaymentData?.visitor_uuid) {
+    visitor_uuid = prePaymentData.visitor_uuid;
+    console.log('✅ Found visitor_uuid from pre_payments by email:', visitor_uuid);
+  } else {
+    console.warn('⚠️ No visitor_uuid found in pre_payments for this email.');
+  }
+}
 
     if (!visitor_uuid) {
       console.warn('⚠️ No visitor_uuid could be found, fallback to null.');

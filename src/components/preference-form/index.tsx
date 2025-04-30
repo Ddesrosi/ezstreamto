@@ -310,13 +310,12 @@ setSearchProgress(0);
       {!isPremium && (
   <div className="w-full sm:w-auto mt-4">
     <Button
-      variant="ghost"
-      size="md"
       onClick={handlePremiumClick}
+      size="md"
       className={cn(
-        "w-full sm:w-auto text-xs sm:text-sm px-3 sm:px-4 h-9 sm:h-10",
-        "bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700",
-        "text-white font-medium rounded-lg transition-all duration-300"
+        "w-full sm:w-auto text-xs sm:text-sm px-3 sm:px-4 h-9 sm:h-10 font-medium",
+        "bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white",
+        "rounded-lg transition-all duration-300 hover:scale-105"
       )}
     >
       Get Unlimited Searches

@@ -63,10 +63,10 @@ export default function SearchResults({
   }, [remainingSearches]);
 
   const handleUpgrade = () => {
-  const uuid = getOrCreateUUID();
-  window.open(`https://www.buymeacoffee.com/EzStreamTo?pre_payment_uuid=${uuid}`, '_blank');
-  setShowLocalPremiumModal(false);
-};
+    const uuid = getOrCreateUUID();
+    window.open(`https://www.buymeacoffee.com/EzStreamTo?pre_payment_uuid=${uuid}`, '_blank');
+    setShowLocalPremiumModal(false);
+  };
 
   const SearchCreditsSection = () => (
     <motion.div
@@ -79,28 +79,27 @@ export default function SearchResults({
           : isPremium ? 'bg-blue-50 text-blue-600' : 'bg-gradient-to-r from-amber-500 to-amber-600 text-white'
       )}
     >
-     <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 w-full">
-  <p className="text-xs sm:text-sm font-medium">
-    {typeof localRemainingSearches !== 'number' ? (
-      'Checking your available searches...'
-    ) : localRemainingSearches === 1 ? (
-      '1 free search remaining'
-    ) : (
-      `${localRemainingSearches} free searches remaining`
-    )}
-  </p>
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 w-full">
+        <p className="text-xs sm:text-sm font-medium">
+          {typeof localRemainingSearches !== 'number' ? (
+            'Checking your available searches...'
+          ) : localRemainingSearches === 1 ? (
+            '1 free search remaining'
+          ) : (
+            `${localRemainingSearches} free searches remaining`
+          )}
+        </p>
 
-  <div className="w-full sm:w-auto">
-    <button
-      onClick={handlePremiumClick}
-      type="button"
-      className="w-full sm:w-auto h-9 sm:h-10 text-xs sm:text-sm px-3 sm:px-4 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium rounded-lg transition-all duration-300"
-    >
-      Get Unlimited Searches
-    </button>
-  </div>
-</div>
-
+        <div className="w-full sm:w-auto">
+          <button
+            onClick={() => handlePremiumClick()}
+            type="button"
+            className="w-full sm:w-auto h-9 sm:h-10 text-xs sm:text-sm px-3 sm:px-4 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium rounded-lg transition-all duration-300"
+          >
+            Get Unlimited Searches
+          </button>
+        </div>
+      </div>
     </motion.div>
   );
 
@@ -130,28 +129,26 @@ export default function SearchResults({
   }, [results]);
 
   const handlePremiumClick = async () => {
-  try {
-    const uuid = getOrCreateUUID();
+    try {
+      const uuid = getOrCreateUUID();
+      console.log('🔵 Handling premium click with UUID:', uuid);
 
-    // 🔵 1. Insérer dans pre_payments
-    const { error } = await supabase
-      .from('pre_payments')
-      .insert([{ visitor_uuid: uuid }]);
+      const { error } = await supabase
+        .from('pre_payments')
+        .insert([{ visitor_uuid: uuid }]);
 
-    if (error) {
-      console.error('❌ Error inserting pre_payment:', error);
-      return; // Si erreur, on stoppe ici
+      if (error) {
+        console.error('❌ Error inserting pre_payment:', error);
+        return;
+      }
+
+      console.log('✅ visitor_uuid inserted into pre_payments:', uuid);
+
+      window.location.href = `https://www.buymeacoffee.com/EzStreamTo?pre_payment_uuid=${uuid}`;
+    } catch (error) {
+      console.error('❌ Unexpected error during premium upgrade:', error);
     }
-
-    console.log('✅ visitor_uuid inserted into pre_payments:', uuid);
-
-    // 🔵 2. Rediriger seulement après succès de l'insertion
-    window.location.href = `https://www.buymeacoffee.com/EzStreamTo?pre_payment_uuid=${uuid}`;
-  } catch (error) {
-    console.error('❌ Unexpected error during premium upgrade:', error);
-  }
-};
-
+  };
 
   return (
     <div className="w-full">
@@ -171,65 +168,72 @@ export default function SearchResults({
           <h2 className={`text-lg sm:text-2xl font-bold ${isDark ? 'text-blue-100' : 'text-gray-900'} flex items-center gap-2`}>
             Recommended for You
           </h2>
-         <h2 className={`text-lg sm:text-2xl font-bold ${isDark ? 'text-blue-100' : 'text-gray-900'} flex items-center gap-2`}>
-  Recommended for You
-</h2>
 
-<p className={`text-xs sm:text-sm ${isDark ? 'text-blue-200/70' : 'text-gray-600'}`}>
-  {isPremium ? (
-    `${results.length} matches found based on your preferences`
-  ) : (
-    `Here are ${results.length} great matches based on your preferences. Want more results and powerful discovery options? Become a Premium member for just $5 and unlock unlimited searches, exclusive filters, and AI-powered perfect matches!`
-  )}
-</p>
+          <p className={`text-xs sm:text-sm ${isDark ? 'text-blue-200/70' : 'text-gray-600'}`}>
+            {isPremium ? (
+              `${results.length} matches found based on your preferences`
+            ) : (
+              `Here are ${results.length} great matches based on your preferences. Want more results and powerful discovery options? Become a Premium member for just $5 and unlock unlimited searches, exclusive filters, and AI-powered perfect matches!`
+            )}
+          </p>
 
-{perfectMatch && (
-  <div className="my-6">
-    <PerfectMatchCard
-      movie={perfectMatch.movie}
-      insights={perfectMatch.insights}
-      isDark={isDark}
-    />
-  </div>
-)}
+          {perfectMatch && (
+            <div className="my-6">
+              <PerfectMatchCard
+                movie={perfectMatch.movie}
+                insights={perfectMatch.insights}
+                isDark={isDark}
+              />
+            </div>
+          )}
         </div>
       </div>
 
-      <div className="space-y-6 mb-6">
-        <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4">
-          {displayedResults.map((movie) => (
-            <MovieCard 
-              key={`movie-${movie.id}`}
-              movie={movie} 
-              isDark={isDark} 
-            />
-          ))}
-        </div>
-      </div>
-
-      {isLoading && (
-        <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4 mt-4 mb-6">
-          <MovieSkeleton 
-            count={Math.min(ITEMS_PER_BATCH, results.length - displayedResults.length)} 
-            isDark={isDark} 
+      {perfectMatch ? (
+        <div className="my-8 w-full">
+          <PerfectMatchCard
+            movie={perfectMatch.movie}
+            insights={perfectMatch.insights}
+            isDark={isDark}
           />
         </div>
-      )}
+      ) : (
+        <div className="space-y-6 mb-6">
+          <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4">
+            {displayedResults.map((movie) => (
+              <MovieCard 
+                key={`movie-${movie.id}`}
+                movie={movie} 
+                isDark={isDark} 
+              />
+            ))}
+          </div>
 
-      <div className="flex flex-col items-center gap-6 sm:gap-8 py-6 sm:py-8 mb-6">
-        {!isLoading && displayedResults.length < results.length && (
-          <Button
-            onClick={handleLoadMore}
-            className="w-full sm:w-auto h-10 sm:h-12 text-sm sm:text-base"
-          >
-            Load More
-          </Button>
-        )}
+          {isLoading && (
+            <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4 mt-4 mb-6">
+              <MovieSkeleton 
+                count={Math.min(ITEMS_PER_BATCH, results.length - displayedResults.length)} 
+                isDark={isDark} 
+              />
+            </div>
+          )}
 
-        <div className="w-full">
-          <SearchCreditsSection />
+          <div className="flex flex-col items-center gap-6 sm:gap-8 py-6 sm:py-8 mb-6">
+            {!isLoading && displayedResults.length < results.length && (
+              <Button
+                onClick={handleLoadMore}
+                className="w-full sm:w-auto h-10 sm:h-12 text-sm sm:text-base"
+              >
+                Load More
+              </Button>
+            )}
+
+            <div className="w-full">
+              <SearchCreditsSection />
+            </div>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

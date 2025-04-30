@@ -15,7 +15,7 @@ import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import Disclaimer from './pages/Disclaimer';
 import Privacy from './pages/Privacy';
 import PremiumSuccess from './pages/PremiumSuccess';
-import RedirectWithUUID from './pages/RedirectWithUUID';
+//import RedirectWithUUID from './pages/RedirectWithUUID';
 import { supabase } from './lib/supabaseClient';
 import { useRef } from 'react';
 import { getOrCreateUUID } from '@/lib/search-limits/get-uuid';

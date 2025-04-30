@@ -68,15 +68,18 @@ export default function SearchResults({
     setShowLocalPremiumModal(false);
   };
 
-  const SearchCreditsSection = () => (
+ const SearchCreditsSection = () => {
+  if (isPremium) return null;
+
+  return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className={cn(
         "w-full max-w-lg mx-auto p-3 sm:p-6 rounded-lg text-center",
         isDark 
-          ? isPremium ? 'bg-blue-900/20 text-blue-200' : 'bg-gradient-to-r from-amber-500 to-amber-600 text-white'
-          : isPremium ? 'bg-blue-50 text-blue-600' : 'bg-gradient-to-r from-amber-500 to-amber-600 text-white'
+          ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white'
+          : 'bg-gradient-to-r from-amber-500 to-amber-600 text-white'
       )}
     >
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 w-full">
@@ -92,7 +95,7 @@ export default function SearchResults({
 
         <div className="w-full sm:w-auto">
           <button
-            onClick={() => handlePremiumClick()}
+            onClick={handlePremiumClick}
             type="button"
             className="w-full sm:w-auto h-9 sm:h-10 text-xs sm:text-sm px-3 sm:px-4 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium rounded-lg transition-all duration-300"
           >
@@ -102,6 +105,7 @@ export default function SearchResults({
       </div>
     </motion.div>
   );
+};
 
   const handleLoadMore = () => {
     setIsLoading(true);

@@ -171,13 +171,27 @@ export default function SearchResults({
           <h2 className={`text-lg sm:text-2xl font-bold ${isDark ? 'text-blue-100' : 'text-gray-900'} flex items-center gap-2`}>
             Recommended for You
           </h2>
-          <p className={`text-xs sm:text-sm ${isDark ? 'text-blue-200/70' : 'text-gray-600'}`}>
-            {isPremium ? (
-              `${results.length} matches found based on your preferences`
-            ) : (
-              `Here are ${results.length} great matches based on your preferences. Want more results and powerful discovery options? Become a Premium member for just $5 and unlock unlimited searches, exclusive filters, and AI-powered perfect matches!`
-            )}
-          </p>
+         <h2 className={`text-lg sm:text-2xl font-bold ${isDark ? 'text-blue-100' : 'text-gray-900'} flex items-center gap-2`}>
+  Recommended for You
+</h2>
+
+<p className={`text-xs sm:text-sm ${isDark ? 'text-blue-200/70' : 'text-gray-600'}`}>
+  {isPremium ? (
+    `${results.length} matches found based on your preferences`
+  ) : (
+    `Here are ${results.length} great matches based on your preferences. Want more results and powerful discovery options? Become a Premium member for just $5 and unlock unlimited searches, exclusive filters, and AI-powered perfect matches!`
+  )}
+</p>
+
+{perfectMatch && (
+  <div className="my-6">
+    <PerfectMatchCard
+      movie={perfectMatch.movie}
+      insights={perfectMatch.insights}
+      isDark={isDark}
+    />
+  </div>
+)}
         </div>
       </div>
 

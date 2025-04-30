@@ -95,6 +95,7 @@ useEffect(() => {
     setShowResults(true);
     setSearchResults(results);
     setPerfectMatch(perfectMatchResult);
+    console.log("🧠 PerfectMatchResult content:", perfectMatchResult);
     console.log('✅ States updated:', {
       error: null,
       showResults: true,

@@ -11,7 +11,7 @@ import { usePremiumStatus } from '@/hooks/usePremiumStatus';
 import { usePollForPremiumStatus } from '@/hooks/usePollForPremiumStatus';
 import { getRandomShareMessage } from '@/lib/utils';
 import { Footer } from './components/layout/footer';
-import { HashRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Disclaimer from './pages/Disclaimer';
 import Privacy from './pages/Privacy';
 import PremiumSuccess from './pages/PremiumSuccess';

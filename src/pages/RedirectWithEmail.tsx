@@ -6,12 +6,17 @@ export default function RedirectWithEmail() {
   const [status, setStatus] = useState<'checking' | 'success' | 'error'>('checking');
   const navigate = useNavigate();
 
+  console.log('✅ RedirectWithEmail.tsx loaded');
+
   useEffect(() => {
     const checkPremiumStatus = async () => {
       const urlParams = new URLSearchParams(window.location.search);
       const email = urlParams.get('email');
 
+      console.log('📨 URL param email =', email);
+
       if (!email) {
+        console.log('❌ No email found in URL');
         setStatus('error');
         return;
       }
@@ -23,7 +28,10 @@ export default function RedirectWithEmail() {
         .eq('verified', true)
         .maybeSingle();
 
+      console.log('📦 Supabase result:', { data, error });
+
       if (error || !data || !data.unlimited_searches) {
+        console.log('❌ Premium not verified (missing data or unlimited_searches = false)');
         setStatus('error');
         return;
       }
@@ -31,8 +39,13 @@ export default function RedirectWithEmail() {
       localStorage.setItem('isPremium', 'true');
       localStorage.setItem('supporter_email', email);
 
+      console.log('✅ Premium activated for:', email);
       setStatus('success');
-      setTimeout(() => navigate('/'), 1500);
+
+      setTimeout(() => {
+        console.log('➡️ Redirecting to /');
+        navigate('/');
+      }, 1500);
     };
 
     checkPremiumStatus();

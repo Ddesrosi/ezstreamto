@@ -42,10 +42,10 @@ export default function RedirectWithEmail() {
       console.log('✅ Premium activated for:', email);
       setStatus('success');
 
-      setTimeout(() => {
-        console.log('➡️ Redirecting to /');
-        navigate('/');
-      }, 1500);
+     setTimeout(() => {
+  console.log('➡️ Forcing full reload to /');
+  window.location.href = '/';
+}, 2000); // léger délai allongé pour garantir l'écriture dans localStorage
     };
 
     checkPremiumStatus();

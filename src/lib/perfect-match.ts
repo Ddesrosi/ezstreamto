@@ -1,11 +1,10 @@
 import { Movie } from '@/types';
 import { enrichMovieWithPoster } from './tmdb';
+import { DEEPSEEK_API_KEY } from '../config';
 
 // Constants
 const TMDB_ACCESS_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI0MTNjZDMzZjdjNDViNjUwMTQ4NzljYWVhZDcyY2FiYSIsIm5iZiI6MTczODAwNTE3Ni43MjMsInN1YiI6IjY3OTdkYWI4YTZlNDEyODNmMTJiNDU2NSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.dM4keiy2kA6XcUufnGGSnCDCUJGwFMg91pq4I5Bziq8';
 const TMDB_API_URL = 'https://api.themoviedb.org/3';
-const DEEPSEEK_API_KEY = import.meta.env.VITE_DEEPSEEK_API_KEY;
-console.log('🧪 Deepseek key check:', DEEPSEEK_API_KEY);
 const DEEPSEEK_API_URL = 'https://api.deepseek.com/v1/chat/completions';
 const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba';
 

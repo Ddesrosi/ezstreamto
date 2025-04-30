@@ -13,6 +13,14 @@ export function usePremiumStatus() {
 
   useEffect(() => {
     const checkPremiumStatus = async () => {
+      const storedPremium = localStorage.getItem('isPremium');
+      if (storedPremium === 'true') {
+        console.log("🌟 Premium detected from localStorage");
+        setIsPremium(true);
+        setIsLoading(false);
+        return;
+      }
+
       try {
         if (checkInProgress.current) {
           await checkInProgress.current;
@@ -32,11 +40,11 @@ export function usePremiumStatus() {
           }
 
           const { data: supporter, error } = await supabase
-  .from('supporters')
-  .select('unlimited_searches, email, support_status, support_date')
-  .or(`ip_address.eq.${ip},visitor_uuid.eq.${visitorId}`)
-  .eq('verified', true)
-  .maybeSingle();
+            .from('supporters')
+            .select('unlimited_searches, email, support_status, support_date')
+            .or(`ip_address.eq.${ip},visitor_uuid.eq.${visitorId}`)
+            .eq('verified', true)
+            .maybeSingle();
 
           if (error) {
             console.error('❌ Supabase error when checking Premium:', error);

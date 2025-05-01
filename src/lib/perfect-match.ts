@@ -1,6 +1,6 @@
 import { Movie } from '@/types';
 import { enrichMovieWithPoster } from './tmdb';
-import { getDeepseekApiKey } from '@/config';
+import { DEEPSEEK_API_KEY } from '@/config';
 
 console.log('📦 DEEPSEEK key test at file level:', import.meta.env.VITE_DEEPSEEK_API_KEY);
 
@@ -134,13 +134,10 @@ async function generatePerfectMatchInsights(
   movie: Movie,
   preferences: PerfectMatchPreferences
 ): Promise<PerfectMatchInsights> {
-
-const apiKey = getDeepseekApiKey();
-console.log("🧪 Deepseek key check (inside function):", apiKey);
-
-if (!apiKey) {
-  throw new Error('API key not configured');
-}
+  if (!DEEPSEEK_API_KEY) {
+    console.error('❌ Deepseek API key is missing');
+    throw new Error('Deepseek API key is not configured. Please check your environment variables.');
+  }
 
   try {
     const prompt = `
@@ -183,7 +180,7 @@ if (!apiKey) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
+        'Authorization': `Bearer ${DEEPSEEK_API_KEY}`
       },
       body: JSON.stringify({
         model: "deepseek-chat",

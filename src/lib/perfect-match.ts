@@ -1,8 +1,6 @@
 import { Movie } from '@/types';
 import { enrichMovieWithPoster } from './tmdb';
-import { DEEPSEEK_API_KEY } from '@/config';
-
-console.log('📦 DEEPSEEK key test at file level:', import.meta.env.VITE_DEEPSEEK_API_KEY);
+import { getDeepseekApiKey } from '@/config';
 
 // Constants
 const TMDB_ACCESS_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI0MTNjZDMzZjdjNDViNjUwMTQ4NzljYWVhZDcyY2FiYSIsIm5iZiI6MTczODAwNTE3Ni43MjMsInN1YiI6IjY3OTdkYWI4YTZlNDEyODNmMTJiNDU2NSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.dM4keiy2kA6XcUufnGGSnCDCUJGwFMg91pq4I5Bziq8';
@@ -134,6 +132,9 @@ async function generatePerfectMatchInsights(
   movie: Movie,
   preferences: PerfectMatchPreferences
 ): Promise<PerfectMatchInsights> {
+  const apiKey = getDeepseekApiKey();
+  console.log('🔑 Using Deepseek API key:', apiKey ? '✅ Present' : '❌ Missing');
+
   if (!DEEPSEEK_API_KEY) {
     console.error('❌ Deepseek API key is missing');
     throw new Error('Deepseek API key is not configured. Please check your environment variables.');
@@ -180,7 +181,7 @@ async function generatePerfectMatchInsights(
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${DEEPSEEK_API_KEY}`
+        'Authorization': `Bearer ${apiKey}`
       },
       body: JSON.stringify({
         model: "deepseek-chat",

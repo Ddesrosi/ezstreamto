@@ -264,6 +264,7 @@ async function generatePerfectMatchInsights(
     };
   } catch (error) {
     console.error('Failed to generate insights:', error);
+    console.warn('⚠️ Deepseek failed or returned invalid data — fallback insights used');
     return generateFallbackInsights(movie, preferences);
   }
 }

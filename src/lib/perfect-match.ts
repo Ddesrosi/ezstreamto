@@ -136,7 +136,7 @@ async function generatePerfectMatchInsights(
   preferences: PerfectMatchPreferences
 ): Promise<PerfectMatchInsights> {
 
-const apiKey = DEEPSEEK_API_KEY;
+const apiKey = import.meta.env.VITE_DEEPSEEK_API_KEY;
 console.log("🧪 Deepseek key check (inside function):", apiKey);
 
 if (!apiKey) {

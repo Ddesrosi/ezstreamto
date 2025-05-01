@@ -53,6 +53,29 @@ export async function getMovieRecommendations(preferences: SearchPreferences): P
 
     console.log("📨 Prompt sent to Deepseek:", prompt);
 
+    if (preferences.isPerfectMatch && preferences.isPremium) {
+  console.log('🎯 Perfect Match enabled, skipping Deepseek standard call');
+  const perfectMatch = await findPerfectMatch({
+    contentType: preferences.contentType,
+    genres: preferences.selectedGenres,
+    moods: preferences.selectedMoods,
+    yearRange: preferences.yearRange,
+    ratingRange: preferences.ratingRange
+  });
+
+  console.log('✨ Perfect Match found:', {
+    title: perfectMatch.movie.title,
+    hasInsights: !!perfectMatch.insights,
+    recommendationsCount: perfectMatch.insights?.recommendations?.length
+  });
+
+  return {
+    results: [],
+    perfectMatch,
+    remaining: preferences.isPremium ? PREMIUM_USER_LIMIT : BASIC_USER_LIMIT
+  };
+}
+
     const response = await fetchMovieListFromDeepseek(prompt);
 
     console.log("🪵 Deepseek full response:", response);
@@ -94,33 +117,7 @@ console.log("🪵 rawText:", response?.rawText);
       })
     );
 
-    if (preferences.isPerfectMatch && preferences.isPremium) {
-      console.log('🎯 Perfect Match enabled, fetching perfect match...');
-      try {
-        const perfectMatch = await findPerfectMatch({
-          contentType: preferences.contentType,
-          genres: preferences.selectedGenres,
-          moods: preferences.selectedMoods,
-          yearRange: preferences.yearRange,
-          ratingRange: preferences.ratingRange
-        });
-
-        console.log('✨ Perfect Match found:', {
-          title: perfectMatch.movie.title,
-          hasInsights: !!perfectMatch.insights,
-          recommendationsCount: perfectMatch.insights?.recommendations?.length
-        });
-
-        return {
-          results: enrichedResults,
-          perfectMatch,
-          remaining: response.remaining
-        };
-      } catch (error) {
-        console.error('❌ Perfect Match error:', error);
-      }
-    }
-
+   
     const limit = preferences.isPremium ? PREMIUM_USER_LIMIT : BASIC_USER_LIMIT;
     const finalResults = enrichedResults.slice(0, limit);
 

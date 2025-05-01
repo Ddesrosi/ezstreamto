@@ -132,7 +132,6 @@ async function generatePerfectMatchInsights(
   movie: Movie,
   preferences: PerfectMatchPreferences
 ): Promise<PerfectMatchInsights> {
-  console.log('🧪 Deepseek key check:', DEEPSEEK_API_KEY);
   if (!DEEPSEEK_API_KEY) {
     throw new Error('API key not configured');
   }

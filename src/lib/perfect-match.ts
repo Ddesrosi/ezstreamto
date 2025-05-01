@@ -1,6 +1,6 @@
 import { Movie } from '@/types';
 import { enrichMovieWithPoster } from './tmdb';
-import { DEEPSEEK_API_KEY } from '@/config';
+import { getDeepseekApiKey } from '@/config';
 
 console.log('📦 DEEPSEEK key test at file level:', import.meta.env.VITE_DEEPSEEK_API_KEY);
 
@@ -136,7 +136,7 @@ async function generatePerfectMatchInsights(
   preferences: PerfectMatchPreferences
 ): Promise<PerfectMatchInsights> {
 
-const apiKey = import.meta.env.VITE_DEEPSEEK_API_KEY;
+const apiKey = getDeepseekApiKey();
 console.log("🧪 Deepseek key check (inside function):", apiKey);
 
 if (!apiKey) {

@@ -1,6 +1,6 @@
 import { Movie } from '@/types';
 import { enrichMovieWithPoster } from './tmdb';
-import { DEEPSEEK_API_KEY } from '../config';
+import { DEEPSEEK_API_KEY } from '@/config';
 
 console.log("🧪 Deepseek key check (outside function):", DEEPSEEK_API_KEY);
 

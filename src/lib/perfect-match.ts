@@ -134,9 +134,13 @@ async function generatePerfectMatchInsights(
   movie: Movie,
   preferences: PerfectMatchPreferences
 ): Promise<PerfectMatchInsights> {
-  if (!DEEPSEEK_API_KEY) {
-    throw new Error('API key not configured');
-  }
+
+const apiKey = DEEPSEEK_API_KEY;
+console.log('🧪 Deepseek key check (inside function):', apiKey);
+
+if (!apiKey) {
+  throw new Error('API key not configured');
+}
 
   try {
     const prompt = `
@@ -179,7 +183,7 @@ async function generatePerfectMatchInsights(
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${DEEPSEEK_API_KEY}`
+        'Authorization': `Bearer ${apiKey}`
       },
       body: JSON.stringify({
         model: "deepseek-chat",

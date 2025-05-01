@@ -6,10 +6,8 @@ export const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 // Import all sensitive keys from .env
 export const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY;
 export const BMC_SECRET = import.meta.env.VITE_BMC_SECRET;
-export const DEEPSEEK_API_KEY =
-  typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_DEEPSEEK_API_KEY
-    ? import.meta.env.VITE_DEEPSEEK_API_KEY
-    : undefined;
+export const DEEPSEEK_API_KEY = import.meta.env.VITE_DEEPSEEK_API_KEY ?? 'fallback-missing-key';
+console.log('🧪 [config.ts] DEEPSEEK_API_KEY loaded:', DEEPSEEK_API_KEY);
 
 // TMDB Configuration
 export const API_CONFIG = {

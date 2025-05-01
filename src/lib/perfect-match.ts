@@ -276,15 +276,28 @@ function generateFallbackExplanation(movie: Movie, preferences: PerfectMatchPref
 }
 
 function generateFallbackInsights(movie: Movie, preferences: PerfectMatchPreferences): PerfectMatchInsights {
+  const fallbackYear = movie.year || 2000;
+  const fallbackRating = movie.rating || 7.0;
+  const fallbackLanguage = movie.language || 'EN';
+  const fallbackDuration = preferences.contentType === 'tv' ? 'TV Series' : '120 min';
+
   return {
     explanation: generateFallbackExplanation(movie, preferences),
     recommendations: movie.genres.slice(0, 3).map(genre => ({
       title: `Similar ${genre} Movie`,
       reason: `Features similar ${genre.toLowerCase()} elements to "${movie.title}"`,
-      genres: [genre]
+      year: fallbackYear,
+      rating: fallbackRating,
+      language: fallbackLanguage,
+      genres: [genre],
+      duration: fallbackDuration,
+      imageUrl: FALLBACK_IMAGE,
+      youtubeUrl: `https://www.youtube.com/results?search_query=${encodeURIComponent(movie.title)}+trailer`,
+      streamingPlatforms: []
     }))
   };
 }
+
 
 async function findPerfectMatchMovie(preferences: PerfectMatchPreferences): Promise<Movie> {
   try {

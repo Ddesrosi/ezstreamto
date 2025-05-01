@@ -197,43 +197,49 @@ export function PerfectMatchCard({ movie, insights, isDark }: PerfectMatchCardPr
             </div>
 
             <div>
-              <h4 className={cn("text-xl font-semibold mb-4 flex items-center gap-2", isDark ? 'text-blue-100' : 'text-gray-900')}>
+                   <h4 className={cn("text-xl font-semibold mb-4 flex items-center gap-2", isDark ? 'text-blue-100' : 'text-gray-900')}>
                 <Sparkles className="h-5 w-5 text-amber-400" />
                 You Might Also Like
               </h4>
               <div className="space-y-3">
                 {insights.recommendations.map((rec, index) => {
                   const normalizedPlatforms = rec.streamingPlatforms || [];
+                  const imageUrl = rec.imageUrl || FALLBACK_IMAGE;
+                  const title = rec.title || 'Untitled';
+                  const year = rec.year || 'N/A';
+                  const rating = rec.rating !== undefined ? rec.rating : null;
+                  const genres = rec.genres || [];
+                  const duration = typeof rec.duration === 'number' ? `${rec.duration} min` : rec.duration || 'Unknown duration';
+                  const reason = rec.reason || 'No description available';
+                  const youtubeUrl = rec.youtubeUrl || `https://www.youtube.com/results?search_query=${encodeURIComponent(title + ' trailer')}`;
+
                   return (
                     <div key={index} className={cn("p-4 rounded-lg transition-all duration-300 hover:scale-[1.01]", isDark ? 'bg-blue-900/20' : 'bg-blue-50')}>
                       <div className="flex gap-4">
                         <div className="flex-none w-24 h-36 rounded overflow-hidden bg-gray-900">
-                         <img
-  src={rec.imageUrl || FALLBACK_IMAGE}
-  alt={`${rec.title} poster`}
-  className="w-full h-full object-cover"
-  loading="lazy"
-  onLoad={(e) => {
-    const img = e.target as HTMLImageElement;
-    img.classList.add("loaded");
-  }}
-  onError={(e) => {
-    const img = e.target as HTMLImageElement;
-    img.src = FALLBACK_IMAGE;
-  }}
-/>
+                          <img
+                            src={imageUrl}
+                            alt={`${title} poster`}
+                            className="w-full h-full object-cover"
+                            loading="lazy"
+                            onLoad={(e) => (e.currentTarget.classList.add("loaded"))}
+                            onError={(e) => (e.currentTarget.src = FALLBACK_IMAGE)}
+                          />
                         </div>
                         <div className="flex-1">
-                          <h5 className={cn("text-lg font-medium mb-2", isDark ? 'text-blue-100' : 'text-gray-900')}>{rec.title}</h5>
+                          <h5 className={cn("text-lg font-medium mb-2", isDark ? 'text-blue-100' : 'text-gray-900')}>{title}</h5>
                           <div className="flex flex-wrap gap-2 text-xs mb-2">
-                            <span>{rec.year}</span>
+                            <span>{year}</span>
                             <span>•</span>
-                            {rec.duration && <><span>{typeof rec.duration === 'number' ? `${rec.duration} min` : rec.duration}</span><span>•</span></>}
-                            {rec.rating !== undefined && (
-                              <div className="flex items-center gap-1">
-                                <Star className="h-3 w-3 text-amber-400" fill="currentColor" />
-                                <span>{rec.rating.toFixed(1)}</span>
-                              </div>
+                            <span>{duration}</span>
+                            {rating !== null && (
+                              <>
+                                <span>•</span>
+                                <div className="flex items-center gap-1">
+                                  <Star className="h-3 w-3 text-amber-400" fill="currentColor" />
+                                  <span>{rating.toFixed(1)}</span>
+                                </div>
+                              </>
                             )}
                           </div>
                           {normalizedPlatforms.length > 0 && (
@@ -244,7 +250,7 @@ export function PerfectMatchCard({ movie, insights, isDark }: PerfectMatchCardPr
                                 return style && baseUrl ? (
                                   <a
                                     key={platform}
-                                    href={`${baseUrl}${encodeURIComponent(rec.title)}`}
+                                    href={`${baseUrl}${encodeURIComponent(title)}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className={cn("text-xs px-2.5 py-1.5 rounded-full transition-all whitespace-nowrap", style.bgColor, style.textColor, "hover:opacity-90")}
@@ -256,7 +262,7 @@ export function PerfectMatchCard({ movie, insights, isDark }: PerfectMatchCardPr
                             </div>
                           )}
                           <div className="flex flex-wrap gap-1 mb-2">
-                            {rec.genres?.map((genre, idx) => (
+                            {genres.map((genre, idx) => (
                               <span
                                 key={idx}
                                 className={cn("text-xs px-2.5 py-1.5 rounded-full transition-all whitespace-nowrap", isDark ? 'bg-blue-900/30 text-blue-200' : 'bg-blue-100 text-blue-800')}
@@ -265,10 +271,10 @@ export function PerfectMatchCard({ movie, insights, isDark }: PerfectMatchCardPr
                               </span>
                             ))}
                           </div>
-                          <p className={cn("text-sm", isDark ? 'text-blue-200/70' : 'text-gray-600')}>{rec.reason}</p>
+                          <p className={cn("text-sm", isDark ? 'text-blue-200/70' : 'text-gray-600')}>{reason}</p>
                           <div className="space-y-3 mt-3">
                             <Button
-                              onClick={() => window.open(rec.youtubeUrl, '_blank')}
+                              onClick={() => window.open(youtubeUrl, '_blank')}
                               className={cn("w-full flex items-center justify-center gap-2 h-12 text-base font-medium", isDark ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-500 hover:bg-blue-600')}
                             >
                               <Youtube className="h-5 w-5" />
@@ -289,3 +295,4 @@ export function PerfectMatchCard({ movie, insights, isDark }: PerfectMatchCardPr
     </motion.div>
   );
 }
+         

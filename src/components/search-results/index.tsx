@@ -181,15 +181,6 @@ export default function SearchResults({
             )}
           </p>
 
-          {perfectMatch && (
-            <div className="my-6">
-              <PerfectMatchCard
-                movie={perfectMatch.movie}
-                insights={perfectMatch.insights}
-                isDark={isDark}
-              />
-            </div>
-          )}
         </div>
       </div>
 

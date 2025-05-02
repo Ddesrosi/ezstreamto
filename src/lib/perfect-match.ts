@@ -1,5 +1,6 @@
 import { Movie } from '@/types';
 import { enrichMovieWithPoster } from './tmdb';
+import { DEEPSEEK_API_KEY } from '@/config';
 
 // Constants
 const TMDB_ACCESS_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI0MTNjZDMzZjdjNDViNjUwMTQ4NzljYWVhZDcyY2FiYSIsIm5iZiI6MTczODAwNTE3Ni43MjMsInN1YiI6IjY3OTdkYWI4YTZlNDEyODNmMTJiNDU2NSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.dM4keiy2kA6XcUufnGGSnCDCUJGwFMg91pq4I5Bziq8';
@@ -131,9 +132,8 @@ async function generatePerfectMatchInsights(
   movie: Movie,
   preferences: PerfectMatchPreferences
 ): Promise<PerfectMatchInsights> {
-const apiKey = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_DEEPSEEK_API_KEY) ? import.meta.env.VITE_DEEPSEEK_API_KEY : undefined;
-
-  console.log('🔑 Using Deepseek API key:', apiKey ? '✅ Present' : '❌ Missing');
+const apiKey = DEEPSEEK_API_KEY;
+console.log('🔑 Using Deepseek API key:', apiKey ? '✅ Present' : '❌ Missing');
 
   if (!apiKey) {
     console.error('❌ Deepseek API key is missing');

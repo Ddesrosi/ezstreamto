@@ -131,7 +131,8 @@ async function generatePerfectMatchInsights(
   movie: Movie,
   preferences: PerfectMatchPreferences
 ): Promise<PerfectMatchInsights> {
-  const apiKey = import.meta.env.VITE_DEEPSEEK_API_KEY;
+const apiKey = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_DEEPSEEK_API_KEY) ? import.meta.env.VITE_DEEPSEEK_API_KEY : undefined;
+
   console.log('🔑 Using Deepseek API key:', apiKey ? '✅ Present' : '❌ Missing');
 
   if (!apiKey) {

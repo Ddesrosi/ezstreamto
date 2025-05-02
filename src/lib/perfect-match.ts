@@ -403,6 +403,7 @@ export async function findPerfectMatch(preferences: PerfectMatchPreferences): Pr
   insights: PerfectMatchInsights;
 }> {
   try {
+    console.log("🚀 findPerfectMatch() called");
     const movie = await findPerfectMatchMovie(preferences);
     const insights = await generatePerfectMatchInsights(movie, preferences);
     return { movie, insights };

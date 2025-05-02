@@ -40,16 +40,20 @@ export default function SearchResults({
   setShowPremiumModal,
   perfectMatch 
 }: SearchResultsProps) {
-  console.log('🎬 SearchResults rendered:', {
+  
+  const [displayedResults, setDisplayedResults] = useState<Movie[]>([]);
+
+  console.log('📊 SearchResults component:', {
     resultsCount: results?.length,
     remainingSearches,
     isPremium,
     hasPerfectMatch: !!perfectMatch,
-    firstResult: results?.[0]
+    firstResult: results?.[0],
+    displayedResults: displayedResults?.length
   });
-
-  const [displayedResults, setDisplayedResults] = useState<Movie[]>([]);
+  
   const [isLoading, setIsLoading] = useState(true);
+  const [isInitialized, setIsInitialized] = useState(false);
   const [showLocalPremiumModal, setShowLocalPremiumModal] = useState(false);
   const [loadingError, setLoadingError] = useState<string | null>(null);
   const uuid = getOrCreateUUID();
@@ -121,12 +125,21 @@ export default function SearchResults({
   useEffect(() => {
     setIsLoading(true);
     setLoadingError(null);
-    setDisplayedResults([]);
+    setIsInitialized(false);
+    
     try {
       const initialBatch = results.slice(0, ITEMS_PER_BATCH);
+      console.log('🎯 Setting initial batch:', {
+        batchSize: ITEMS_PER_BATCH,
+        resultCount: initialBatch.length,
+        firstResult: initialBatch[0]
+      });
+      setIsInitialized(true);
       setDisplayedResults(initialBatch);
     } catch (error) {
-      setLoadingError(error instanceof Error ? error.message : 'Failed to load results');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to load results';
+      console.error('❌ Error loading results:', errorMessage);
+      setLoadingError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -195,11 +208,16 @@ export default function SearchResults({
       ) : (
         <div className="space-y-6 mb-6">
           <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4">
-            {displayedResults.map((movie) => (
-              <MovieCard 
+            {!isInitialized ? (
+              <div className="col-span-full text-center py-8">
+                <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                <p className={isDark ? 'text-blue-200' : 'text-gray-600'}>Loading results...</p>
+              </div>
+            ) : displayedResults.map((movie) => (
+              <MovieCard
                 key={`movie-${movie.id}`}
-                movie={movie} 
-                isDark={isDark} 
+                movie={movie}
+                isDark={isDark}
               />
             ))}
           </div>

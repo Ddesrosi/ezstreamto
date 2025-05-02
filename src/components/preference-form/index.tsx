@@ -242,7 +242,6 @@ const handleSearch = useCallback(async () => {
 console.log("🧾 Search credit consumed");
 
 onSearch(results, response.remaining - 1, perfectMatch);
-setShowResults(true);
     
 // ✅ Consomme un crédit après une recherche réussie
 await validateSearch("consume", visitorUUID);

@@ -72,14 +72,13 @@ useEffect(() => {
   const handleSearch = useCallback((
     results: Movie[], 
     remaining?: number,
-    perfectMatchResult?: typeof perfectMatch
+    perfectMatchResult?: typeof perfectMatch,
   ) => {
     console.log('🔍 Search Results Debug:', {
       hasResults: !!results,
       resultsLength: results?.length,
       remaining: remaining,
-      hasPerfectMatch: !!perfectMatchResult,
-      firstResult: results?.[0]
+      hasPerfectMatch: !!perfectMatchResult
     });
 
     console.log('Remaining searches received:', remaining);
@@ -95,12 +94,12 @@ useEffect(() => {
     setShowResults(true);
     setSearchResults(results);
     setPerfectMatch(perfectMatchResult);
-    console.log("🧠 PerfectMatchResult content:", perfectMatchResult);
-    console.log('✅ States updated:', {
+    console.log('🔄 States updated:', {
       error: null,
       showResults: true,
       resultsLength: results.length,
-      hasPerfectMatch: !!perfectMatchResult
+      hasPerfectMatch: !!perfectMatchResult,
+      searchResults: results
     });
 
   if (remaining !== undefined) {
@@ -200,17 +199,8 @@ useEffect(() => {
                   </div>
                 )}
 
-                {/* Debug info */}
-                {import.meta.env.DEV && (
-                  <div className="fixed bottom-4 right-4 bg-black/80 text-white p-2 rounded text-xs z-50">
-                    showResults: {String(showResults)}<br />
-                    resultsCount: {searchResults.length}<br />
-                    error: {error || 'none'}
-                  </div>
-                )}
-
                 {showResults ? (
-                  <div key={searchResults.length}>
+                  <div key={`${searchResults.length}-${Date.now()}`}>
                     <SearchResults
                       results={searchResults}
                       isDark={isDark}

@@ -177,6 +177,15 @@ console.log('🔑 Deepseek API key inside function:', apiKey ? '✅ Present' : '
       }
     `;
 
+    console.log('🧪 Deepseek call debug', {
+  apiKey,
+  movieTitle: movie.title,
+  genres: preferences.genres,
+  moods: preferences.moods,
+  ratingRange: preferences.ratingRange,
+  yearRange: preferences.yearRange,
+});
+
     const response = await fetch(DEEPSEEK_API_URL, {
       method: 'POST',
       headers: {

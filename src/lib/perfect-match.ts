@@ -186,6 +186,10 @@ console.log('🔑 Deepseek API key inside function:', apiKey ? '✅ Present' : '
   yearRange: preferences.yearRange,
 });
 
+console.log("📨 Prompt sent to Deepseek (Perfect Match):", prompt);
+console.log("🔑 Using Deepseek API key:", apiKey);
+
+    
     const response = await fetch(DEEPSEEK_API_URL, {
       method: 'POST',
       headers: {

@@ -132,6 +132,7 @@ async function generatePerfectMatchInsights(
   movie: Movie,
   preferences: PerfectMatchPreferences
 ): Promise<PerfectMatchInsights> {
+ console.log("📦 DEEPSEEK_API_KEY before assignment:", DEEPSEEK_API_KEY);
 const apiKey = DEEPSEEK_API_KEY;
 console.log('🔑 Using Deepseek API key:', apiKey ? '✅ Present' : '❌ Missing');
 

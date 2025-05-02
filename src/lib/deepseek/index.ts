@@ -76,8 +76,12 @@ export async function getMovieRecommendations(preferences: SearchPreferences): P
       remaining: preferences.isPremium ? PREMIUM_USER_LIMIT : BASIC_USER_LIMIT
     };
   } catch (error) {
-    console.error('❌ Perfect Match error:', error);
-    // 👉 Laisse le code continuer vers les 10 résultats classiques
+    console.error('❌ Perfect Match error:', error);return {
+      results: [],
+      perfectMatch: undefined,
+      remaining: preferences.isPremium ? PREMIUM_USER_LIMIT : BASIC_USER_LIMIT
+    };
+
   }
 }
 

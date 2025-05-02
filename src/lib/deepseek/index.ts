@@ -53,27 +53,32 @@ export async function getMovieRecommendations(preferences: SearchPreferences): P
 
     console.log("📨 Prompt sent to Deepseek:", prompt);
 
-    if (preferences.isPerfectMatch && preferences.isPremium) {
+   if (preferences.isPerfectMatch && preferences.isPremium) {
   console.log('🎯 Perfect Match enabled, skipping Deepseek standard call');
-  const perfectMatch = await findPerfectMatch({
-    contentType: preferences.contentType,
-    genres: preferences.selectedGenres,
-    moods: preferences.selectedMoods,
-    yearRange: preferences.yearRange,
-    ratingRange: preferences.ratingRange
-  });
+  try {
+    const perfectMatch = await findPerfectMatch({
+      contentType: preferences.contentType,
+      genres: preferences.selectedGenres,
+      moods: preferences.selectedMoods,
+      yearRange: preferences.yearRange,
+      ratingRange: preferences.ratingRange
+    });
 
-  console.log('✨ Perfect Match found:', {
-    title: perfectMatch.movie.title,
-    hasInsights: !!perfectMatch.insights,
-    recommendationsCount: perfectMatch.insights?.recommendations?.length
-  });
+    console.log('✨ Perfect Match found:', {
+      title: perfectMatch.movie.title,
+      hasInsights: !!perfectMatch.insights,
+      recommendationsCount: perfectMatch.insights?.recommendations?.length
+    });
 
-  return {
-    results: [],
-    perfectMatch,
-    remaining: preferences.isPremium ? PREMIUM_USER_LIMIT : BASIC_USER_LIMIT
-  };
+    return {
+      results: [],
+      perfectMatch,
+      remaining: preferences.isPremium ? PREMIUM_USER_LIMIT : BASIC_USER_LIMIT
+    };
+  } catch (error) {
+    console.error('❌ Perfect Match error:', error);
+    // 👉 Laisse le code continuer vers les 10 résultats classiques
+  }
 }
 
     const response = await fetchMovieListFromDeepseek(prompt);

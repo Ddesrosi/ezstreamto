@@ -1,8 +1,9 @@
 import { Movie } from '@/types';
 import { enrichMovieWithPoster } from './tmdb';
+import { DEEPSEEK_API_KEY } from '@/config';
 
 // Constants
-const TMDB_ACCESS_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI0MTNjZDMzZjdjNDViNjUwMTQ4NzljYWVhZDcyY2FiYSIsIm5iZiI6MTczODAwNTE3Ni43MjMsInN1YiI6IjY3OTdkYWI4YTZlNDEyODNmMTJiNDU2NSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.dM4keiy2kA6XcUufnGGSnCDCUJGwFMg91pq4I5Bziq8';
+const TMDB_ACCESS_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI0MTNjZDMzZjdjNDViNjUwMTQ4NzljYWVhZDcyY2FiYSIsInN1YiI6IjY3OTdkYWI4YTZlNDEyODNmMTJiNDU2NSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.dM4keiy2kA6XcUufnGGSnCDCUJGwFMg91pq4I5Bziq8';
 const TMDB_API_URL = 'https://api.themoviedb.org/3';
 const DEEPSEEK_API_URL = 'https://api.deepseek.com/v1/chat/completions';
 const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba';
@@ -131,9 +132,8 @@ async function generatePerfectMatchInsights(
   movie: Movie,
   preferences: PerfectMatchPreferences
 ): Promise<PerfectMatchInsights> {
-
-const apiKey = import.meta.env.VITE_DEEPSEEK_API_KEY;
-console.log('🔑 Deepseek API key inside function:', apiKey ? '✅ Present' : '❌ Missing');
+  const apiKey = DEEPSEEK_API_KEY; // ✅ Bon usage
+  console.log('🔑 Deepseek API key inside function:', apiKey ? '✅ Present' : '❌ Missing');
 
   if (!apiKey) {
     console.error('❌ Deepseek API key is missing');
@@ -178,17 +178,16 @@ console.log('🔑 Deepseek API key inside function:', apiKey ? '✅ Present' : '
     `;
 
     console.log('🧪 Deepseek call debug', {
-  apiKey,
-  movieTitle: movie.title,
-  genres: preferences.genres,
-  moods: preferences.moods,
-  ratingRange: preferences.ratingRange,
-  yearRange: preferences.yearRange,
-});
+      apiKey,
+      movieTitle: movie.title,
+      genres: preferences.genres,
+      moods: preferences.moods,
+      ratingRange: preferences.ratingRange,
+      yearRange: preferences.yearRange,
+    });
 
-console.log("📨 Prompt sent to Deepseek (Perfect Match):", prompt);
-console.log("🔑 Using Deepseek API key:", apiKey);
-
+    console.log("📨 Prompt sent to Deepseek (Perfect Match):", prompt);
+    console.log("🔑 Using Deepseek API key:", apiKey);
     
     const response = await fetch(DEEPSEEK_API_URL, {
       method: 'POST',
@@ -314,7 +313,6 @@ function generateFallbackInsights(movie: Movie, preferences: PerfectMatchPrefere
     }))
   };
 }
-
 
 async function findPerfectMatchMovie(preferences: PerfectMatchPreferences): Promise<Movie> {
   try {

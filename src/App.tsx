@@ -199,20 +199,20 @@ useEffect(() => {
                   </div>
                 )}
 
-                {showResults ? (
-                  <div key={`${searchResults.length}-${Date.now()}`}>
-                    <SearchResults
-                      results={searchResults}
-                      isDark={isDark}
-                      onBack={handleBack}
-                      remainingSearches={remainingSearches}
-                      isPremium={isPremium}
-                      isPremiumLoading={isPremiumLoading}
-                      setShowPremiumModal={setShowPremiumModal}
-                      perfectMatch={perfectMatch}
-                    />
-                  </div>
-                ) : (
+               {showResults || perfectMatch ? (
+  <div key={`${searchResults.length}-${Date.now()}`}>
+    <SearchResults
+      results={searchResults}
+      isDark={isDark}
+      onBack={handleBack}
+      remainingSearches={remainingSearches}
+      isPremium={isPremium}
+      isPremiumLoading={isPremiumLoading}
+      setShowPremiumModal={setShowPremiumModal}
+      perfectMatch={perfectMatch}
+    />
+  </div>
+                            ) : (
                   <div>
                     <AnimatedHeader isDark={isDark} />
                     <div className="w-full -mx-3 sm:-mx-5 md:-mx-6 lg:-mx-8 mb-6 sm:mb-8">

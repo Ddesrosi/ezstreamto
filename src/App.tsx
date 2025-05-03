@@ -88,10 +88,14 @@ useEffect(() => {
   currentPerfectMatch: perfectMatch
 });
 
-
     console.log('Remaining searches received:', remaining);
-
-   if ((!results || results.length === 0) && !perfectMatchResult) {
+    
+   if ((!results || results.length === 0) && (!perfectMatchResult || !perfectMatchResult.movie)) {
+  console.warn('❌ No results received and no Perfect Match');
+  setError('No results found. Please try different preferences.');
+  return;
+}
+ {
   console.warn('❌ No results received and no Perfect Match');
   setError('No results found. Please try different preferences.');
   return;

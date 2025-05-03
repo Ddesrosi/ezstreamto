@@ -420,7 +420,17 @@ export async function findPerfectMatch(preferences: PerfectMatchPreferences): Pr
   }
 
   const data = await response.json();
-  return data;
+
+console.log("🎬 Raw Perfect Match result from Edge Function:", data);
+
+// ✅ Enrichir le film principal avec poster, trailer et plateformes
+const enrichedMovie = await enrichMovieWithPoster(data.movie);
+
+return {
+  movie: enrichedMovie,
+  insights: data.insights
+};
+
 }
 
 export type { PerfectMatchPreferences, PerfectMatchInsights };

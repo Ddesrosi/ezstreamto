@@ -40,6 +40,17 @@ export default function SearchResults({
   setShowPremiumModal,
   perfectMatch 
 }: SearchResultsProps) {
+
+  if (perfectMatch) {
+   return (
+    <PerfectMatchCard
+      movie={perfectMatch.movie}
+      insights={perfectMatch.insights}
+      isDark={isDark}
+    />
+  );
+
+}
   
   const [displayedResults, setDisplayedResults] = useState<Movie[]>([]);
 

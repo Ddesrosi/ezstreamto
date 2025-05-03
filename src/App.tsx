@@ -81,6 +81,14 @@ useEffect(() => {
       hasPerfectMatch: !!perfectMatchResult
     });
 
+    console.log('🧪 Debug — inside handleSearch:', {
+  results,
+  resultsLength: results?.length,
+  perfectMatchResult,
+  currentPerfectMatch: perfectMatch
+});
+
+
     console.log('Remaining searches received:', remaining);
 
    if ((!results || results.length === 0) && !perfectMatch) {

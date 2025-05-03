@@ -21,6 +21,11 @@ serve(async (req) => {
 
     console.log("🧪 Movie before insights:", movie);
 
+    console.log("🎯 Calling generatePerfectMatchInsights with:", {
+  selectedMovie: movie,
+  preferences
+});
+
     const insights = await generatePerfectMatchInsights(movie, preferences);
 
     return new Response(

@@ -348,12 +348,13 @@ async function findPerfectMatchMovie(preferences: PerfectMatchPreferences): Prom
       url.searchParams.append(key, value);
     });
 
-    const response = await fetch(url.toString(), {
-      headers: {
-  'Authorization': `Bearer ${import.meta.env.VITE_TMDB_ACCESS_TOKEN}`,
-  'Accept': 'application/json'
-}
-    });
+    const response = await fetch('https://acmpivmrokzblypxdxbu.supabase.co/functions/v1/perfect-match', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({ preferences })
+});
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({ status_message: `HTTP error! status: ${response.status}` }));
@@ -405,13 +406,13 @@ export async function findPerfectMatch(preferences: PerfectMatchPreferences): Pr
   console.log("🌐 Calling backend /perfect-match with:", preferences);
 
   const response = await fetch('https://acmpivmrokzblypxdxbu.supabase.co/functions/v1/perfect-match', {
-
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ preferences })
-  });
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
+  },
+  body: JSON.stringify({ preferences })
+});
 
   if (!response.ok) {
     const message = await response.text();

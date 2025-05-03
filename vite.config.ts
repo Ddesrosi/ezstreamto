@@ -26,6 +26,13 @@ export default defineConfig({
       'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
       'Access-Control-Allow-Headers': 'X-Requested-With, Content-Type, Authorization'
     },
+    proxy: {
+      '/functions/v1/perfect-match': {
+        target: 'https://acmpivmrokzblypxdxbu.supabase.co',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/functions\/v1/, '/functions/v1'),
+      },
+    },
   },
   preview: {
     host: '0.0.0.0',

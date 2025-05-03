@@ -91,7 +91,7 @@ useEffect(() => {
 
     console.log('Remaining searches received:', remaining);
 
-   if ((!results || results.length === 0) && !perfectMatch) {
+   if ((!results || results.length === 0) && !perfectMatchResult) {
   console.warn('❌ No results received and no Perfect Match');
   setError('No results found. Please try different preferences.');
   return;

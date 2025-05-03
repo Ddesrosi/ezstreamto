@@ -58,11 +58,16 @@ Format your response as JSON:
 
   const data = await response.json();
 
-  try {
-    const jsonBlock = JSON.parse(data.choices[0].message.content);
-    return jsonBlock;
-  } catch (error) {
-    console.error("❌ Failed to parse Deepseek response:", data);
-    throw new Error("Invalid response from Deepseek");
-  }
+ try {
+  const text = data.choices?.[0]?.message?.content || '';
+  const jsonStart = text.indexOf('{');
+  const jsonEnd = text.lastIndexOf('}');
+  const jsonString = text.slice(jsonStart, jsonEnd + 1);
+
+  const parsed = JSON.parse(jsonString);
+  return parsed;
+} catch (error) {
+  console.error("❌ Failed to parse Deepseek response:", data);
+  throw new Error("Invalid response from Deepseek");
+}
 }

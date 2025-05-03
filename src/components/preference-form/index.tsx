@@ -221,10 +221,10 @@ const handleSearch = useCallback(async () => {
       hasPerfectMatch: !!perfectMatch
     });
 
-    if (!results || results.length === 0) {
-      throw new Error('No results found. Please try different preferences.');
-    }
-
+  if ((!results || results.length === 0) && !perfectMatch) {
+  throw new Error('No results found. Please try different preferences.');
+}
+ 
        // ✅ Crédit consommé maintenant
     console.log("🧩 Before consuming search credit - remaining:", remainingSearches);  // Nouveau log avant la consommation
 

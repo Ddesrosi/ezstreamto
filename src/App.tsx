@@ -83,11 +83,11 @@ useEffect(() => {
 
     console.log('Remaining searches received:', remaining);
 
-    if (!results || results.length === 0) {
-      console.warn('❌ No results received');
-      setError('No results found. Please try different preferences.');
-      return;
-    }
+   if ((!results || results.length === 0) && !perfectMatch) {
+  console.warn('❌ No results received and no Perfect Match');
+  setError('No results found. Please try different preferences.');
+  return;
+}
 
     // Ensure state updates happen in the correct order
     setError(null);

@@ -105,6 +105,7 @@ useEffect(() => {
     setError(null);
     setShowResults(true);
     setSearchResults(results);
+    console.log("🧪 Setting Perfect Match state:", perfectMatchResult);
     setPerfectMatch(perfectMatchResult);
     console.log('🔄 States updated:', {
       error: null,

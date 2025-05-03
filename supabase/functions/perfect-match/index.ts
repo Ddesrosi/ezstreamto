@@ -18,6 +18,9 @@ serve(async (req) => {
     const preferences = body.preferences;
 
     const movie = await findPerfectMatchMovie(preferences);
+
+    console.log("🧪 Movie before insights:", movie);
+
     const insights = await generatePerfectMatchInsights(movie, preferences);
 
     return new Response(

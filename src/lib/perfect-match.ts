@@ -402,16 +402,23 @@ export async function findPerfectMatch(preferences: PerfectMatchPreferences): Pr
   movie: Movie;
   insights: PerfectMatchInsights;
 }> {
-  try {
-    console.log("🚀 findPerfectMatch() called");
-    const movie = await findPerfectMatchMovie(preferences);
-    const insights = await generatePerfectMatchInsights(movie, preferences);
-    return { movie, insights };
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Failed to find perfect match';
-    console.error('Perfect match error:', errorMessage);
-    throw new Error(errorMessage);
+  console.log("🌐 Calling backend /perfect-match with:", preferences);
+
+  const response = await fetch('/functions/v1/perfect-match', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ preferences })
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(`Backend error: ${message}`);
   }
+
+  const data = await response.json();
+  return data;
 }
 
 export type { PerfectMatchPreferences, PerfectMatchInsights };

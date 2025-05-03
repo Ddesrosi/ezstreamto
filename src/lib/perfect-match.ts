@@ -404,7 +404,8 @@ export async function findPerfectMatch(preferences: PerfectMatchPreferences): Pr
 }> {
   console.log("🌐 Calling backend /perfect-match with:", preferences);
 
-  const response = await fetch('/functions/v1/perfect-match', {
+  const response = await fetch('https://acmpivmrokzblypxdxbu.supabase.co/functions/v1/perfect-match', {
+
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'

@@ -5,6 +5,11 @@ import { findPerfectMatchMovie } from "./find-movie.ts"; // à créer à l'étap
 import { generatePerfectMatchInsights } from "./insights.ts"; // à créer à l'étape suivante
 
 serve(async (req) => {
+    // ✅ Gestion du pré-vol CORS (OPTIONS)
+  if (req.method === 'OPTIONS') {
+    return new Response('OK', { headers: corsHeaders });
+  }
+
   const body = await req.json();
 
   try {

@@ -72,3 +72,17 @@ Format your response as JSON:
     throw new Error("Invalid response from Deepseek");
   }
 }
+export function generateFallbackInsights(movie: Movie, preferences: any): PerfectMatchInsights {
+  const fallbackYear = movie.year || 2000;
+  const fallbackRating = movie.rating || 7.0;
+  const fallbackLanguage = movie.language || 'EN';
+  const fallbackDuration = preferences.contentType === 'tv' ? 'TV Series' : '120 min';
+
+  return {
+    explanation: `"${movie.title}" fits your preferences in ${movie.genres.join(", ")} and matches your ${preferences.moods.join(" and ").toLowerCase()} mood.`,
+    recommendations: movie.genres.slice(0, 3).map((genre: string) => ({
+      title: `Sample ${genre} Movie`,
+      reason: `This film shares ${genre.toLowerCase()} elements with "${movie.title}".`
+    }))
+  };
+}

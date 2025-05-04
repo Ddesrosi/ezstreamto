@@ -4,6 +4,7 @@ import type { SearchPreferences } from '../_shared/deepseek/types.ts';
 import { findPerfectMatchMovie } from "./find-movie.ts";
 import { generatePerfectMatchInsights } from "./insights.ts";
 import { enrichMovieWithPoster } from "../_shared/tmdb.ts";
+import { generateFallbackInsights } from "./insights.ts";
 
 serve(async (req) => {
   let movie; // 🧠 placé ici pour rester visible même dans le catch

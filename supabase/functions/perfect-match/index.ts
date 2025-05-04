@@ -69,9 +69,13 @@ serve(async (req) => {
     }
  
     return new Response(
-      JSON.stringify({ movie: enrichedMovie, insights }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+  JSON.stringify({ movie: enrichedMovie, insights }),
+  {
+    status: 200,
+    headers: { ...corsHeaders, "Content-Type": "application/json" }
+  }
+);
+
   } catch (error) {
   console.error("❌ Perfect Match backend error:", error instanceof Error ? error.message : error);
 

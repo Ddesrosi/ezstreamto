@@ -81,39 +81,36 @@ useEffect(() => {
       hasPerfectMatch: !!perfectMatchResult
     });
 
-    console.log('🧪 Debug — inside handleSearch:', {
+  console.log('🧪 Debug — inside handleSearch:', {
   results,
   resultsLength: results?.length,
   perfectMatchResult,
   currentPerfectMatch: perfectMatch
 });
 
-    console.log('Remaining searches received:', remaining);
-    
-   if ((!results || results.length === 0) && (!perfectMatchResult || !perfectMatchResult.movie)) {
-  console.warn('❌ No results received and no Perfect Match');
-  setError('No results found. Please try different preferences.');
-  return;
-}
- {
+console.log('Remaining searches received:', remaining);
+
+// ❌ Si aucun résultat ET aucun Perfect Match => bloquer
+if ((!results || results.length === 0) && (!perfectMatchResult || !perfectMatchResult.movie)) {
   console.warn('❌ No results received and no Perfect Match');
   setError('No results found. Please try different preferences.');
   return;
 }
 
-    // Ensure state updates happen in the correct order
-    setError(null);
-    setShowResults(true);
-    setSearchResults(results);
-    console.log("🧪 Setting Perfect Match state:", perfectMatchResult);
-    setPerfectMatch(perfectMatchResult);
-    console.log('🔄 States updated:', {
-      error: null,
-      showResults: true,
-      resultsLength: results.length,
-      hasPerfectMatch: !!perfectMatchResult,
-      searchResults: results
-    });
+// ✅ Sinon, on affiche les résultats ou le Perfect Match
+setError(null);
+setShowResults(true);
+setSearchResults(results || []); // ← important de forcer tableau vide si undefined
+console.log("🧪 Setting Perfect Match state:", perfectMatchResult);
+setPerfectMatch(perfectMatchResult);
+
+console.log('🔄 States updated:', {
+  error: null,
+  showResults: true,
+  resultsLength: results?.length,
+  hasPerfectMatch: !!perfectMatchResult,
+  searchResults: results
+});
 
   if (remaining !== undefined) {
   console.log("✅ App.tsx → setting remainingSearches to:", remaining);

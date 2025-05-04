@@ -1,5 +1,6 @@
-import { Movie } from "./types.ts";
-const DEEPSEEK_API_KEY = Deno.env.get("DEEPSEEK_API_KEY") ?? '';
+import { Movie } from '../_shared/types.ts';
+import { enrichMovieWithPoster } from '../_shared/tmdb.ts';
+import { DEEPSEEK_API_KEY } from '../_shared/config.ts';
 
 interface PerfectMatchInsights {
   explanation: string;
@@ -58,16 +59,16 @@ Format your response as JSON:
 
   const data = await response.json();
 
- try {
-  const text = data.choices?.[0]?.message?.content || '';
-  const jsonStart = text.indexOf('{');
-  const jsonEnd = text.lastIndexOf('}');
-  const jsonString = text.slice(jsonStart, jsonEnd + 1);
+  try {
+    const text = data.choices?.[0]?.message?.content || '';
+    const jsonStart = text.indexOf('{');
+    const jsonEnd = text.lastIndexOf('}');
+    const jsonString = text.slice(jsonStart, jsonEnd + 1);
 
-  const parsed = JSON.parse(jsonString);
-  return parsed;
-} catch (error) {
-  console.error("❌ Failed to parse Deepseek response:", data);
-  throw new Error("Invalid response from Deepseek");
-}
+    const parsed = JSON.parse(jsonString);
+    return parsed;
+  } catch (error) {
+    console.error("❌ Failed to parse Deepseek response:", data);
+    throw new Error("Invalid response from Deepseek");
+  }
 }

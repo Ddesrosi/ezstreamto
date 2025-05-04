@@ -30,15 +30,17 @@ export function PerfectMatchCard({ movie, insights, isDark }: PerfectMatchCardPr
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
 
-  const uniquePlatforms = (movie.streamingPlatforms || []).reduce((acc, platform) => {
-    const exists = acc.some(existing => {
-      const existingStyle = getPlatformStyle(existing);
-      const newStyle = getPlatformStyle(platform);
-      return existingStyle?.name === newStyle?.name;
-    });
-    if (!exists) acc.push(platform);
-    return acc;
-  }, []);
+  const uniquePlatforms = Array.isArray(movie.streamingPlatforms)
+  ? movie.streamingPlatforms.reduce((acc: string[], platform) => {
+      const exists = acc.some(existing => {
+        const existingStyle = getPlatformStyle(existing);
+        const newStyle = getPlatformStyle(platform);
+        return existingStyle?.name === newStyle?.name;
+      });
+      if (!exists) acc.push(platform);
+      return acc;
+    }, [])
+  : [];
 
   const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const img = e.target as HTMLImageElement;
@@ -225,6 +227,12 @@ export function PerfectMatchCard({ movie, insights, isDark }: PerfectMatchCardPr
                             onLoad={(e) => (e.currentTarget.classList.add("loaded"))}
                             onError={(e) => (e.currentTarget.src = FALLBACK_IMAGE)}
                           />
+                         {!movie.poster && (
+  <div className="mt-2 text-sm text-red-400">
+    Poster image is not available.
+  </div>
+)}
+
                         </div>
                         <div className="flex-1">
                           <h5 className={cn("text-lg font-medium mb-2", isDark ? 'text-blue-100' : 'text-gray-900')}>{title}</h5>

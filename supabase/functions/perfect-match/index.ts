@@ -17,7 +17,9 @@ serve(async (req) => {
 
     const preferences: SearchPreferences = body.preferences;
 
-    const movie = await findPerfectMatchMovie(preferences);
+    let movie;
+    movie = await findPerfectMatchMovie(preferences);
+
     console.log("📽️ Movie fetched from findPerfectMatchMovie():", movie);
 
     const enrichedMovie = await enrichMovieWithPoster(movie);
@@ -30,7 +32,8 @@ serve(async (req) => {
       preferences
     });
 
-    const insights = await generatePerfectMatchInsights(enrichedMovie, preferences);
+    let insights;
+    insights = await generatePerfectMatchInsights(enrichedMovie, preferences);
 
     if (!movie || !insights) {
       console.warn("⚠️ Fallback triggered — missing movie or insights");

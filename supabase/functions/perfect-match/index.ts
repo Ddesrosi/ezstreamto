@@ -20,6 +20,14 @@ serve(async (req) => {
     let movie;
     movie = await findPerfectMatchMovie(preferences);
 
+    if (!movie || !movie.title) {
+  console.error("❌ No movie returned from findPerfectMatchMovie()");
+  return new Response(JSON.stringify({ error: "No valid movie found" }), {
+    status: 500,
+    headers: corsHeaders
+  });
+}
+
     console.log("📽️ Movie fetched from findPerfectMatchMovie():", movie);
 
     const enrichedMovie = await enrichMovieWithPoster(movie);

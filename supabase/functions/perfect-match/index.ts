@@ -6,6 +6,8 @@ import { generatePerfectMatchInsights } from "./insights.ts";
 import { enrichMovieWithPoster } from "../_shared/tmdb.ts";
 
 serve(async (req) => {
+  let movie; // 🧠 placé ici pour rester visible même dans le catch
+
   if (req.method === 'OPTIONS') {
     return new Response('OK', { headers: corsHeaders });
   }
@@ -17,7 +19,6 @@ serve(async (req) => {
 
     const preferences: SearchPreferences = body.preferences;
 
-    let movie;
     movie = await findPerfectMatchMovie(preferences);
 
     if (!movie || !movie.title) {

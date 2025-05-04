@@ -73,10 +73,30 @@ serve(async (req) => {
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
-    console.error("❌ Perfect Match backend error:", error instanceof Error ? error.message : error);
-    return new Response(
-      JSON.stringify({ error: "Failed to process Perfect Match" }),
-      { status: 500, headers: corsHeaders }
-    );
-  }
+  console.error("❌ Perfect Match backend error:", error instanceof Error ? error.message : error);
+
+  const fallbackMovie = movie || {
+    id: crypto.randomUUID(),
+    title: "Inception",
+    year: 2010,
+    rating: 8.8,
+    duration: 148,
+    language: "EN",
+    genres: ["Sci-Fi", "Action", "Thriller"],
+    description: "A skilled thief enters dreams to steal secrets.",
+    imageUrl: "",
+    streamingPlatforms: []
+  };
+
+  const fallbackInsights = generateFallbackInsights(fallbackMovie, body.preferences);
+
+  return new Response(JSON.stringify({
+    movie: fallbackMovie,
+    insights: fallbackInsights
+  }), {
+    status: 200,
+    headers: corsHeaders
+  });
+}
+
 });

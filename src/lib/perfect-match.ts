@@ -275,10 +275,16 @@ async function generatePerfectMatchInsights(
       })
     );
 
-    return {
-      explanation: insights.explanation || generateFallbackExplanation(movie, preferences),
-      recommendations: enrichedRecommendations
-    };
+const movie = await findPerfectMatchMovie(preferences);
+    
+   return {
+  movie, // ✅ le film principal
+  insights: {
+    explanation: insights.explanation || generateFallbackExplanation(movie, preferences),
+    recommendations: enrichedRecommendations
+  }
+};
+ 
   } catch (error) {
     console.error('Failed to generate insights:', error);
     console.warn('⚠️ Deepseek failed or returned invalid data — fallback insights used');

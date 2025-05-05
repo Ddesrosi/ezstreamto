@@ -27,6 +27,7 @@ Do not include anything outside the JSON array.
 `;
 
   const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
+
     method: "POST",
     headers: {
       "Authorization": `Bearer ${DEEPSEEK_API_KEY}`,

@@ -22,7 +22,7 @@ export async function findPerfectMatchMovie(preferences: SearchPreferences): Pro
       title: bestMovie.title,
       year: bestMovie.year || new Date().getFullYear(),
       rating: bestMovie.rating || 0,
-      duration: bestMovie.duration || (preferences.contentType === 'tv' ? 'TV Series' : '120 min'),
+      duration: bestMovie.duration || (preferences.contentType === 'tv' ? 'TV Series' : 120),
       language: bestMovie.language || 'EN',
       genres: bestMovie.genres || [],
       description: bestMovie.description || '',
@@ -30,6 +30,7 @@ export async function findPerfectMatchMovie(preferences: SearchPreferences): Pro
       streamingPlatforms: []
     };
 
+    console.log("🎬 Enriching movie details:", movie);
     const enriched = await enrichMovieWithPoster(movie);
     return enriched;
 

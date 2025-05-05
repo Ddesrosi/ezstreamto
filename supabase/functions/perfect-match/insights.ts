@@ -11,18 +11,32 @@ export async function generatePerfectMatchInsights(
   movie: Movie,
   preferences: any
 ): Promise<PerfectMatchInsights> {
-  console.log("🧠 Generating insights from backend");
+  console.log("\uD83E\uDDE0 Generating insights from backend");
 
   if (!DEEPSEEK_API_KEY) {
     throw new Error("Deepseek API key is missing");
   }
 
+  // Construction dynamique du prompt avec champs facultatifs
+  let criteriaPrompt = `- Mood(s): ${preferences.moods.join(", ")}
+- Genre(s): ${preferences.genres.join(", ")}`;
+
+  if (preferences.yearRange) {
+    criteriaPrompt += `\n- Release between ${preferences.yearRange.from} and ${preferences.yearRange.to}`;
+  }
+  if (preferences.ratingRange) {
+    criteriaPrompt += `\n- Rating between ${preferences.ratingRange.min} and ${preferences.ratingRange.max}`;
+  }
+  if (preferences.keywords?.length) {
+    criteriaPrompt += `\n- Keywords: ${preferences.keywords.join(", ")}`;
+  }
+  if (preferences.specificYear) {
+    criteriaPrompt += `\n- Specific Year: ${preferences.specificYear}`;
+  }
+
   const prompt = `
 You are an expert movie recommender. A user is looking for a film based on these preferences:
-- Mood: ${preferences.moods.join(", ")}
-- Genre: ${preferences.genres.join(", ")}
-- Year range: ${preferences.yearRange.from} to ${preferences.yearRange.to}
-- Rating range: ${preferences.ratingRange.min} to ${preferences.ratingRange.max}
+${criteriaPrompt}
 
 You selected the movie "${movie.title}" (${movie.year}) as the perfect match.
 
@@ -58,11 +72,11 @@ Format your response as JSON:
   });
 
   const data = await response.json();
-  console.log("📥 Deepseek raw response:\n", data);
+  console.log("\uD83D\uDCE5 Deepseek raw response:\n", data);
 
   try {
     const text = data.choices?.[0]?.message?.content || '';
-    console.log("📦 Raw Deepseek text response:\n", text);
+    console.log("\uD83D\uDCE6 Raw Deepseek text response:\n", text);
     const jsonStart = text.indexOf('{');
     const jsonEnd = text.lastIndexOf('}');
     const jsonString = text.slice(jsonStart, jsonEnd + 1);
@@ -98,7 +112,7 @@ Format your response as JSON:
       recommendations
     };
   } catch (error) {
-    console.error("❌ Failed to parse Deepseek response:", data);
+    console.error("\u274C Failed to parse Deepseek response:", data);
     throw new Error("Invalid response from Deepseek");
   }
 }

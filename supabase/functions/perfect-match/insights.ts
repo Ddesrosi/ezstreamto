@@ -58,15 +58,17 @@ Format your response as JSON:
   const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
     method: "POST",
     headers: {
+      "Accept": "application/json",
       "Authorization": `Bearer ${DEEPSEEK_API_KEY}`,
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
+      "Cache-Control": "no-cache"
     },
     body: JSON.stringify({
       model: "deepseek-chat",
+      temperature: 0.7,
       messages: [
         { role: "user", content: prompt }
-      ],
-      temperature: 0.7
+      ]
     })
   });
 

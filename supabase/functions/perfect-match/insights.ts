@@ -58,6 +58,8 @@ Format your response as JSON:
   });
 
   const data = await response.json();
+  const data = await response.json();
+console.log("📥 Deepseek response object:", JSON.stringify(data, null, 2));
 
   try {
     const text = data.choices?.[0]?.message?.content || '';

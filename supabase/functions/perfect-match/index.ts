@@ -80,7 +80,7 @@ serve(async (req) => {
   } catch (error) {
   console.error("❌ Perfect Match backend error:", error instanceof Error ? error.message : error);
 
-  const fallbackMovie = movie || {
+  const fallbackMovie = typeof movie !== 'undefined' ? movie : {
     id: crypto.randomUUID(),
     title: "Inception",
     year: 2010,

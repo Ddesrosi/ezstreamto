@@ -61,6 +61,7 @@ Format your response as JSON:
 
   try {
     const text = data.choices?.[0]?.message?.content || '';
+    console.log("📦 Raw Deepseek text response:\n", text);
     const jsonStart = text.indexOf('{');
     const jsonEnd = text.lastIndexOf('}');
     const jsonString = text.slice(jsonStart, jsonEnd + 1);

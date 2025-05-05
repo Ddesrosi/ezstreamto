@@ -5,14 +5,14 @@ export async function getMovieRecommendations(preferences: SearchPreferences) {
   const DEEPSEEK_API_KEY = getDeepseekApiKey();
   if (!DEEPSEEK_API_KEY) throw new Error("Missing Deepseek API key");
 
-  const prompt = `
+    const prompt = `
 You are a movie recommendation AI.
 The user is searching with the following criteria:
-- Content Type: ${preferences.contentType}
-- Mood: ${preferences.selectedMoods.join(", ")}
-- Genres: ${preferences.selectedGenres.join(", ")}
-- Year Range: ${preferences.yearRange.from} to ${preferences.yearRange.to}
-- Rating: ${preferences.ratingRange.min} to ${preferences.ratingRange.max}
+- Content Type: ${preferences.contentType ?? 'movie'}
+- Mood: ${(preferences.selectedMoods ?? []).join(", ")}
+- Genres: ${(preferences.selectedGenres ?? []).join(", ")}
+- Year Range: ${preferences.yearRange?.from ?? 1920} to ${preferences.yearRange?.to ?? 2025}
+- Rating: ${preferences.ratingRange?.min ?? 0} to ${preferences.ratingRange?.max ?? 10}
 
 Return a list of 5 to 10 movie recommendations as JSON array, each with:
 - title
@@ -25,6 +25,7 @@ Return a list of 5 to 10 movie recommendations as JSON array, each with:
 
 Do not include anything outside the JSON array.
 `;
+
 
   const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
 

@@ -42,6 +42,8 @@ serve(async (req) => {
       preferences
     });
 
+    console.log("📢 Calling Deepseek with prompt based on:", enrichedMovie.title);
+
     let insights;
     insights = await generatePerfectMatchInsights(enrichedMovie, preferences);
 

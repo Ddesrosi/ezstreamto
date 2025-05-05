@@ -1,27 +1,37 @@
 import type { Movie } from '../_shared/types.ts';
-import { enrichMovieWithPoster } from '../_shared/tmdb.ts';
 import type { SearchPreferences } from '../_shared/deepseek/types.ts';
+import { enrichMovieWithPoster } from '../_shared/tmdb.ts';
 
-// Simulation temporaire (à remplacer plus tard par une vraie recherche TMDB)
-export async function findPerfectMatchMovie(preferences: SearchPreferences): Promise<Movie> {
+export async function findPerfectMatchMovie(preferences: SearchPreferences): Promise<Movie | undefined> {
   console.log("🎯 [Backend] Finding perfect match movie with:", preferences);
 
-  // Exemple simulé
-  const simulatedMovie: Movie = {
-    id: crypto.randomUUID(),
-    title: "Inception",
-    year: 2010,
-    rating: 8.8,
-    duration: 148,
-    language: "EN",
-    genres: ["Sci-Fi", "Action", "Thriller"],
-    description: "A skilled thief enters dreams to steal secrets.",
-    imageUrl: "",
-    streamingPlatforms: []
-  };
+  try {
+    const response = await fetch('https://acmpivmrokzblypxdxbu.supabase.co/functions/v1/deepseek', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ preferences })
+    });
 
-  // ✅ Étape 2 : enrichir le film simulé
-  const enrichedMovie = await enrichMovieWithPoster(simulatedMovie);
+    if (!response.ok) {
+      console.warn("⚠️ Deepseek call failed with status:", response.status);
+      return undefined;
+    }
 
-  return enrichedMovie;
+    const raw = await response.json();
+    const results = raw.results || [];
+
+    console.log("📊 Deepseek results received:", results);
+
+    const bestMovie = results[0];
+    if (!bestMovie || !bestMovie.title) {
+      console.warn("⚠️ No valid result returned from Deepseek.");
+      return undefined;
+    }
+
+    const enriched = await enrichMovieWithPoster(bestMovie);
+    return enriched;
+  } catch (err) {
+    console.error("❌ Error in findPerfectMatchMovie:", err);
+    return undefined;
+  }
 }

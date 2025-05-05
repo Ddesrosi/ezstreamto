@@ -30,8 +30,20 @@ export async function findPerfectMatchMovie(preferences: SearchPreferences): Pro
       streamingPlatforms: []
     };
 
-    const enriched = await enrichMovieWithPoster(movie);
-    return enriched;
+  const enriched = await enrichMovieWithPoster({
+  id: crypto.randomUUID(),
+  title: bestMovie.title,
+  year: bestMovie.year || new Date().getFullYear(),
+  rating: bestMovie.rating || 0,
+  duration: bestMovie.duration || (preferences.contentType === 'tv' ? 'TV Series' : '120 min'),
+  language: bestMovie.language || 'EN',
+  genres: bestMovie.genres || [],
+  description: bestMovie.description || '',
+  imageUrl: '',
+  streamingPlatforms: []
+});
+return enriched;
+
 
   } catch (err) {
     console.error("❌ Error in findPerfectMatchMovie:", err);

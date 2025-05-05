@@ -4,7 +4,7 @@ import { DEEPSEEK_API_KEY } from '../_shared/config.ts';
 
 interface PerfectMatchInsights {
   explanation: string;
-  recommendations: { title: string; reason: string }[];
+  recommendations: Movie[];
 }
 
 export async function generatePerfectMatchInsights(
@@ -58,7 +58,7 @@ Format your response as JSON:
   });
 
   const data = await response.json();
-console.log("📥 Deepseek response object:", JSON.stringify(data, null, 2));
+  console.log("📥 Deepseek raw response:\n", data);
 
   try {
     const text = data.choices?.[0]?.message?.content || '';
@@ -68,12 +68,41 @@ console.log("📥 Deepseek response object:", JSON.stringify(data, null, 2));
     const jsonString = text.slice(jsonStart, jsonEnd + 1);
 
     const parsed = JSON.parse(jsonString);
-    return parsed;
+
+    const recommendations = await Promise.all(
+      parsed.recommendations.map(async (rec: any) => {
+        const tempMovie: Movie = {
+          id: crypto.randomUUID(),
+          title: rec.title,
+          year: rec.year || movie.year,
+          rating: rec.rating || 7,
+          duration: rec.duration || 120,
+          language: rec.language || 'EN',
+          genres: rec.genres || [],
+          description: rec.reason || 'No description provided',
+          imageUrl: '',
+          streamingPlatforms: []
+        };
+
+        try {
+          const enriched = await enrichMovieWithPoster(tempMovie);
+          return enriched;
+        } catch {
+          return tempMovie;
+        }
+      })
+    );
+
+    return {
+      explanation: parsed.explanation,
+      recommendations
+    };
   } catch (error) {
     console.error("❌ Failed to parse Deepseek response:", data);
     throw new Error("Invalid response from Deepseek");
   }
 }
+
 export function generateFallbackInsights(movie: Movie, preferences: any): PerfectMatchInsights {
   const fallbackYear = movie.year || 2000;
   const fallbackRating = movie.rating || 7.0;
@@ -83,8 +112,16 @@ export function generateFallbackInsights(movie: Movie, preferences: any): Perfec
   return {
     explanation: `"${movie.title}" fits your preferences in ${movie.genres.join(", ")} and matches your ${preferences.moods.join(" and ").toLowerCase()} mood.`,
     recommendations: movie.genres.slice(0, 3).map((genre: string) => ({
+      id: crypto.randomUUID(),
       title: `Sample ${genre} Movie`,
-      reason: `This film shares ${genre.toLowerCase()} elements with "${movie.title}".`
+      year: fallbackYear,
+      rating: fallbackRating,
+      duration: fallbackDuration,
+      language: fallbackLanguage,
+      genres: [genre],
+      description: `This film shares ${genre.toLowerCase()} elements with "${movie.title}".`,
+      imageUrl: '',
+      streamingPlatforms: []
     }))
   };
 }

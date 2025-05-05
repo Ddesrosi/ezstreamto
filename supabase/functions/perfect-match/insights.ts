@@ -64,7 +64,6 @@ Format your response as JSON:
     body: JSON.stringify({
       model: "deepseek-chat",
       messages: [
-        { role: "system", content: "You are a movie recommendation assistant." },
         { role: "user", content: prompt }
       ],
       temperature: 0.7

@@ -10,8 +10,14 @@ serve(async (req) => {
   let movie; // 🧠 placé ici pour rester visible même dans le catch
 
   if (req.method === 'OPTIONS') {
-    return new Response('OK', { headers: corsHeaders });
-  }
+  return new Response('OK', {
+    headers: {
+      ...corsHeaders,
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+    }
+  });
+}
 
   const body = await req.json();
 

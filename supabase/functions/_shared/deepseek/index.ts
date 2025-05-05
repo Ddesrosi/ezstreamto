@@ -5,7 +5,7 @@ export async function getMovieRecommendations(preferences: SearchPreferences) {
   const DEEPSEEK_API_KEY = getDeepseekApiKey();
   if (!DEEPSEEK_API_KEY) throw new Error("Missing Deepseek API key");
 
-    const prompt = `
+  const prompt = `
 You are a movie recommendation AI.
 The user is searching with the following criteria:
 - Content Type: ${preferences.contentType ?? 'movie'}
@@ -26,9 +26,7 @@ Return a list of 5 to 10 movie recommendations as JSON array, each with:
 Do not include anything outside the JSON array.
 `;
 
-
   const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
-
     method: "POST",
     headers: {
       "Authorization": `Bearer ${DEEPSEEK_API_KEY}`,
@@ -48,7 +46,13 @@ Do not include anything outside the JSON array.
   const rawText = data?.choices?.[0]?.message?.content || "";
 
   try {
-    const parsed = JSON.parse(rawText);
+    const cleaned = rawText
+      .trim()
+      .replace(/^```json\s*/i, "")  // retire ```json avec saut de ligne
+      .replace(/```$/, "")          // retire ``` à la fin
+      .trim();
+
+    const parsed = JSON.parse(cleaned);
     return parsed;
   } catch (e) {
     console.error("❌ Deepseek response parse error:", rawText);

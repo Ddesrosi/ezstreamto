@@ -1,195 +1,161 @@
+console.log("✅ DEEPSEEK-PROXY - fichier réellement déployé");
+
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { corsHeaders } from "../_shared/cors.ts";
+import { getCorsHeaders } from "../_shared/cors.ts";
+
+console.log("✅ DEEPSEEK-PROXY - fichier réellement déployé");
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL");
 const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 const deepseekApiKey = Deno.env.get("DEEPSEEK_API_KEY");
 
-if (!supabaseUrl || !supabaseServiceRoleKey || !deepseekApiKey) {
-  console.error("❌ Missing required environment variables");
-  throw new Error("Missing required environment variables");
-}
-
 const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
 
+console.log("🚀 Supabase Edge Function ready");
+
 serve(async (req) => {
-  // Handle CORS preflight requests
+  const origin = req.headers.get("Origin") || "";
+  const normalizedOrigin = origin.replace(/:\d+$/, ""); // enlève le port à la fin
+
+  const isAllowed =
+    normalizedOrigin === "https://ezstreamto.com" ||
+    normalizedOrigin === "http://localhost" ||
+    normalizedOrigin === "https://localhost" ||
+    normalizedOrigin.endsWith(".local-credentialless.webcontainer-api.io");
+
+  const cors = {
+    "Access-Control-Allow-Origin": isAllowed ? normalizedOrigin : "https://ezstreamto.com",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Credentials": "true"
+  };
+
+  console.log("🌐 Origin received:", origin);
+  console.log("🌐 Normalized Origin:", normalizedOrigin);
+  console.log("✅ CORS allowed:", isAllowed);
+  console.log("🧪 getCorsHeaders() resolved to:", JSON.stringify(cors));
+
   if (req.method === "OPTIONS") {
-    return new Response("ok", { 
+    return new Response(null, {
       status: 204,
       headers: {
-        ...corsHeaders,
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-        'Access-Control-Allow-Methods': 'POST, GET, OPTIONS'
+        ...cors,
+        "Content-Length": "0"
       }
     });
   }
 
   try {
-    console.log("⏳ Request received");
-    
+    console.log("⏳ Requête reçue");
     const { prompt, ip } = await req.json();
-    console.log("📥 Received data:", { prompt, ip });
+    console.log("📥 Données reçues :", { prompt, ip });
 
     if (!prompt || !ip) {
-      console.log("⚠️ Missing prompt or IP");
-      return new Response(
-        JSON.stringify({ error: "Missing prompt or IP" }),
-        {
-          headers: { 
-            ...corsHeaders,
-            "Content-Type": "application/json",
-            "Cache-Control": "no-store"
-          },
-          status: 400
-        }
-      );
-    }
+      console.log("⚠️ Prompt ou IP manquant");
+      console.log("🧪 CORS headers before return:", cors);
 
-    console.log("🔍 Verifying Supabase credits...");
-    try {
-      const creditRes = await fetch(`${supabaseUrl}/functions/v1/search-limit`, {
-        method: "POST",
+      return new Response(JSON.stringify({
+        error: "Missing prompt or IP"
+      }), {
         headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${supabaseServiceRoleKey}`,
-          "Cache-Control": "no-cache"
+          ...cors,
+          "Content-Type": "application/json"
         },
-        body: JSON.stringify({ prompt, ip })
+        status: 400
       });
-
-      if (!creditRes.ok) {
-        const errorText = await creditRes.text();
-        console.error("❌ Credit verification failed:", errorText);
-        return new Response(
-          JSON.stringify({ error: `Failed to verify search credits: ${errorText}` }),
-          {
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-            status: creditRes.status
-          }
-        );
-      }
-
-      const creditData = await creditRes.json();
-      console.log("🎫 Credits verified:", creditData);
-
-      if (!creditData.canSearch) {
-        return new Response(
-          JSON.stringify(creditData),
-          {
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-            status: 403
-          }
-        );
-      }
-    } catch (error) {
-      console.error("❌ Error verifying credits:", error);
-      return new Response(
-        JSON.stringify({ error: "Failed to verify search credits: Network error" }),
-        {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 500
-        }
-      );
     }
 
-    console.log("🎬 Sending prompt to Deepseek...");
-    try {
-      const deepseekRes = await fetch("https://api.deepseek.com/chat/completions", {
-        method: "POST",
+    console.log("🔍 Vérification des crédits Supabase...");
+    const creditRes = await fetch(`${supabaseUrl}/functions/v1/search-limit`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${supabaseServiceRoleKey}`
+      },
+      body: JSON.stringify({ prompt, ip })
+    });
+
+    const creditData = await creditRes.json();
+    console.log("🎫 Crédit reçu :", creditData);
+
+    if (!creditRes.ok || !creditData.canSearch) {
+      console.log("🧪 CORS headers before return:", cors);
+      return new Response(JSON.stringify(creditData), {
         headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${deepseekApiKey}`,
-          "Cache-Control": "no-cache"
+          ...cors,
+          "Content-Type": "application/json"
         },
-        body: JSON.stringify({
-          model: "deepseek-chat",
-          temperature: 0.7,
-          messages: [{ role: "user", content: prompt }]
-        })
+        status: 403
       });
-
-      if (!deepseekRes.ok) {
-        const errorText = await deepseekRes.text();
-        console.error("❌ Deepseek API error:", {
-          status: deepseekRes.status,
-          statusText: deepseekRes.statusText,
-          error: errorText
-        });
-        return new Response(
-          JSON.stringify({ 
-            error: `Deepseek API error (${deepseekRes.status}): ${errorText}`,
-            details: {
-              status: deepseekRes.status,
-              statusText: deepseekRes.statusText
-            }
-          }),
-          {
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-            status: deepseekRes.status
-          }
-        );
-      }
-
-      const deepseekText = await deepseekRes.text();
-      let rawMovies;
-
-      try {
-        rawMovies = JSON.parse(deepseekText);
-      } catch (e) {
-        console.error("❌ Failed to parse Deepseek response:", e);
-        return new Response(
-          JSON.stringify({ 
-            error: `Invalid JSON from Deepseek: ${e.message}`,
-            rawResponse: deepseekText
-          }),
-          {
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-            status: 500
-          }
-        );
-      }
-
-      return new Response(
-        JSON.stringify({
-          rawMovies,
-          remaining: creditData.remaining,
-          isPremium: creditData.isPremium
-        }),
-        {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 200
-        }
-      );
-
-    } catch (error) {
-      console.error("❌ Network error calling Deepseek API:", error);
-      return new Response(
-        JSON.stringify({ 
-          error: "Failed to connect to Deepseek API",
-          details: error.message
-        }),
-        {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 503
-        }
-      );
     }
 
-  } catch (e) {
-    console.error("❌ Server error:", e);
-    return new Response(
-      JSON.stringify({ 
-        error: "Internal server error",
-        details: e.message
-      }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+    console.log("🎬 Envoi du prompt à Deepseek...");
+    const deepseekRes = await fetch("https://api.deepseek.com/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${deepseekApiKey}`
+      },
+      body: JSON.stringify({
+        model: "deepseek-chat",
+        messages: [{ role: "user", content: prompt }]
+      })
+    });
+
+    const deepseekText = await deepseekRes.text();
+
+    if (!deepseekRes.ok) {
+      console.log("🧪 CORS headers before return:", cors);
+      return new Response(JSON.stringify({
+        error: `Deepseek API error: ${deepseekText}`
+      }), {
+        headers: {
+          ...cors,
+          "Content-Type": "application/json"
+        },
         status: 500
-      }
-    );
+      });
+    }
+
+    let rawMovies;
+    try {
+      rawMovies = JSON.parse(deepseekText);
+    } catch (e) {
+      console.log("🧪 CORS headers before return:", cors);
+      return new Response(JSON.stringify({
+        error: `Invalid JSON from Deepseek: ${deepseekText}`
+      }), {
+        headers: {
+          ...cors,
+          "Content-Type": "application/json"
+        },
+        status: 500
+      });
+    }
+console.log("🧪 CORS headers before return:", cors);
+    return new Response(JSON.stringify({
+      rawMovies,
+      remaining: creditData.remaining,
+      isPremium: creditData.isPremium
+    }), {
+      headers: {
+        ...cors,
+        "Content-Type": "application/json"
+      },
+      status: 200
+    });
+  } catch (e) {
+    console.error("❌ Erreur serveur :", e);
+    console.log("🧪 CORS headers before return:", cors);
+    return new Response(JSON.stringify({
+      error: e.message
+    }), {
+      headers: {
+        ...cors,
+        "Content-Type": "application/json"
+      },
+      status: 500
+    });
   }
 });

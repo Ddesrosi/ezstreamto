@@ -81,36 +81,26 @@ useEffect(() => {
       hasPerfectMatch: !!perfectMatchResult
     });
 
-  console.log('🧪 Debug — inside handleSearch:', {
-  results,
-  resultsLength: results?.length,
-  perfectMatchResult,
-  currentPerfectMatch: perfectMatch
-});
+    console.log('Remaining searches received:', remaining);
 
-console.log('Remaining searches received:', remaining);
+    if (!results || results.length === 0) {
+      console.warn('❌ No results received');
+      setError('No results found. Please try different preferences.');
+      return;
+    }
 
-// ❌ Si aucun résultat ET aucun Perfect Match => bloquer
-if ((!results || results.length === 0) && (!perfectMatchResult || !perfectMatchResult.movie)) {
-  console.warn('❌ No results received and no Perfect Match');
-  setError('No results found. Please try different preferences.');
-  return;
-}
-
-// ✅ Sinon, on affiche les résultats ou le Perfect Match
-setError(null);
-setShowResults(true);
-setSearchResults(results || []); // ← important de forcer tableau vide si undefined
-console.log("🧪 Setting Perfect Match state:", perfectMatchResult);
-setPerfectMatch(perfectMatchResult);
-
-console.log('🔄 States updated:', {
-  error: null,
-  showResults: true,
-  resultsLength: results?.length,
-  hasPerfectMatch: !!perfectMatchResult,
-  searchResults: results
-});
+    // Ensure state updates happen in the correct order
+    setError(null);
+    setShowResults(true);
+    setSearchResults(results);
+    setPerfectMatch(perfectMatchResult);
+    console.log('🔄 States updated:', {
+      error: null,
+      showResults: true,
+      resultsLength: results.length,
+      hasPerfectMatch: !!perfectMatchResult,
+      searchResults: results
+    });
 
   if (remaining !== undefined) {
   console.log("✅ App.tsx → setting remainingSearches to:", remaining);
@@ -209,20 +199,20 @@ console.log('🔄 States updated:', {
                   </div>
                 )}
 
-               {showResults || perfectMatch ? (
-  <div key={`${searchResults.length}-${Date.now()}`}>
-    <SearchResults
-      results={searchResults}
-      isDark={isDark}
-      onBack={handleBack}
-      remainingSearches={remainingSearches}
-      isPremium={isPremium}
-      isPremiumLoading={isPremiumLoading}
-      setShowPremiumModal={setShowPremiumModal}
-      perfectMatch={perfectMatch}
-    />
-  </div>
-                            ) : (
+                {showResults ? (
+                  <div key={`${searchResults.length}-${Date.now()}`}>
+                    <SearchResults
+                      results={searchResults}
+                      isDark={isDark}
+                      onBack={handleBack}
+                      remainingSearches={remainingSearches}
+                      isPremium={isPremium}
+                      isPremiumLoading={isPremiumLoading}
+                      setShowPremiumModal={setShowPremiumModal}
+                      perfectMatch={perfectMatch}
+                    />
+                  </div>
+                ) : (
                   <div>
                     <AnimatedHeader isDark={isDark} />
                     <div className="w-full -mx-3 sm:-mx-5 md:-mx-6 lg:-mx-8 mb-6 sm:mb-8">

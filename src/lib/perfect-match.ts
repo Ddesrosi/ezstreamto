@@ -1,11 +1,9 @@
 import { Movie } from '@/types';
 import { enrichMovieWithPoster } from './tmdb';
-import { DEEPSEEK_API_KEY } from '@/config';
-
-console.log('🧪 TMDB_ACCESS_TOKEN:', import.meta.env.VITE_TMDB_ACCESS_TOKEN);
+import { DEEPSEEK_API_KEY } from "./config";
 
 // Constants
-const TMDB_ACCESS_TOKEN = import.meta.env.VITE_TMDB_ACCESS_TOKEN;
+const TMDB_ACCESS_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI0MTNjZDMzZjdjNDViNjUwMTQ4NzljYWVhZDcyY2FiYSIsIm5iZiI6MTczODAwNTE3Ni43MjMsInN1YiI6IjY3OTdkYWI4YTZlNDEyODNmMTJiNDU2NSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.dM4keiy2kA6XcUufnGGSnCDCUJGwFMg91pq4I5Bziq8';
 const TMDB_API_URL = 'https://api.themoviedb.org/3';
 const DEEPSEEK_API_URL = 'https://api.deepseek.com/v1/chat/completions';
 const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba';
@@ -134,7 +132,7 @@ async function generatePerfectMatchInsights(
   movie: Movie,
   preferences: PerfectMatchPreferences
 ): Promise<PerfectMatchInsights> {
-  const apiKey = DEEPSEEK_API_KEY; // ✅ Bon usage
+  const apiKey = getDeepseekApiKey();
   console.log('🔑 Deepseek API key inside function:', apiKey ? '✅ Present' : '❌ Missing');
 
   if (!apiKey) {
@@ -275,16 +273,10 @@ async function generatePerfectMatchInsights(
       })
     );
 
-const movie = await findPerfectMatchMovie(preferences);
-    
-   return {
-  movie, // ✅ le film principal
-  insights: {
-    explanation: insights.explanation || generateFallbackExplanation(movie, preferences),
-    recommendations: enrichedRecommendations
-  }
-};
- 
+    return {
+      explanation: insights.explanation || generateFallbackExplanation(movie, preferences),
+      recommendations: enrichedRecommendations
+    };
   } catch (error) {
     console.error('Failed to generate insights:', error);
     console.warn('⚠️ Deepseek failed or returned invalid data — fallback insights used');
@@ -354,13 +346,12 @@ async function findPerfectMatchMovie(preferences: PerfectMatchPreferences): Prom
       url.searchParams.append(key, value);
     });
 
-    const response = await fetch('https://acmpivmrokzblypxdxbu.supabase.co/functions/v1/perfect-match', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify({ preferences })
-});
+    const response = await fetch(url.toString(), {
+      headers: {
+        'Authorization': `Bearer ${TMDB_ACCESS_TOKEN}`,
+        'Accept': 'application/json'
+      }
+    });
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({ status_message: `HTTP error! status: ${response.status}` }));
@@ -409,34 +400,16 @@ export async function findPerfectMatch(preferences: PerfectMatchPreferences): Pr
   movie: Movie;
   insights: PerfectMatchInsights;
 }> {
-  console.log("🌐 Calling backend /perfect-match with:", preferences);
-
-  const response = await fetch('https://acmpivmrokzblypxdxbu.supabase.co/functions/v1/perfect-match', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
-  },
-  body: JSON.stringify({ preferences })
-});
-
-  if (!response.ok) {
-    const message = await response.text();
-    throw new Error(`Backend error: ${message}`);
+  try {
+    console.log("🚀 findPerfectMatch() called");
+    const movie = await findPerfectMatchMovie(preferences);
+    const insights = await generatePerfectMatchInsights(movie, preferences);
+    return { movie, insights };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Failed to find perfect match';
+    console.error('Perfect match error:', errorMessage);
+    throw new Error(errorMessage);
   }
-
-  const data = await response.json();
-
-console.log("🎬 Raw Perfect Match result from Edge Function:", data);
-
-// ✅ Enrichir le film principal avec poster, trailer et plateformes
-const enrichedMovie = await enrichMovieWithPoster(data.movie);
-
-return {
-  movie: enrichedMovie,
-  insights: data.insights
-};
-
 }
 
 export type { PerfectMatchPreferences, PerfectMatchInsights };

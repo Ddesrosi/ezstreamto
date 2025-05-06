@@ -312,11 +312,6 @@ export async function enrichMovieWithPoster(movieOrTitle: Movie | string, year?:
 
     if (!searchResults?.results?.length) {
       console.warn(`❌ No TMDB results found for ${movie.title} (${movie.year})`);
-     console.log("📦 Final enriched movie:", {
-  title: movie.title,
-  streamingPlatforms
-});
- 
       return {
         ...movie,
         imageUrl: API_CONFIG.fallbackImage,

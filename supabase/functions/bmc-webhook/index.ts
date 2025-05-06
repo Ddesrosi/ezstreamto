@@ -1,11 +1,10 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
-import { BMC_SECRET } from "../_shared/config.ts";
 import crypto from "https://esm.sh/crypto-js@4.1.1";
 
 // 🔵 Fonction pour notifier Make.com
-async function notifyMakeWebhook(payer_email: string, visitor_uuid: string, transaction_id: string, amount: number) {
+async function notifyMakeWebhook(payer_email: string, visitor_uuid: string, transaction_id: string) {
   try {
     await fetch('https://hook.us1.make.com/72rmijhq6prsglukc5eo97aouahdrs9w', {
   method: 'POST',
@@ -32,13 +31,13 @@ serve(async (req) => {
     console.log("📩 BMC webhook received");
 
     const supabase = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
     const rawBody = await req.text();
     const signature = req.headers.get("x-signature-sha256");
-    const secret = BMC_SECRET || "";
+    const secret = Deno.env.get("BMC_SECRET") || '';
 
     const calculated_signature = crypto.HmacSHA256(rawBody, secret).toString();
 
@@ -148,7 +147,7 @@ serve(async (req) => {
 
     if (visitor_uuid) {
       try {
-        await notifyMakeWebhook(payer_email, visitor_uuid, transaction_id, amount);
+        await notifyMakeWebhook(payer_email, visitor_uuid, transaction_id);
       } catch (error) {
         console.error('⚠️ Failed to notify Make.com:', error);
       }

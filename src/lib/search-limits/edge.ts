@@ -1,5 +1,5 @@
 import { getClientIp as getIP } from "./get-ip";
-import { getOrCreateUUID } from "../get-uuid"; // ✅ ajout ici
+import { getOrCreateUUID } from "../get-uuid";
 
 type Mode = 'check' | 'consume';
 
@@ -13,30 +13,28 @@ export async function validateSearch(mode: Mode = 'check', uuid?: string) {
 
   try {
     const ip = await getIP();
-    const finalUUID = uuid || getOrCreateUUID(); // ✅ Utilise le paramètre si fourni, sinon fallback
+    const finalUUID = uuid || getOrCreateUUID();
 
     console.log(`📍 Called validateSearch("${mode}")`);
 
-    // Generate cache key based on IP and mode
     const cacheKey = `${ip}-${mode}`;
-
-    // Check cache for recent requests
     const cachedRequest = requestCache.get(cacheKey);
     if (cachedRequest) {
       console.log("📦 Using cached request");
       return await cachedRequest;
     }
 
-    const body = { ip, uuid: finalUUID, mode }; // ✅ Correction ici
+    const body = { ip, uuid: finalUUID, mode };
 
-    console.log("📤 Request sent with body:", body); // 🆕 Ajout ici
+    console.log("📤 Request sent with body:", body);
 
-    // Create promise for the request
     const requestPromise = fetch('https://acmpivmrokzblypxdxbu.functions.supabase.co/search-limit', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
+        'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        // 🆕 Ajout essentiel :
+        'Origin': window.location.origin
       },
       body: JSON.stringify(body)
     }).then(async (response) => {
@@ -45,10 +43,7 @@ export async function validateSearch(mode: Mode = 'check', uuid?: string) {
       return result;
     });
 
-    // Cache the request promise
     requestCache.set(cacheKey, requestPromise);
-
-    // Set cache expiration
     setTimeout(() => {
       requestCache.delete(cacheKey);
     }, CACHE_TTL);

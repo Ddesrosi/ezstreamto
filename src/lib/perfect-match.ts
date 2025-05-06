@@ -315,85 +315,24 @@ function generateFallbackInsights(movie: Movie, preferences: PerfectMatchPrefere
 }
 
 async function findPerfectMatchMovie(preferences: PerfectMatchPreferences): Promise<Movie> {
-  try {
-    if (!preferences.contentType) {
-      throw new Error('Content type is required');
-    }
+  console.log("🎯 Calling Supabase perfect-match function");
 
-    const contentType = preferences.contentType === 'tv' ? 'tv' : 'movie';
-    const genreIds = getGenreIds(preferences.genres, preferences.moods);
-    const keywords = getMoodKeywords(preferences.moods);
+  const response = await fetch("https://acmpivmrokzblypxdxbu.supabase.co/functions/v1/perfect-match", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(preferences)
+  });
 
-    const url = new URL(`${TMDB_API_URL}/discover/${contentType}`);
-    const params = {
-      'language': 'en-US',
-      'sort_by': 'vote_average.desc,popularity.desc',
-      'vote_count.gte': '100',
-      'vote_average.gte': preferences.ratingRange.min.toString(),
-      'vote_average.lte': preferences.ratingRange.max.toString(),
-      [`${contentType === 'movie' ? 'primary_release_date' : 'first_air_date'}.gte`]: `${preferences.yearRange.from}-01-01`,
-      [`${contentType === 'movie' ? 'primary_release_date' : 'first_air_date'}.lte`]: `${preferences.yearRange.to}-12-31`,
-      'with_original_language': 'en',
-      'include_adult': 'false',
-      'page': '1'
-    };
-
-    if (genreIds.length > 0) {
-      params['with_genres'] = genreIds.join('|');
-    }
-
-    Object.entries(params).forEach(([key, value]) => {
-      url.searchParams.append(key, value);
-    });
-
-    const response = await fetch(url.toString(), {
-      headers: {
-        'Authorization': `Bearer ${TMDB_ACCESS_TOKEN}`,
-        'Accept': 'application/json'
-      }
-    });
-
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ status_message: `HTTP error! status: ${response.status}` }));
-      throw new Error(error?.status_message || `TMDB API error: ${response.status}`);
-    }
-
-    const data = await response.json();
-    
-    if (!data.results?.length) {
-      throw new Error('No movies found matching your criteria');
-    }
-
-    const topResults = data.results.slice(0, 5);
-    const match = topResults[Math.floor(Math.random() * topResults.length)];
-
-    // Transform to our Movie type with streaming platforms
-    const movie: Movie = {
-      id: match.id.toString(),
-      title: match.title || match.name || 'Unknown Title',
-      year: new Date(contentType === 'movie' ? match.release_date : match.first_air_date || Date.now()).getFullYear(),
-      rating: match.vote_average || 0,
-      duration: contentType === 'movie' ? (match.runtime || 120) : 'TV Series',
-      language: (match.original_language || 'en').toUpperCase(),
-      genres: (match.genre_ids || [])
-        .map(id => Object.entries(genreMap).find(([_, val]) => val === id)?.[0])
-        .filter((genre): genre is string => Boolean(genre)),
-      description: match.overview || 'No description available',
-      imageUrl: match.poster_path 
-        ? `https://image.tmdb.org/t/p/original${match.poster_path}`
-        : FALLBACK_IMAGE,
-      backdropUrl: match.backdrop_path
-        ? `https://image.tmdb.org/t/p/original${match.backdrop_path}`
-        : undefined,
-      streamingPlatforms: []
-    };
-
-    // Enrich with additional data including streaming platforms
-    return await enrichMovieWithPoster(movie);
-  } catch (error) {
-    console.error('Perfect match error:', error instanceof Error ? error.message : 'Unknown error');
-    throw error;
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("❌ Supabase perfect-match failed:", errorText);
+    throw new Error("Failed to fetch perfect match movie");
   }
+
+  const data = await response.json();
+  return data.movie;
 }
 
 export async function findPerfectMatch(preferences: PerfectMatchPreferences): Promise<{

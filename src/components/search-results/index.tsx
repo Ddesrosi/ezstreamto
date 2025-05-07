@@ -202,11 +202,12 @@ export default function SearchResults({
 
       {perfectMatch ? (
         <div className="my-8 w-full">
-          <PerfectMatchCard
-            movie={perfectMatch.movie}
-            insights={perfectMatch.insights}
-            isDark={isDark}
-          />
+         <PerfectMatchCard
+  movie={perfectMatch.main}
+  insights={perfectMatch.insights}
+  isDark={isDark}
+/>
+
         </div>
       ) : (
         <div className="space-y-6 mb-6">

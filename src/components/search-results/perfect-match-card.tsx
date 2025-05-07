@@ -27,6 +27,16 @@ interface PerfectMatchCardProps {
 }
 
 export function PerfectMatchCard({ movie, insights, isDark }: PerfectMatchCardProps) {
+    if (!movie || typeof movie !== 'object') {
+    console.warn('⚠️ PerfectMatchCard: movie is undefined or invalid:', movie);
+    return null;
+
+      if (!insights || typeof insights !== 'object') {
+    console.warn('⚠️ PerfectMatchCard: insights is undefined or invalid:', insights);
+    return null;
+  }
+  
+  }
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
 

@@ -42,7 +42,7 @@ export default function SearchResults({
 }: SearchResultsProps) {
 
   console.log("📊 perfectMatch received:", perfectMatch);
-  console.log("🎬 movie details:", perfectMatch?.movie);
+  console.log("🎬 movie details:", perfectMatch?.main);
   
   const [displayedResults, setDisplayedResults] = useState<Movie[]>([]);
 

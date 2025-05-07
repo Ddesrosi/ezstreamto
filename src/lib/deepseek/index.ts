@@ -143,28 +143,29 @@ Return only the explanation as plain text.
         const data = await aiResponse.json();
         const explanation = data?.choices?.[0]?.message?.content?.trim();
 
-        if (explanation) {
-          perfectMatch.main.description = explanation;
-          console.log("🧠 Explanation added to Perfect Match:", explanation);
-        } else {
-          console.warn("⚠️ No explanation returned from Deepseek.");
-        }
-      } catch (error) {
-        console.warn("⚠️ Failed to fetch explanation from Deepseek:", error);
-      }
+ if (explanation) {
+  perfectMatch.main.description = explanation;
+  console.log("🧠 Explanation added to Perfect Match:", explanation);
+} else {
+  console.warn("⚠️ No explanation returned from Deepseek.");
+}
+} catch (error) {
+  console.warn("⚠️ Failed to fetch explanation from Deepseek:", error);
+}
 
-      try {
-        const insights = await generatePerfectMatchInsights(perfectMatch.main, preferences);
-        perfectMatch.insights = insights;
-      } catch (err) {
-        console.warn('⚠️ Failed to generate insights:', err);
-        perfectMatch.insights = undefined;
-      }
+try {
+  const insights = await generatePerfectMatchInsights(perfectMatch.main, preferences);
+  perfectMatch.insights = insights;
+} catch (err) {
+  console.warn('⚠️ Failed to generate insights:', err);
+  perfectMatch.insights = undefined;
+}
 
-      console.log("✅ Perfect Match constructed:", {
-        mainTitle: perfectMatch.main?.title,
-        suggestions: perfectMatch.suggestions?.map(m => m.title)
-      });
+console.log("✅ Perfect Match constructed:", {
+  mainTitle: perfectMatch.main?.title,
+  suggestions: perfectMatch.suggestions?.map(m => m.title)
+});
+
     }
 
     console.log('✅ Final results ready:', {

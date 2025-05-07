@@ -30,7 +30,7 @@ export function PerfectMatchCard({ movie, insights, isDark }: PerfectMatchCardPr
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
 
-  const uniquePlatforms = movie.streamingPlatforms.reduce((acc: string[], platform) => {
+const uniquePlatforms = (movie.streamingPlatforms || []).reduce((acc: string[], platform) => {
     const exists = acc.some(existing => {
       const existingStyle = getPlatformStyle(existing);
       const newStyle = getPlatformStyle(platform);

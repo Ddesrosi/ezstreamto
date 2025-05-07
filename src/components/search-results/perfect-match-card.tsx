@@ -202,7 +202,9 @@ const uniquePlatforms = (movie.streamingPlatforms || []).reduce((acc: string[], 
                 You Might Also Like
               </h4>
               <div className="space-y-3">
-                {insights.recommendations.map((rec, index) => {
+               {insights.recommendations
+  .filter(rec => !!rec && typeof rec === 'object')
+  .map((rec, index) => {
                   const normalizedPlatforms = rec.streamingPlatforms || [];
                   const imageUrl = rec.imageUrl || FALLBACK_IMAGE;
                   const title = rec.title || 'Untitled';

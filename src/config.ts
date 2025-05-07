@@ -3,6 +3,13 @@ export const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 export const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 export const DEEPSEEK_API_KEY = import.meta.env.VITE_DEEPSEEK_API_KEY ?? '';
 console.log("🧪 DEEPSEEK_API_KEY from config.ts:", DEEPSEEK_API_KEY);
+export function getDeepseekApiKey(): string {
+  if (!DEEPSEEK_API_KEY) {
+    console.warn('⚠️ Deepseek API key is missing!');
+  }
+  return DEEPSEEK_API_KEY;
+}
+
 
 // Import all sensitive keys from .env
 export const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY;
@@ -43,6 +50,3 @@ export const CACHE_CONFIG = {
   duration: 5 * 60 * 1000, // 5 minutes
   prefix: 'moviemate_'
 };
-export function getDeepseekApiKey(): string {
-  return DEEPSEEK_API_KEY;
-}

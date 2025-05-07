@@ -151,6 +151,13 @@ Return only the explanation as plain text.
   console.log("🧠 Explanation added to Perfect Match:", explanation);
 } else {
   console.warn("⚠️ No explanation returned from Deepseek.");
+
+   // ✅ Always define insights, even if explanation is missing
+perfectMatch.insights = {
+  explanation: explanation || "This film matches your preferences based on its genre, mood, and audience appeal.",
+  recommendations: perfectMatch.suggestions
+};
+
 }
 } catch (error) {
   console.warn("⚠️ Failed to fetch explanation from Deepseek:", error);

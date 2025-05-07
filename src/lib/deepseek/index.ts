@@ -145,6 +145,8 @@ Return only the explanation as plain text.
 
  if (explanation) {
   perfectMatch.main.description = explanation;
+  perfectMatch.insights = { explanation, recommendations: perfectMatch.suggestions };
+
   console.log("🧠 Explanation added to Perfect Match:", explanation);
 } else {
   console.warn("⚠️ No explanation returned from Deepseek.");

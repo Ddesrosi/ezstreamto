@@ -27,16 +27,25 @@ interface PerfectMatchCardProps {
 }
 
 export function PerfectMatchCard({ movie, insights, isDark }: PerfectMatchCardProps) {
-    if (!movie || typeof movie !== 'object') {
+  if (!movie || typeof movie !== 'object') {
     console.warn('⚠️ PerfectMatchCard: movie is undefined or invalid:', movie);
     return null;
+  }
 
-      if (!insights || typeof insights !== 'object') {
+  if (!insights || typeof insights !== 'object') {
     console.warn('⚠️ PerfectMatchCard: insights is undefined or invalid:', insights);
     return null;
   }
-  
+
+  if (!movie.streamingPlatforms || !Array.isArray(movie.streamingPlatforms)) {
+    console.error("❌ Invalid movie data: missing or malformed streamingPlatforms", movie);
+    return (
+      <div className="p-6 text-red-500">
+        ⚠️ Movie data is incomplete. Please try again or modify your preferences.
+      </div>
+    );
   }
+
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
 
@@ -213,8 +222,14 @@ const uniquePlatforms = (movie.streamingPlatforms || []).reduce((acc: string[], 
               </h4>
               <div className="space-y-3">
                {insights.recommendations
-  .filter(rec => !!rec && typeof rec === 'object')
+  .filter(rec =>
+    rec &&
+    typeof rec === 'object' &&
+    rec.title &&
+    Array.isArray(rec.streamingPlatforms)
+  )
   .map((rec, index) => {
+
                   const normalizedPlatforms = rec.streamingPlatforms || [];
                   const imageUrl = rec.imageUrl || FALLBACK_IMAGE;
                   const title = rec.title || 'Untitled';

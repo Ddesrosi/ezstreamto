@@ -6,6 +6,8 @@ import { fetchMovieListFromDeepseek } from './deepseek-client';
 import { generatePerfectMatchInsights } from '@/lib/perfect-match';
 import { getDeepseekApiKey } from "@/config";
 
+console.log("🔐 Deepseek API Key used:", getDeepseekApiKey());
+
 class RecommendationError extends Error {
   constructor(message: string) {
     super(message);
@@ -163,13 +165,6 @@ perfectMatch.insights = {
   console.warn("⚠️ Failed to fetch explanation from Deepseek:", error);
 }
 
-try {
-  const insights = await generatePerfectMatchInsights(perfectMatch.main, preferences);
-  perfectMatch.insights = insights;
-} catch (err) {
-  console.warn('⚠️ Failed to generate insights:', err);
-  perfectMatch.insights = undefined;
-}
 
 console.log("✅ Perfect Match constructed:", {
   mainTitle: perfectMatch.main?.title,

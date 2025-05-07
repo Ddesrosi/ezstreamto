@@ -106,6 +106,8 @@ console.log("🪵 rawText:", response?.rawText);
     const limit = preferences.isPremium ? PREMIUM_USER_LIMIT : BASIC_USER_LIMIT;
     const finalResults = enrichedResults.slice(0, limit);
 
+        let perfectMatch = undefined;
+
     if (preferences.isPerfectMatch && preferences.isPremium) {
   console.log("🔍 Sorting for Perfect Match based on popularity");
 
@@ -168,8 +170,6 @@ console.log("🪵 rawText:", response?.rawText);
     suggestions: perfectMatch.suggestions?.map(m => m.title)
   });
 }
-
-    let perfectMatch = undefined;
 
 if (preferences.isPerfectMatch && preferences.isPremium) {
   const sorted = [...finalResults].sort((a, b) => (b.popularity || 0) - (a.popularity || 0));

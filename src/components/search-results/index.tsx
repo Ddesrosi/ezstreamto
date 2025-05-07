@@ -40,6 +40,9 @@ export default function SearchResults({
   setShowPremiumModal,
   perfectMatch 
 }: SearchResultsProps) {
+
+  console.log("📊 perfectMatch received:", perfectMatch);
+  console.log("🎬 movie details:", perfectMatch?.movie);
   
   const [displayedResults, setDisplayedResults] = useState<Movie[]>([]);
 
@@ -199,10 +202,7 @@ export default function SearchResults({
 
         </div>
       </div>
-      
-console.log("📊 perfectMatch received:", perfectMatch);
-console.log("🎬 movie details:", perfectMatch?.movie);
-     
+   
       {perfectMatch ? (
         <div className="my-8 w-full">
          <PerfectMatchCard

@@ -352,3 +352,6 @@ export async function findPerfectMatch(preferences: PerfectMatchPreferences): Pr
 }
 
 export type { PerfectMatchPreferences, PerfectMatchInsights };
+
+export { generatePerfectMatchInsights };
+

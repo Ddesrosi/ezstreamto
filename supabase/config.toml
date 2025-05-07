@@ -1,2 +1,5 @@
 [functions."bmc-webhook"]
 verify_jwt = false
+
+[functions."perfect-match"]
+verify_jwt = false

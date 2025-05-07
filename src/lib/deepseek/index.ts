@@ -142,6 +142,7 @@ Return only the explanation as plain text.
 
         const data = await aiResponse.json();
         const explanation = data?.choices?.[0]?.message?.content?.trim();
+        console.log("🧠 Deepseek explanation raw:", explanation);
 
  if (explanation) {
   perfectMatch.main.description = explanation;

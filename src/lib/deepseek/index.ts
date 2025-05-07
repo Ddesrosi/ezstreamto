@@ -4,7 +4,7 @@ import { enrichMovieWithPoster, FALLBACK_IMAGE } from '../tmdb';
 import { BASIC_USER_LIMIT, PREMIUM_USER_LIMIT } from '@/config';
 import { fetchMovieListFromDeepseek } from './deepseek-client';
 import { generatePerfectMatchInsights } from '@/lib/perfect-match';
-import { getDeepseekApiKey } from "@/config";
+import { getDeepseekApiKey } from '../../config';
 
 console.log("🔐 Deepseek API Key used:", getDeepseekApiKey());
 

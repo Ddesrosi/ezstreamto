@@ -43,3 +43,6 @@ export const CACHE_CONFIG = {
   duration: 5 * 60 * 1000, // 5 minutes
   prefix: 'moviemate_'
 };
+export function getDeepseekApiKey(): string {
+  return DEEPSEEK_API_KEY;
+}

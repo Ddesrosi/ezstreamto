@@ -139,14 +139,17 @@ serve(async (req) => {
       }
 
       const { error: insertError } = await supabase
-        .from("ip_searches")
-        .insert({
-          ip_address: ip,
-          uuid: uuid ? uuid.toString() : null,
-          search_count: 1,
-          last_search: new Date().toISOString(),
-          created_at: new Date().toISOString()
-        });
+  .from("ip_searches")
+  .upsert(
+    {
+      ip_address: ip,
+      uuid: uuid ? uuid.toString() : null,
+      search_count: 1,
+      last_search: new Date().toISOString(),
+      created_at: new Date().toISOString()
+    },
+    { onConflict: 'ip_address' }
+  );
 
       if (insertError) throw insertError;
     }

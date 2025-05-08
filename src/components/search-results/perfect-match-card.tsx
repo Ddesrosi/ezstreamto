@@ -27,6 +27,8 @@ interface PerfectMatchCardProps {
 }
 
 export function PerfectMatchCard({ movie, insights, isDark }: PerfectMatchCardProps) {
+   console.log("🧩 Inside PerfectMatchCard – movie =", movie);
+  console.log("🧩 Inside PerfectMatchCard – insights =", insights);
   if (!movie || typeof movie !== 'object') {
   console.warn('⚠️ PerfectMatchCard: movie is undefined or invalid:', movie);
   return null;

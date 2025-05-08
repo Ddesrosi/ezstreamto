@@ -206,7 +206,7 @@ export default function SearchResults({
       {perfectMatch ? (
         <div className="my-8 w-full">
          <PerfectMatchCard
-  movie={perfectMatch.main}
+  movie={perfectMatch.movie}
   insights={perfectMatch.insights}
   isDark={isDark}
 />

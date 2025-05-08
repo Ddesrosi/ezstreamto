@@ -7,6 +7,7 @@ const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 serve(async (req) => {
+  console.log("🧪 search-limit called");
   const origin = req.headers.get("Origin") || "";
   const normalizedOrigin = origin.replace(/:\d+$/, "");
 

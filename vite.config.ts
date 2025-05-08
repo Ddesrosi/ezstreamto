@@ -1,4 +1,5 @@
 import { defineConfig, loadEnv } from 'vite';
+console.log("🧪 VITE_DEEPSEEK_API_KEY depuis vite.config.ts =", process.env.VITE_DEEPSEEK_API_KEY);
 import react from '@vitejs/plugin-react';
 import svgr from 'vite-plugin-svgr';
 import path from 'path';
@@ -8,8 +9,8 @@ export default defineConfig(({ mode }) => {
 
   return {
     define: {
-      'import.meta.env': env
-    },
+  'import.meta.env.VITE_DEEPSEEK_API_KEY': JSON.stringify(env.VITE_DEEPSEEK_API_KEY),
+},
     plugins: [react(), svgr()],
     optimizeDeps: {
       exclude: ['lucide-react'],

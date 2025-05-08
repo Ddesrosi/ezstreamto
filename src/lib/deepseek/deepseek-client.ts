@@ -1,5 +1,7 @@
 import { getClientIp } from "@/lib/search-limits/get-ip";
 
+console.log("🔑 VITE_DEEPSEEK_API_KEY =", import.meta.env.VITE_DEEPSEEK_API_KEY);
+
 export async function fetchMovieListFromDeepseek(prompt: string) {
   const ip = await getClientIp();
 

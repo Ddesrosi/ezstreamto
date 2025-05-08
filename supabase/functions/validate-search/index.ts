@@ -5,6 +5,8 @@ import { corsHeaders } from '../_shared/cors.ts';
 const LIFETIME_LIMIT = 5;
 
 serve(async (req) => {
+console.log("🧪 validate-search called");
+  
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }

@@ -28,23 +28,19 @@ interface PerfectMatchCardProps {
 
 export function PerfectMatchCard({ movie, insights, isDark }: PerfectMatchCardProps) {
   if (!movie || typeof movie !== 'object') {
-    console.warn('⚠️ PerfectMatchCard: movie is undefined or invalid:', movie);
-    return null;
-  }
+  console.warn('⚠️ PerfectMatchCard: movie is undefined or invalid:', movie);
+  return null;
+}
 
   if (!insights || typeof insights !== 'object') {
     console.warn('⚠️ PerfectMatchCard: insights is undefined or invalid:', insights);
     return null;
   }
 
-  if (!movie.streamingPlatforms || !Array.isArray(movie.streamingPlatforms)) {
-    console.error("❌ Invalid movie data: missing or malformed streamingPlatforms", movie);
-    return (
-      <div className="p-6 text-red-500">
-        ⚠️ Movie data is incomplete. Please try again or modify your preferences.
-      </div>
-    );
-  }
+  if (!Array.isArray(movie.streamingPlatforms)) {
+  console.warn("⚠️ movie.streamingPlatforms is not an array, defaulting to empty array");
+  movie.streamingPlatforms = [];
+}
 
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);

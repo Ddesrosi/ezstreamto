@@ -42,6 +42,7 @@ export default function SearchResults({
 }: SearchResultsProps) {
 
   console.log("📊 perfectMatch received:", perfectMatch);
+  console.log("🧪 Vérification PerfectMatch avant affichage :", perfectMatch);
   console.log("🎬 movie details:", perfectMatch?.main);
   
   const [displayedResults, setDisplayedResults] = useState<Movie[]>([]);
@@ -202,9 +203,7 @@ export default function SearchResults({
 
         </div>
       </div>
-
-      console.log("🧪 Vérification PerfectMatch avant affichage :", perfectMatch);
-   
+    
       {perfectMatch ? (
         <div className="my-8 w-full">
          <PerfectMatchCard

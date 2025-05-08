@@ -43,6 +43,7 @@ export default function SearchResults({
 
   console.log("📊 perfectMatch received:", perfectMatch);
   console.log("🧪 Vérification PerfectMatch avant affichage :", perfectMatch);
+  console.log("🎯 Vérification des champs : main =", perfectMatch?.main, "| insights =", perfectMatch?.insights);
   console.log("🎬 movie details:", perfectMatch?.main);
   
   const [displayedResults, setDisplayedResults] = useState<Movie[]>([]);

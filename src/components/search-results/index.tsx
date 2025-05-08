@@ -22,8 +22,8 @@ interface SearchResultsProps {
   isPremium: boolean;
   isPremiumLoading: boolean;
   setShowPremiumModal: (show: boolean) => void;
-  perfectMatch?: {
-    movie: Movie;
+    perfectMatch?: {
+    main: Movie;
     insights: PerfectMatchInsights;
   };
 }

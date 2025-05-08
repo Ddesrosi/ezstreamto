@@ -33,6 +33,7 @@ export async function validateSearch(mode: Mode = 'check', uuid?: string) {
   email: localStorage.getItem('visitor_email') || null
 };
 
+    console.log("📤 Email envoyé à search-limit:", body.email);
     console.log("📤 Request sent with body:", body);
 
     const requestPromise = retryFetch('https://acmpivmrokzblypxdxbu.supabase.co/functions/v1/search-limit', {

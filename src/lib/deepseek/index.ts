@@ -163,8 +163,12 @@ perfectMatch.insights = {
 }
 } catch (error) {
   console.warn("⚠️ Failed to fetch explanation from Deepseek:", error);
-}
 
+  perfectMatch.insights = {
+    explanation: "We couldn’t generate a detailed explanation, but this movie still aligns with your preferences.",
+    recommendations: perfectMatch.suggestions || []
+  };
+}
 
 console.log("✅ Perfect Match constructed:", {
   mainTitle: perfectMatch.main?.title,

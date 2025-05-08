@@ -156,13 +156,13 @@ serve(async (req) => {
 
     console.log("✅ Search count updated:", newCount);
 
-    return new Response(JSON.stringify({
-      canSearch: true,
-      remaining: Math.max(0, maxSearches - newCount),
-      total: maxSearches,
-      isPremium: false,
-      message: "Search recorded"
-    }), { headers: { ...cors, "Content-Type": "application/json" } });
+   return new Response(JSON.stringify({
+  canSearch: newCount < maxSearches,
+  remaining: Math.max(0, maxSearches - newCount),
+  total: maxSearches,
+  isPremium: false,
+  message: "Search recorded"
+}), { headers: { ...cors, "Content-Type": "application/json" } });
 
   } catch (err) {
     console.error("❌ Error in search-limit function:", err);

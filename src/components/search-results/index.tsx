@@ -202,6 +202,8 @@ export default function SearchResults({
 
         </div>
       </div>
+
+      console.log("🧪 Vérification PerfectMatch avant affichage :", perfectMatch);
    
       {perfectMatch ? (
         <div className="my-8 w-full">

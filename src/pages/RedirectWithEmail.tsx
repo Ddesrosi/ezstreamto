@@ -38,6 +38,7 @@ export default function RedirectWithEmail() {
 
       localStorage.setItem('isPremium', 'true');
       localStorage.setItem('supporter_email', email);
+      localStorage.setItem('visitor_email', email);
 
       console.log('✅ Premium activated for:', email);
       setStatus('success');

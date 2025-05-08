@@ -35,6 +35,31 @@ serve(async (req) => {
     const ip = body.ip;
     let uuid = body.uuid || null;
     const mode = body.mode || "check";
+    const email = body.email || null;
+
+    console.log("🔎 Recherche dans supporters avec IP:", ip, "et UUID:", uuid);
+
+if (email) {
+  console.log("📧 Vérification du supporter par e-mail:", email);
+  const { data: supporter } = await supabase
+    .from("supporters")
+    .select("unlimited_searches")
+    .eq("email", email)
+    .eq("verified", true)
+    .maybeSingle();
+
+  console.log("🔍 supporter trouvé (via email) :", supporter);
+
+  if (supporter) {
+    return new Response(JSON.stringify({
+      canSearch: true,
+      remaining: Infinity,
+      total: Infinity,
+      isPremium: true,
+      message: "Premium user"
+    }), { headers: { ...cors, "Content-Type": "application/json" } });
+  }
+}
 
     console.log("📦 Mode:", mode);
     console.log("🌐 IP:", ip);
@@ -50,23 +75,6 @@ serve(async (req) => {
     if (uuid && typeof uuid !== "string") {
       console.warn("❌ Invalid UUID format: UUID must be a string");
       uuid = null;
-    }
-
-    const { data: supporter } = await supabase
-      .from("supporters")
-      .select("unlimited_searches")
-      .or(`ip_address.eq.${ip},visitor_uuid.eq.${uuid}`)
-      .eq("verified", true)
-      .maybeSingle();
-
-    if (supporter) {
-      return new Response(JSON.stringify({
-        canSearch: true,
-        remaining: Infinity,
-        total: Infinity,
-        isPremium: true,
-        message: "Premium user"
-      }), { headers: { ...cors, "Content-Type": "application/json" } });
     }
 
     const maxSearches = 5;

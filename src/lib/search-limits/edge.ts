@@ -26,7 +26,12 @@ export async function validateSearch(mode: Mode = 'check', uuid?: string) {
       return await cachedRequest;
     }
 
-    const body = { ip, uuid: finalUUID, mode };
+  const body = {
+  ip,
+  uuid: finalUUID,
+  mode,
+  email: localStorage.getItem('visitor_email') || null
+};
 
     console.log("📤 Request sent with body:", body);
 

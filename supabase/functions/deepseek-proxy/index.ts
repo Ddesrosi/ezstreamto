@@ -114,12 +114,13 @@ try {
   })
 });
 
-  const data = await deepseekRes.json();
-  console.log("📦 Deepseek JSON reçu:", data);
-
   if (!deepseekRes.ok) {
-    throw new Error(`Deepseek API error: ${JSON.stringify(data)}`);
-  }
+  const errorText = await deepseekRes.text();
+  throw new Error(`Deepseek API error: ${errorText}`);
+}
+
+const data = await deepseekRes.json();
+console.log("📦 Deepseek JSON reçu:", data);
 
 rawText = JSON.stringify(data);
 

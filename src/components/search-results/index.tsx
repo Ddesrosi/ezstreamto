@@ -43,6 +43,13 @@ export default function SearchResults({
 
   console.log("📊 perfectMatch received:", perfectMatch);
   console.log("🧪 Vérification PerfectMatch avant affichage :", perfectMatch);
+  console.log("🔍 Champs de main:", {
+  title: perfectMatch?.main?.title,
+  year: perfectMatch?.main?.year,
+  genres: perfectMatch?.main?.genres,
+  imageUrl: perfectMatch?.main?.imageUrl,
+  streamingPlatforms: perfectMatch?.main?.streamingPlatforms
+});
   console.log("🎯 Vérification des champs : main =", perfectMatch?.main, "| insights =", perfectMatch?.insights);
   console.log("🎬 movie details:", perfectMatch?.main);
   

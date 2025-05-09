@@ -61,17 +61,16 @@ ${optional ? `- ${optional}` : ""}
 }
 `.trim();
 
-  const response = await fetch("https://api.deepseek.com/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${apiKey}`
-    },
-    body: JSON.stringify({
-      model: "deepseek-chat",
-      messages: [{ role: "user", content: prompt }]
-    })
-  });
+ const ip = req.headers.get("x-forwarded-for") || "127.0.0.1";
+
+const response = await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/deepseek-proxy`, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`
+  },
+  body: JSON.stringify({ prompt, ip })
+});
 
   const rawText = await response.text();
 

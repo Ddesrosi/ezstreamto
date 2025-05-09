@@ -51,18 +51,22 @@ serve(async (req) => {
   const { prompt, ip } = await req.json();
   console.log("📥 Données reçues :", { prompt, ip });
 
-  if (!prompt || !ip) {
-    console.log("⚠️ Prompt ou IP manquant");
-    return new Response(JSON.stringify({
-      error: "Missing prompt or IP"
-    }), {
-      headers: {
-        ...cors,
-        "Content-Type": "application/json"
-      },
-      status: 400
-    });
-  }
+ if (!prompt) {
+  console.log("⚠️ Prompt manquant");
+  return new Response(JSON.stringify({
+    error: "Missing prompt"
+  }), {
+    headers: {
+      ...cors,
+      "Content-Type": "application/json"
+    },
+    status: 400
+  });
+}
+
+if (!ip) {
+  console.warn("⚠️ IP manquante — quota non vérifié (appel probablement Premium ou serveur)");
+}
 
   // 🔍 Vérification des crédits avec search-limit
   const creditRes = await fetch(`${supabaseUrl}/functions/v1/search-limit`, {

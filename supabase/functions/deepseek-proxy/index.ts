@@ -91,7 +91,8 @@ serve(async (req) => {
   console.log("🎬 Envoi du prompt à Deepseek...");
 
 let rawMovies = null;
-let deepseekRes;   
+let rawText = null;       // ✅ pour éviter ReferenceError
+let deepseekRes;
 
 try {
   deepseekRes = await fetch("https://api.deepseek.com/v1/chat/completions", {

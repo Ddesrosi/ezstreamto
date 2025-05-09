@@ -22,7 +22,7 @@ serve(async (req: Request) => {
 
     console.log("📥 Received preferences:", preferences);
 
-    const result = await generatePerfectMatchInsights(preferences);
+    const result = await generatePerfectMatchInsights(preferences, req);
 
     console.log("✅ Result:", result);
 

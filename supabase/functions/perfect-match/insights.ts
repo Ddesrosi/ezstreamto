@@ -2,7 +2,8 @@ import { getDeepseekApiKey } from "../_shared/config.ts";
 import { enrichMovieWithPoster } from "../_shared/tmdb.ts";
 import type { Movie, SearchPreferences } from "../_shared/types.ts";
 
-export async function generatePerfectMatchInsights(preferences: SearchPreferences) {
+export async function generatePerfectMatchInsights(preferences: SearchPreferences, req: Request)
+{
   const apiKey = getDeepseekApiKey();
 
   const required = {
@@ -90,9 +91,11 @@ const response = await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/deeps
     (parsed.youMightAlsoLike || []).slice(0, 3).map((m: Movie) => enrichMovieWithPoster(m))
   );
 
-  return {
+   return {
     movie: enrichedPerfectMatch,
-    explanation: parsed.explanation || "",
-    suggestions: enrichedSuggestions
+    insights: {
+      reason: parsed.explanation || "",
+      similar: enrichedSuggestions
+    }
   };
-}
+} // ✅ cette accolade ferme la fonction generatePerfectMatchInsights

@@ -91,10 +91,10 @@ serve(async (req) => {
   console.log("🎬 Envoi du prompt à Deepseek...");
 
 let rawMovies = null;
+let deepseekRes;   
 
 try {
-  const deepseekRes = await fetch("https://api.deepseek.com/v1/chat/completions", {
-    method: "POST",
+  deepseekRes = await fetch("https://api.deepseek.com/v1/chat/completions", {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${deepseekApiKey}`
@@ -120,11 +120,13 @@ rawText = JSON.stringify(data);
 } catch (error) {
   console.error("❌ Erreur Deepseek:", error);
 
-  try {
-    const rawText = await deepseekRes.text();
-    console.error("❌ Contenu brut reçu de Deepseek (avant JSON):", rawText);
-  } catch (parseError) {
-    console.error("❌ Impossible d'afficher la réponse brute Deepseek:", parseError);
+  if (deepseekRes) {
+    try {
+      const rawText = await deepseekRes.text();
+      console.error("❌ Contenu brut reçu de Deepseek:", rawText);
+    } catch (parseError) {
+      console.error("❌ Impossible d'afficher la réponse brute Deepseek:", parseError);
+    }
   }
 
   return new Response(JSON.stringify({

@@ -22,15 +22,16 @@ export async function fetchMovieListFromDeepseek(prompt: string) {
   if (!res.ok) {
     const errorDetails = await res.text();
     console.error("❌ Deepseek proxy error:", errorDetails);
-    throw new Error("Failed to fetch movie recommendations from Deepseek");
+    throw new Error(`Failed to fetch movie recommendations: ${errorDetails}`);
   }
 
   const responseData = await res.json();
-  const { rawText, rawMovies } = responseData;
+  console.log("🧪 responseData received from deepseek-proxy:", responseData);
 
-  if (!rawText && !rawMovies) {
-    console.error("❌ Missing both rawText and rawMovies in Deepseek proxy response:", responseData);
-    throw new Error("Invalid response from Deepseek proxy.");
+  // Check for both rawText and rawMovies
+  if (!responseData.rawText && !responseData.rawMovies) {
+    console.error("❌ Invalid response from Deepseek proxy:", responseData);
+    throw new Error("No movie recommendations received from the server");
   }
 
   let movieData;
@@ -38,43 +39,43 @@ export async function fetchMovieListFromDeepseek(prompt: string) {
   try {
     let content = "";
 
-    if (rawText) {
+    if (responseData.rawText) {
       console.log("🪵 Received rawText from Deepseek.");
-      const deepseekResponse = JSON.parse(rawText);
-
-      if (!deepseekResponse?.choices?.[0]?.message?.content) {
-        console.error("❌ Invalid Deepseek response structure:", deepseekResponse);
-        throw new Error("Invalid response structure from Deepseek");
-      }
-
-      content = deepseekResponse.choices[0].message.content;
-
-    } else if (rawMovies) {
+      const parsed = JSON.parse(responseData.rawText);
+      content = parsed?.choices?.[0]?.message?.content;
+    } else if (responseData.rawMovies?.choices?.[0]?.message?.content) {
       console.log("🪵 Received rawMovies from Deepseek (new format).");
-
-      if (!rawMovies?.choices?.[0]?.message?.content) {
-        console.error("❌ Invalid rawMovies response structure:", rawMovies);
-        throw new Error("Invalid rawMovies structure: Missing content");
-      }
-
-      content = rawMovies.choices[0].message.content;
+      content = responseData.rawMovies.choices[0].message.content;
+    } else {
+      console.error("❌ Invalid Deepseek format: neither rawText nor valid rawMovies");
+      throw new Error("Unrecognized response format from Deepseek");
     }
 
-    // 🧼 Nettoyer le bloc Markdown s'il existe
+    if (!content) {
+      throw new Error("Empty content from Deepseek");
+    }
+
+    // 🧼 Nettoyer bloc Markdown si présent
     if (content.includes("```")) {
       content = content.replace(/```(?:json)?/g, "").trim();
     }
 
-    movieData = JSON.parse(content);
+    console.log("📦 Deepseek content to parse:", content);
+
+const parsedData = JSON.parse(content);
+movieData = parsedData.movies;
 
     if (!Array.isArray(movieData)) {
-      console.error("❌ Movie data is not an array:", movieData);
-      throw new Error("Invalid movie data format: Expected an array");
+      throw new Error("Expected an array of movie objects");
     }
 
   } catch (e) {
     console.error("❌ Failed to parse movie data:", e);
-    throw new Error("Failed to parse movie recommendations: " + e.message);
+    throw new Error("Failed to process movie recommendations: " + e.message);
+  }
+
+  if (!movieData || movieData.length === 0) {
+    throw new Error("No movie recommendations found");
   }
 
   return {

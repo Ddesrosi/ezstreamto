@@ -115,7 +115,7 @@ try {
     throw new Error(`Deepseek API error: ${JSON.stringify(data)}`);
   }
 
-  rawMovies = data;
+rawText = JSON.stringify(data);
 
 } catch (error) {
  console.error("❌ Erreur Deepseek:", error);
@@ -131,15 +131,15 @@ try {
 }
 
 return new Response(JSON.stringify({
- rawMovies,
- remaining: creditData.remaining,
- isPremium: creditData.isPremium
+  rawText,
+  remaining: creditData.remaining,
+  isPremium: creditData.isPremium
 }), {
- headers: {
-   ...cors,
-   "Content-Type": "application/json"
- },
- status: 200
+  headers: {
+    ...cors,
+    "Content-Type": "application/json"
+  },
+  status: 200
 });
 
 } catch (e) {

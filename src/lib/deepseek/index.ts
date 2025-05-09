@@ -63,10 +63,17 @@ export async function getMovieRecommendations(preferences: SearchPreferences): P
       throw new RecommendationError('Invalid response from Deepseek: Missing movie data');
     }
 
-    if (!Array.isArray(response.rawMovies)) {
-      console.error('❌ Invalid movies data type:', typeof response.rawMovies);
-      throw new RecommendationError('Invalid response from Deepseek: Movie data is not an array');
-    }
+   let movieArray: Movie[];
+try {
+  movieArray = response.rawMovies;
+
+  if (!Array.isArray(movieArray)) {
+    throw new Error("Expected an array of movies");
+  }
+} catch (err) {
+  console.error("❌ Failed to extract movies from Deepseek format:", err);
+  throw new RecommendationError("Invalid Deepseek response structure");
+}
 
     console.log("📦 Response received from Deepseek:", {
       movieCount: response.rawMovies.length,
@@ -75,7 +82,7 @@ export async function getMovieRecommendations(preferences: SearchPreferences): P
     });
 
     const enrichedResults = await Promise.all(
-      response.rawMovies.map(async (movie) => {
+  movieArray.map(async (movie) => {
         const movieWithDefaults = {
           id: crypto.randomUUID(),
           title: movie.title,

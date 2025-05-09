@@ -8,12 +8,10 @@ export function buildSearchPrompt(preferences: SearchPreferences): string {
     keywords,
     yearRange,
     specificYear,
-    ratingRange,
-    isPremium,
-    isPerfectMatch
+    ratingRange
   } = preferences;
 
-  const resultCount = isPremium ? 10 : 5;
+  const resultCount = preferences.isPremium ? 10 : 5;
   const typeLabel = contentType === 'movie' ? 'movies' : 'TV series';
 
   const promptLines = [];
@@ -28,30 +26,26 @@ export function buildSearchPrompt(preferences: SearchPreferences): string {
 
   promptLines.push(`\nUser Preferences:`);
 
-  // Required criteria
   promptLines.push(`- Mood(s): ${selectedMoods.join(', ')}`);
   promptLines.push(`- Genre(s): ${selectedGenres.join(', ')}`);
 
-  // Optional: Time Period → derived from yearRange
-  if (specificYear && isPremium) {
+  if (specificYear) {
     promptLines.push(`- Specific Year: ${specificYear}`);
   } else if (yearRange?.from && yearRange?.to) {
-    promptLines.push(`- Release between 1970 and ${yearRange.to}`);
+    promptLines.push(`- Release between ${yearRange.from} and ${yearRange.to}`);
   }
 
-  // Optional: Keywords (Premium only)
-  if (isPremium && keywords.length > 0) {
-    promptLines.push(`- Keywords: ${keywords.join(', ')} (selected from a predefined list)`);
+  if (keywords && keywords.length > 0) {
+    promptLines.push(`- Keywords: ${keywords.join(', ')}`);
   }
 
-  // Optional: Rating Range (Premium only)
-  if (isPremium && (ratingRange.min > 0 || ratingRange.max < 10)) {
+  if (ratingRange && (ratingRange.min > 0 || ratingRange.max < 10)) {
     promptLines.push(`- Rating between ${ratingRange.min} and ${ratingRange.max}`);
   }
 
   promptLines.push(
     `\nRules:`,
-    `- Do NOT include any movie classified as \"Documentary\" unless \"Documentary\" was explicitly selected as a genre.`,
+    `- Do NOT include any movie classified as "Documentary" unless "Documentary" was explicitly selected as a genre.`,
     `- Only include movies or series that are available at least in English.`,
     `- Only include content released from 1970 onwards.`
   );

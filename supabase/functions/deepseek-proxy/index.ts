@@ -110,7 +110,7 @@ try {
     ],
     temperature: 0.7,
     max_tokens: 1000,
-    response_format: "json_object"
+    response_format: { type: "json_object" }
   })
 });
 
@@ -126,15 +126,7 @@ rawText = JSON.stringify(data);
 
 } catch (error) {
   console.error("❌ Erreur Deepseek:", error);
-
-  if (deepseekRes) {
-    try {
-      const rawText = await deepseekRes.text();
-      console.error("❌ Contenu brut reçu de Deepseek:", rawText);
-    } catch (parseError) {
-      console.error("❌ Impossible d'afficher la réponse brute Deepseek:", parseError);
-    }
-  }
+  console.warn("⚠️ Réponse brute non affichée : body déjà consommé.");
 
   return new Response(JSON.stringify({
     error: "Failed to fetch or parse Deepseek response"

@@ -70,7 +70,7 @@ const response = await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/deeps
     "Content-Type": "application/json",
     Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`
   },
-  body: JSON.stringify({ prompt, ip })
+  body: JSON.stringify({ prompt, ip, uuid: "perfect-match-server" })
 });
 
   const rawText = await response.text();

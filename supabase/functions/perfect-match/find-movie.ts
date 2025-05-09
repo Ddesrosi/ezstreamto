@@ -6,7 +6,13 @@ import type { SearchPreferences, Movie } from "@/types";
  * Fonction appelée par l'Edge Function "perfect-match"
  * Elle récupère un film principal basé sur les préférences réelles
  */
-export async function findPerfectMatchMovie(preferences: SearchPreferences): Promise<Movie> {
+export async function findPerfectMatchMovie(preferences: SearchPreferences): Promise<{
+  movie: Movie;
+  insights: {
+    reason: string;
+    similar: Movie[];
+  };
+}> {
   console.log("🎯 [findPerfectMatchMovie] Preferences:", preferences);
 
   try {
@@ -18,12 +24,21 @@ export async function findPerfectMatchMovie(preferences: SearchPreferences): Pro
       throw new Error("No results from Deepseek");
     }
 
-    const main = results[0];
-    const enriched = await enrichMovieWithPoster(main);
+    const main = await enrichMovieWithPoster(results[0]);
 
-    console.log("✅ [findPerfectMatchMovie] Enriched main movie:", enriched);
+    const similar = await Promise.all(
+      results.slice(1, 4).map(enrichMovieWithPoster)
+    );
 
-    return enriched;
+    const insights = {
+      reason: "This movie matches your selected moods and genres.",
+      similar
+    };
+
+    return {
+      movie: main,
+      insights
+    };
   } catch (err) {
     console.error("❌ [findPerfectMatchMovie] Error:", err);
     throw err;

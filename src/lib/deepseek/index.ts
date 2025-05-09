@@ -128,24 +128,23 @@ Movie:
 Return only the explanation as plain text.
 `;
 
-        const aiResponse = await fetch("https://api.deepseek.com/chat", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${getDeepseekApiKey()}`
-          },
-          body: JSON.stringify({
-            model: "deepseek-chat",
-            messages: [{ role: "user", content: explanationPrompt }],
-            temperature: 0.7,
-            max_tokens: 500
-          })
-        });
+      const proxyResponse = await fetch("https://acmpivmrokzblypxdxbu.supabase.co/functions/v1/deepseek-proxy", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
+  },
+  body: JSON.stringify({ prompt: explanationPrompt, ip: null }) // ou passer ip si disponible
+});
 
-        const data = await aiResponse.json();
-        const explanation = data?.choices?.[0]?.message?.content?.trim();
-        console.log("🧠 Deepseek explanation raw:", explanation);
+if (!proxyResponse.ok) {
+  const errorText = await proxyResponse.text();
+  throw new Error(`Deepseek proxy failed: ${errorText}`);
+}
 
+const proxyData = await proxyResponse.json();
+const explanation = proxyData?.choices?.[0]?.message?.content?.trim();
+ 
  if (explanation) {
   perfectMatch.main.description = explanation;
   perfectMatch.insights = { explanation, recommendations: perfectMatch.suggestions };

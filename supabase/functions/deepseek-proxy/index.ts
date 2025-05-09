@@ -118,16 +118,24 @@ try {
 rawText = JSON.stringify(data);
 
 } catch (error) {
- console.error("❌ Erreur Deepseek:", error);
- return new Response(JSON.stringify({
-   error: "Failed to fetch or parse Deepseek response"
- }), {
-   headers: {
-     ...cors,
-     "Content-Type": "application/json"
-   },
-   status: 500
- });
+  console.error("❌ Erreur Deepseek:", error);
+
+  try {
+    const rawText = await deepseekRes.text();
+    console.error("❌ Contenu brut reçu de Deepseek (avant JSON):", rawText);
+  } catch (parseError) {
+    console.error("❌ Impossible d'afficher la réponse brute Deepseek:", parseError);
+  }
+
+  return new Response(JSON.stringify({
+    error: "Failed to fetch or parse Deepseek response"
+  }), {
+    headers: {
+      ...cors,
+      "Content-Type": "application/json"
+    },
+    status: 500
+  });
 }
 
 return new Response(JSON.stringify({

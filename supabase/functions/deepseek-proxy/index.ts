@@ -49,12 +49,13 @@ serve(async (req) => {
   try {
   console.log("⏳ Requête reçue");
   const { prompt, explanationPrompt, ip, uuid } = await req.json();
+  const finalPrompt = explanationPrompt || prompt;
   console.log("📥 Données reçues :", { prompt, explanationPrompt, ip, uuid });
 
- if (!prompt) {
-  console.log("⚠️ Prompt manquant");
+ if (!finalPrompt) {
+  console.log("⚠️ Aucun prompt valide transmis");
   return new Response(JSON.stringify({
-    error: "Missing prompt"
+    error: "Missing final prompt"
   }), {
     headers: {
       ...cors,
@@ -115,12 +116,12 @@ try {
   },
   body: JSON.stringify({
     model: "deepseek-chat",
-    messages: [
-      {
-        role: "user",
-        content: explanationPrompt || prompt
-      }
-    ],
+      messages: [
+    {
+      role: "user",
+      content: finalPrompt
+    }
+  ],
     temperature: 0.7,
     max_tokens: 1000,
     response_format: { type: "json_object" }

@@ -48,8 +48,8 @@ serve(async (req) => {
 
   try {
   console.log("⏳ Requête reçue");
-  const { prompt, ip } = await req.json();
-  console.log("📥 Données reçues :", { prompt, ip });
+  const { prompt, ip, uuid } = await req.json();
+  console.log("📥 Données reçues :", { prompt, ip, uuid });
 
  if (!prompt) {
   console.log("⚠️ Prompt manquant");

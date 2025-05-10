@@ -148,8 +148,8 @@ You are an expert film critic AI. Explain in one sentence why the movie "${perfe
             "Content-Type": "application/json",
             "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
           },
-          body: JSON.stringify({
-  explanationPrompt,
+         body: JSON.stringify({
+  prompt: explanationPrompt, // ✅ utilise toujours le champ prompt
   uuid: "perfect-match-server",
   ip: "server"
 })

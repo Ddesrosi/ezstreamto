@@ -82,7 +82,7 @@ if (uuid !== "perfect-match-server") {
       "Content-Type": "application/json",
       Authorization: `Bearer ${supabaseServiceRoleKey}`
     },
-    body: JSON.stringify({ prompt, ip, uuid })
+    body: JSON.stringify({ prompt: explanationPrompt, uuid: "perfect-match-server" })
   });
 
   creditData = await creditRes.json();

@@ -219,7 +219,7 @@ const uniquePlatforms = (movie.streamingPlatforms || []).reduce((acc: string[], 
                 You Might Also Like
               </h4>
               <div className="space-y-3">
-               {insights.recommendations
+               {insights.similar
   .filter(rec =>
     rec &&
     typeof rec === 'object' &&

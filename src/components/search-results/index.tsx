@@ -52,6 +52,17 @@ export default function SearchResults({
 });
   console.log("🎯 Vérification des champs : main =", perfectMatch?.main, "| insights =", perfectMatch?.insights);
   console.log("🎬 movie details:", perfectMatch?.main);
+
+  if (perfectMatch?.main && perfectMatch?.insights) {
+  console.log("🎬 Rendering PerfectMatchCard");
+  return (
+    <PerfectMatchCard
+      movie={perfectMatch.main}
+      insights={perfectMatch.insights}
+      suggestions={perfectMatch.insights.similar}
+    />
+  );
+}
   
   const [displayedResults, setDisplayedResults] = useState<Movie[]>([]);
 

@@ -116,24 +116,11 @@ try {
       };
 
       try {
-        const explanationPrompt = `
-Based on the user's selected preferences, explain in 3–4 sentences why this specific movie is a perfect match for them.
+       const explanationPrompt = `
+You are an expert film critic AI. Explain in one sentence why the movie "${perfectMatch.main.title}" is a perfect match for a viewer who likes ${preferences.selectedGenres.join(", ")} and feels ${preferences.selectedMoods.join(", ")}.
+`.trim();
 
-User Preferences:
-- Type: ${preferences.contentType}
-- Genres: ${preferences.selectedGenres.join(", ")}
-- Moods: ${preferences.selectedMoods.join(", ")}
-- Year range: ${preferences.yearRange.from}–${preferences.yearRange.to}
-- Rating range: ${preferences.ratingRange.min}–${preferences.ratingRange.max}
 
-Movie:
-- Title: ${perfectMatch.main.title}
-- Genres: ${perfectMatch.main.genres.join(", ")}
-- Year: ${perfectMatch.main.year}
-- Description: ${perfectMatch.main.description}
-
-Return only the explanation as plain text.
-`;
 
       const proxyResponse = await fetch("https://acmpivmrokzblypxdxbu.supabase.co/functions/v1/deepseek-proxy", {
   method: "POST",

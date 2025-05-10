@@ -49,7 +49,9 @@ serve(async (req) => {
   try {
   console.log("⏳ Requête reçue");
   const { prompt, explanationPrompt, ip, uuid } = await req.json();
-  console.log("🧪 Requête de type:", uuid);
+  const finalPrompt = explanationPrompt || prompt;
+console.log("📥 Reçu dans proxy:", { prompt, explanationPrompt, finalPrompt, ip, uuid });
+console.log("🧪 Requête de type:", uuid);
 console.log("📥 Prompt reçu:", prompt);
 console.log("📥 ExplanationPrompt reçu:", explanationPrompt);
 console.log("🌍 IP reçue:", ip);

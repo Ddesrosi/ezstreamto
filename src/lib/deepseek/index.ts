@@ -140,6 +140,8 @@ You are an expert film critic AI. Explain in one sentence why the movie "${perfe
   uuid: "perfect-match-server"
 });
 
+        console.log("📨 Sending explanationPrompt to proxy:", explanationPrompt);
+
         const proxyResponse = await fetch("https://acmpivmrokzblypxdxbu.supabase.co/functions/v1/deepseek-proxy", {
           method: "POST",
           headers: {

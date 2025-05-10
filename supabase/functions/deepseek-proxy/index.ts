@@ -48,8 +48,8 @@ serve(async (req) => {
 
   try {
   console.log("⏳ Requête reçue");
-  const { prompt, ip, uuid } = await req.json();
-  console.log("📥 Données reçues :", { prompt, ip, uuid });
+  const { prompt, explanationPrompt, ip, uuid } = await req.json();
+  console.log("📥 Données reçues :", { prompt, explanationPrompt, ip, uuid });
 
  if (!prompt) {
   console.log("⚠️ Prompt manquant");
@@ -118,7 +118,7 @@ try {
     messages: [
       {
         role: "user",
-        content: prompt
+        content: explanationPrompt || prompt
       }
     ],
     temperature: 0.7,

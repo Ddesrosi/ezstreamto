@@ -131,7 +131,7 @@ You are an expert film critic AI. Explain in one sentence why the movie "${perfe
             "Content-Type": "application/json",
             "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
           },
-          body: JSON.stringify({ prompt: explanationPrompt, uuid: "perfect-match-server" })
+          body: JSON.stringify({ explanationPrompt, uuid: "perfect-match-server" })
         });
 
         if (!proxyResponse.ok) {
@@ -140,14 +140,20 @@ You are an expert film critic AI. Explain in one sentence why the movie "${perfe
         }
 
         const proxyData = await proxyResponse.json();
+
+        console.log("📦 Contenu reçu du proxy Deepseek :", proxyData);
+        
         explanation = proxyData?.choices?.[0]?.message?.content?.trim();
 
-        if (explanation) {
-          perfectMatch.main.description = explanation;
-          console.log("🧠 Explanation added to Perfect Match:", explanation);
-        } else {
-          console.warn("⚠️ No explanation returned by Deepseek.");
-        }
+if (explanation) {
+  if (!perfectMatch.main.description || perfectMatch.main.description.trim() === "") {
+    perfectMatch.main.description = explanation;
+  }
+  console.log("🧠 Explanation added to Perfect Match:", explanation);
+} else {
+  console.warn("⚠️ No explanation returned by Deepseek.");
+}
+
       } catch (error) {
         console.warn("⚠️ Failed to fetch explanation from Deepseek:", error);
         explanation = "We couldn't generate a detailed explanation, but this movie still aligns with your preferences.";

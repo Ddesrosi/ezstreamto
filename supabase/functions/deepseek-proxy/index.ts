@@ -55,9 +55,7 @@ console.log("🧪 Requête de type:", uuid);
 console.log("📥 Prompt reçu:", prompt);
 console.log("📥 ExplanationPrompt reçu:", explanationPrompt);
 console.log("🌍 IP reçue:", ip);
-  
-  const finalPrompt = explanationPrompt || prompt;
-  console.log("📥 Données reçues :", { prompt, explanationPrompt, ip, uuid });
+console.log("📥 Données reçues :", { prompt, explanationPrompt, ip, uuid });
 
  if (!finalPrompt) {
   console.log("⚠️ Aucun prompt valide transmis");

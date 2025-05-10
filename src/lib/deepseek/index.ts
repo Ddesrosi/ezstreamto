@@ -63,17 +63,17 @@ export async function getMovieRecommendations(preferences: SearchPreferences): P
       throw new RecommendationError('Invalid response from Deepseek: Missing movie data');
     }
 
-   let movieArray: Movie[];
-try {
-  movieArray = response.rawMovies;
+    let movieArray: Movie[];
+    try {
+      movieArray = response.rawMovies;
 
-  if (!Array.isArray(movieArray)) {
-    throw new Error("Expected an array of movies");
-  }
-} catch (err) {
-  console.error("❌ Failed to extract movies from Deepseek format:", err);
-  throw new RecommendationError("Invalid Deepseek response structure");
-}
+      if (!Array.isArray(movieArray)) {
+        throw new Error("Expected an array of movies");
+      }
+    } catch (err) {
+      console.error("❌ Failed to extract movies from Deepseek format:", err);
+      throw new RecommendationError("Invalid Deepseek response structure");
+    }
 
     console.log("📦 Response received from Deepseek:", {
       movieCount: response.rawMovies.length,
@@ -82,7 +82,7 @@ try {
     });
 
     const enrichedResults = await Promise.all(
-  movieArray.map(async (movie) => {
+      movieArray.map(async (movie) => {
         const movieWithDefaults = {
           id: crypto.randomUUID(),
           title: movie.title,
@@ -100,7 +100,7 @@ try {
       })
     );
     
-   let perfectMatch = undefined;
+    let perfectMatch = undefined;
 
     const limit = preferences.isPremium ? PREMIUM_USER_LIMIT : BASIC_USER_LIMIT;
     const finalResults = enrichedResults.slice(0, limit);
@@ -115,58 +115,50 @@ try {
         suggestions: sorted.slice(1, 4)
       };
 
+      let explanation: string | undefined;
+
       try {
-       const explanationPrompt = `
+        const explanationPrompt = `
 You are an expert film critic AI. Explain in one sentence why the movie "${perfectMatch.main.title}" is a perfect match for a viewer who likes ${preferences.selectedGenres.join(", ")} and feels ${preferences.selectedMoods.join(", ")}.
 `.trim();
 
-      const proxyResponse = await fetch("https://acmpivmrokzblypxdxbu.supabase.co/functions/v1/deepseek-proxy", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
-  },
-  body: JSON.stringify({ prompt: explanationPrompt, ip: null }) // ou passer ip si disponible
-});
+        const proxyResponse = await fetch("https://acmpivmrokzblypxdxbu.supabase.co/functions/v1/deepseek-proxy", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
+          },
+          body: JSON.stringify({ prompt: explanationPrompt, uuid: "perfect-match-server" })
+        });
 
-if (!proxyResponse.ok) {
-  const errorText = await proxyResponse.text();
-  throw new Error(`Deepseek proxy failed: ${errorText}`);
-}
+        if (!proxyResponse.ok) {
+          const errorText = await proxyResponse.text();
+          throw new Error(`Deepseek proxy failed: ${errorText}`);
+        }
 
-const proxyData = await proxyResponse.json();
-const explanation = proxyData?.choices?.[0]?.message?.content?.trim();
- 
-if (explanation) {
-  perfectMatch.main.description = explanation;
-  perfectMatch.insights = { explanation, recommendations: perfectMatch.suggestions };
-  console.log("🧠 Explanation added to Perfect Match:", explanation);
-} else {
-  console.warn("⚠️ No explanation returned by Deepseek.");
-}
+        const proxyData = await proxyResponse.json();
+        explanation = proxyData?.choices?.[0]?.message?.content?.trim();
 
-return perfectMatch;
+        if (explanation) {
+          perfectMatch.main.description = explanation;
+          console.log("🧠 Explanation added to Perfect Match:", explanation);
+        } else {
+          console.warn("⚠️ No explanation returned by Deepseek.");
+        }
+      } catch (error) {
+        console.warn("⚠️ Failed to fetch explanation from Deepseek:", error);
+        explanation = "We couldn't generate a detailed explanation, but this movie still aligns with your preferences.";
+      }
 
-   // ✅ Always define insights, even if explanation is missing
-perfectMatch.insights = {
-  explanation: explanation || "This film matches your preferences based on its genre, mood, and audience appeal.",
-  recommendations: perfectMatch.suggestions
-};
+      perfectMatch.insights = {
+        explanation: explanation || "This film matches your preferences based on its genre, mood, and audience appeal.",
+        recommendations: perfectMatch.suggestions
+      };
 
-} catch (error) {
-  console.warn("⚠️ Failed to fetch explanation from Deepseek:", error);
-
-  perfectMatch.insights = {
-    explanation: "We couldn’t generate a detailed explanation, but this movie still aligns with your preferences.",
-    recommendations: perfectMatch.suggestions || []
-  };
-}
-
-console.log("✅ Perfect Match constructed:", {
-  mainTitle: perfectMatch.main?.title,
-  suggestions: perfectMatch.suggestions?.map(m => m.title)
-});
-
+      console.log("✅ Perfect Match constructed:", {
+        mainTitle: perfectMatch.main?.title,
+        suggestions: perfectMatch.suggestions?.map(m => m.title)
+      });
     }
 
     console.log('✅ Final results ready:', {

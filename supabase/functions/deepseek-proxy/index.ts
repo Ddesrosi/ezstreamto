@@ -68,17 +68,24 @@ if (!ip) {
   console.warn("⚠️ IP manquante — quota non vérifié (appel probablement Premium ou serveur)");
 }
 
-  // 🔍 Vérification des crédits avec search-limit
+  // 🔍 Vérification des crédits avec search-limit (sauf pour appels serveur Premium)
+let creditData = {
+  canSearch: true,
+  remaining: null,
+  isPremium: true
+};
+
+if (uuid !== "perfect-match-server") {
   const creditRes = await fetch(`${supabaseUrl}/functions/v1/search-limit`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${supabaseServiceRoleKey}`
     },
-    body: JSON.stringify({ prompt, ip })
+    body: JSON.stringify({ prompt, ip, uuid })
   });
 
-  const creditData = await creditRes.json();
+  creditData = await creditRes.json();
   console.log("🎫 Crédit reçu :", creditData);
 
   if (!creditRes.ok || !creditData.canSearch) {
@@ -90,6 +97,7 @@ if (!ip) {
       status: 403
     });
   }
+}
 
   // 🎬 Appel à Deepseek
   console.log("🎬 Envoi du prompt à Deepseek...");

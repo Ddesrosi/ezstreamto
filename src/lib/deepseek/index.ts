@@ -104,6 +104,11 @@ export async function getMovieRecommendations(preferences: SearchPreferences): P
 
     const limit = preferences.isPremium ? PREMIUM_USER_LIMIT : BASIC_USER_LIMIT;
     const finalResults = enrichedResults.slice(0, limit);
+
+    console.log("🔍 Flags reçus :", {
+  isPerfectMatch: preferences.isPerfectMatch,
+  isPremium: preferences.isPremium
+});
  
     if (preferences.isPerfectMatch && preferences.isPremium) {
       console.log("🎯 Perfect Match enabled: selecting most popular movies from results");

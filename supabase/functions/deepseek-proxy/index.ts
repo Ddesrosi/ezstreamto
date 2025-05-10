@@ -48,8 +48,11 @@ serve(async (req) => {
 
   try {
   console.log("⏳ Requête reçue");
-  const { prompt, explanationPrompt, ip, uuid } = await req.json();
-  const finalPrompt = explanationPrompt || prompt;
+  const body = await req.json();
+console.log("🧪 JSON complet reçu dans deepseek-proxy:", body);
+
+const { prompt, explanationPrompt, ip, uuid } = body;
+const finalPrompt = explanationPrompt || prompt;
 console.log("📥 Reçu dans proxy:", { prompt, explanationPrompt, finalPrompt, ip, uuid });
 console.log("🧪 Requête de type:", uuid);
 console.log("📥 Prompt reçu:", prompt);

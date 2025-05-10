@@ -73,18 +73,26 @@ const response = await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/deeps
   body: JSON.stringify({ prompt, ip, uuid: "perfect-match-server" })
 });
 
-  const rawText = await response.text();
+ const rawText = await response.text();
 
-  if (!response.ok) {
-    throw new Error(`Deepseek API error: ${rawText}`);
-  }
+if (!response.ok) {
+  throw new Error(`Deepseek API error: ${rawText}`);
+}
 
-  let parsed;
-  try {
-    parsed = JSON.parse(rawText);
-  } catch {
-    throw new Error("Failed to parse Deepseek response as JSON");
-  }
+// 🔧 Nettoyer la réponse au cas où Deepseek retourne du Markdown
+let cleaned = rawText.trim();
+
+if (cleaned.startsWith("```")) {
+  cleaned = cleaned.replace(/```(?:json)?/g, "").trim();
+}
+
+let parsed;
+try {
+  parsed = JSON.parse(cleaned);
+} catch (err) {
+  console.error("❌ JSON parse failed in insights.ts:", err);
+  throw new Error("Failed to parse Deepseek response as JSON");
+}
 
   const enrichedPerfectMatch = await enrichMovieWithPoster(parsed.perfectMatch as Movie);
   const enrichedSuggestions = await Promise.all(

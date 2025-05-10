@@ -115,6 +115,8 @@ export async function getMovieRecommendations(preferences: SearchPreferences): P
         suggestions: sorted.slice(1, 4)
       };
 
+      console.log("🎬 Bloc Perfect Match avec explication est ENTRÉ");
+
       let explanation: string | undefined;
 
       try {

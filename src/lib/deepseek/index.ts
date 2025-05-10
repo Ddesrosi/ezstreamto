@@ -120,8 +120,6 @@ try {
 You are an expert film critic AI. Explain in one sentence why the movie "${perfectMatch.main.title}" is a perfect match for a viewer who likes ${preferences.selectedGenres.join(", ")} and feels ${preferences.selectedMoods.join(", ")}.
 `.trim();
 
-
-
       const proxyResponse = await fetch("https://acmpivmrokzblypxdxbu.supabase.co/functions/v1/deepseek-proxy", {
   method: "POST",
   headers: {
@@ -139,13 +137,15 @@ if (!proxyResponse.ok) {
 const proxyData = await proxyResponse.json();
 const explanation = proxyData?.choices?.[0]?.message?.content?.trim();
  
- if (explanation) {
+if (explanation) {
   perfectMatch.main.description = explanation;
   perfectMatch.insights = { explanation, recommendations: perfectMatch.suggestions };
-
   console.log("🧠 Explanation added to Perfect Match:", explanation);
 } else {
-  console.warn("⚠️ No explanation returned from Deepseek.");
+  console.warn("⚠️ No explanation returned by Deepseek.");
+}
+
+return perfectMatch;
 
    // ✅ Always define insights, even if explanation is missing
 perfectMatch.insights = {
@@ -153,7 +153,6 @@ perfectMatch.insights = {
   recommendations: perfectMatch.suggestions
 };
 
-}
 } catch (error) {
   console.warn("⚠️ Failed to fetch explanation from Deepseek:", error);
 

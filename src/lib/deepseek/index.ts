@@ -142,18 +142,22 @@ You are an expert film critic AI. Explain in one sentence why the movie "${perfe
 
         console.log("📨 Sending explanationPrompt to proxy:", explanationPrompt);
 
-        const proxyResponse = await fetch("https://acmpivmrokzblypxdxbu.supabase.co/functions/v1/deepseek-proxy", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
-          },
-         body: JSON.stringify({
-  prompt: explanationPrompt, // ✅ utilise toujours le champ prompt
+        const body = {
+  prompt: explanationPrompt,
   uuid: "perfect-match-server",
   ip: "server"
-})
+};
+console.log("📤 Sending to deepseek-proxy:", body); // 🔍 Vérifie si uuid est bien affiché
+
+const proxyResponse = await fetch("https://acmpivmrokzblypxdxbu.supabase.co/functions/v1/deepseek-proxy", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
+  },
+  body: JSON.stringify(body)
 });
+
         
         if (!proxyResponse.ok) {
           const errorText = await proxyResponse.text();

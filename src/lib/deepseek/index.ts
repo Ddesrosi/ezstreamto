@@ -136,6 +136,12 @@ You are an expert film critic AI. Explain in one sentence why the movie "${perfe
 
         if (!proxyResponse.ok) {
           const errorText = await proxyResponse.text();
+
+          console.warn("⚠️ Deepseek proxy response not OK", {
+  status: proxyResponse.status,
+  body: errorText
+});
+
           throw new Error(`Deepseek proxy failed: ${errorText}`);
         }
 

@@ -31,8 +31,10 @@ export async function getMovieRecommendations(preferences: SearchPreferences): P
   perfectMatch?: any;
   remaining?: number;
 }> {
-  console.log("🔥 getMovieRecommendations() called", preferences); 
-  console.log('🎬 Starting movie recommendations:', {
+console.log("🔥 getMovieRecommendations() called", preferences);
+console.log("🎯 isPerfectMatch:", preferences.isPerfectMatch);
+console.log("💎 isPremium:", preferences.isPremium);
+console.log('🎬 Starting movie recommendations:', {
     contentType: preferences.contentType,
     moods: preferences.selectedMoods,
     genres: preferences.selectedGenres,

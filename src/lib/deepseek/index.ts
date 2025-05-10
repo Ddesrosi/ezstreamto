@@ -118,6 +118,9 @@ export async function getMovieRecommendations(preferences: SearchPreferences): P
       let explanation: string | undefined;
 
       try {
+
+        console.log("🧪 Bloc d’explication exécuté");
+        
         const explanationPrompt = `
 You are an expert film critic AI. Explain in one sentence why the movie "${perfectMatch.main.title}" is a perfect match for a viewer who likes ${preferences.selectedGenres.join(", ")} and feels ${preferences.selectedMoods.join(", ")}.
 `.trim();

@@ -87,6 +87,8 @@ if (content.includes("```")) {
 console.log("🔍 Final content to parse as JSON:", content);
 
       try {
+        // 🧼 Nettoyage des caractères de contrôle non valides (ex: retour à la ligne mal échappé dans les chaînes)
+content = content.replace(/[\u0000-\u001F]+/g, ' ');
         const parsedContent = JSON.parse(content);
         // Handle different response formats
         if (Array.isArray(parsedContent)) {

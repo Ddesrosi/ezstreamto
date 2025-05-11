@@ -78,18 +78,29 @@ export async function fetchMovieListFromDeepseek(prompt: string) {
       console.log("📦 Attempting to parse content:", content);
       
       // Clean Markdown blocks if present
-      if (content.includes("```")) {
-        content = content.replace(/```(?:json)?/g, "").trim();
+      content = content.trim();
+      if (content.startsWith("```") && content.endsWith("```")) {
+        content = content.slice(3, -3).trim();
+      }
+      if (content.startsWith("```json") && content.endsWith("```")) {
+        content = content.slice(7, -3).trim();
       }
 
       try {
         const parsedContent = JSON.parse(content);
-        // Handle both direct array and nested movie array formats
-        movieData = Array.isArray(parsedContent)
-  ? parsedContent
-  : parsedContent.movies || parsedContent.tv_series;
+        // Handle different response formats
+        if (Array.isArray(parsedContent)) {
+          movieData = parsedContent;
+        } else if (parsedContent.recommendations && Array.isArray(parsedContent.recommendations)) {
+          movieData = parsedContent.recommendations;
+        } else if (parsedContent.movies && Array.isArray(parsedContent.movies)) {
+          movieData = parsedContent.movies;
+        } else {
+          throw new Error("Invalid response format - expected array of movies");
+        }
       } catch (parseError) {
         console.error("❌ JSON parse error:", parseError);
+        console.log("📄 Content that failed to parse:", content);
         throw new Error("Failed to parse movie data: Invalid JSON format");
       }
     }

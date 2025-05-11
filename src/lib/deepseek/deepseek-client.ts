@@ -1,8 +1,16 @@
 import { getClientIp } from "@/lib/search-limits/get-ip";
 import { getOrCreateUUID } from "@/lib/search-limits/get-uuid";
 import { supabase } from '@/lib/supabaseClient';
+import { DEEPSEEK_API_KEY } from "@/config";
 
 console.log("🔑 VITE_DEEPSEEK_API_KEY =", import.meta.env.VITE_DEEPSEEK_API_KEY);
+
+interface DeepseekResponse {
+  rawMovies?: any[];
+  rawText?: string;
+  remaining?: number;
+  isPremium?: boolean;
+}
 
 export async function fetchMovieListFromDeepseek(prompt: string) {
   const [ip, uuid] = await Promise.all([
@@ -27,7 +35,9 @@ export async function fetchMovieListFromDeepseek(prompt: string) {
     console.log('✨ Premium user detected, skipping search limit check');
   }
 
-  const res = await fetch("https://acmpivmrokzblypxdxbu.supabase.co/functions/v1/deepseek-proxy", {
+  console.log("📤 Sending request to Deepseek proxy with:", { prompt, ip, uuid });
+
+  const response = await fetch("https://acmpivmrokzblypxdxbu.supabase.co/functions/v1/deepseek-proxy", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -41,13 +51,13 @@ export async function fetchMovieListFromDeepseek(prompt: string) {
     })
   });
 
-  if (!res.ok) {
-    const errorDetails = await res.text();
+  if (!response.ok) {
+    const errorDetails = await response.text();
     console.error("❌ Deepseek proxy error:", errorDetails);
     throw new Error(`Failed to fetch movie recommendations: ${errorDetails}`);
   }
 
-  const responseData = await res.json();
+  const responseData: DeepseekResponse = await response.json();
   console.log("🧪 Raw response from deepseek-proxy:", responseData);
 
   let movieData;
@@ -56,7 +66,7 @@ export async function fetchMovieListFromDeepseek(prompt: string) {
   try {
     // Handle different response formats
     if (responseData.rawMovies) {
-      console.log("🪵 Processing rawMovies");
+      console.log("🩵 Processing rawMovies");
       if (Array.isArray(responseData.rawMovies)) {
         console.log("📦 rawMovies is an array");
         movieData = responseData.rawMovies;
@@ -68,7 +78,7 @@ export async function fetchMovieListFromDeepseek(prompt: string) {
         content = responseData.rawMovies.choices[0].message.content;
       }
     } else if (responseData.rawText) {
-      console.log("🪵 Processing rawText");
+      console.log("🩵 Processing rawText");
       const parsed = JSON.parse(responseData.rawText);
       content = parsed?.choices?.[0]?.message?.content;
     }
@@ -76,34 +86,23 @@ export async function fetchMovieListFromDeepseek(prompt: string) {
     // If we have content but no movieData, try to parse it
     if (!movieData && content) {
       console.log("📦 Attempting to parse content:", content);
-      
+
       // Clean Markdown blocks if present
-     // ✅ Clean up common Markdown wrappers like ```json ... ```
-if (content.includes("```")) {
-  console.log("⚠️ Markdown formatting detected, cleaning it up");
-  content = content.replace(/```(?:json)?/g, "").replace(/```/g, "").trim();
-}
+      if (content.includes("```")) {
+        content = content.replace(/```(?:json)?/g, "").replace(/```/g, "").trim();
+      }
 
-console.log("🔍 Final content to parse as JSON:", content);
+      const parsedContent = JSON.parse(content);
 
-      try {
-        // 🧼 Nettoyage des caractères de contrôle non valides (ex: retour à la ligne mal échappé dans les chaînes)
-content = content.replace(/[\u0000-\u001F]+/g, ' ');
-        const parsedContent = JSON.parse(content);
-        // Handle different response formats
-        if (Array.isArray(parsedContent)) {
-          movieData = parsedContent;
-        } else if (parsedContent.recommendations && Array.isArray(parsedContent.recommendations)) {
-          movieData = parsedContent.recommendations;
-        } else if (parsedContent.movies && Array.isArray(parsedContent.movies)) {
-          movieData = parsedContent.movies;
-        } else {
-          throw new Error("Invalid response format - expected array of movies");
-        }
-      } catch (parseError) {
-        console.error("❌ JSON parse error:", parseError);
-        console.log("📄 Content that failed to parse:", content);
-        throw new Error("Failed to parse movie data: Invalid JSON format");
+      if (Array.isArray(parsedContent)) {
+        movieData = parsedContent;
+      } else if (parsedContent.recommendations || parsedContent.movies || parsedContent.tv_series) {
+        movieData = parsedContent.recommendations || parsedContent.movies || parsedContent.tv_series;
+      } else if (parsedContent.choices?.[0]?.message?.content) {
+        const nested = parsedContent.choices[0].message.content;
+        movieData = typeof nested === 'string' ? JSON.parse(nested) : nested;
+      } else {
+        throw new Error("Invalid movies format - expected array");
       }
     }
 
@@ -117,7 +116,6 @@ content = content.replace(/[\u0000-\u001F]+/g, ' ');
       const isValid = typeof movie === 'object' && 
                      movie !== null && 
                      typeof movie.title === 'string';
-      
       if (!isValid) {
         console.warn("⚠️ Filtered out invalid movie:", movie);
       }

@@ -1,10 +1,9 @@
 import type { Movie } from '@/types';
 import { buildSearchPrompt } from './promptBuilder';
 import { enrichMovieWithPoster, FALLBACK_IMAGE } from '../tmdb';
-import { BASIC_USER_LIMIT, PREMIUM_USER_LIMIT } from '@/config'; 
+import { BASIC_USER_LIMIT, PREMIUM_USER_LIMIT, getDeepseekApiKey } from '@/config'; 
 import { fetchMovieListFromDeepseek } from './deepseek-client';
 import { generatePerfectMatchInsights } from '@/lib/perfect-match';
-import { getDeepseekApiKey } from '../../config';
 
 console.log("🔐 Deepseek API Key used:", getDeepseekApiKey());
 
@@ -45,13 +44,19 @@ export async function getMovieRecommendations(preferences: SearchPreferences): P
     let response;
     try {
       response = await fetchMovieListFromDeepseek(prompt);
-      console.log("🪵 Deepseek response received:", {
+      console.log("📦 Deepseek response received:", {
         movieCount: response?.rawMovies?.length,
         remaining: response?.remaining
       });
 
-      if (!response?.rawMovies?.length) {
-        throw new RecommendationError('No movie recommendations received');
+      if (!response?.rawMovies || !Array.isArray(response.rawMovies)) {
+        console.error("❌ Invalid response format:", response);
+        throw new RecommendationError('Invalid response format from recommendation service');
+      }
+
+      if (response.rawMovies.length === 0) {
+        console.error("❌ Empty recommendations array");
+        throw new RecommendationError('No recommendations found. Please try different preferences.');
       }
     } catch (error) {
       console.error("❌ Deepseek API error:", error);

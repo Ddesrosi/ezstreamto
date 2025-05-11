@@ -1,6 +1,6 @@
+import { supabase } from '@/lib/supabaseClient';
 import { getClientIp as getIP } from "./get-ip";
 import { getOrCreateUUID } from "../get-uuid";
-import { supabase } from '@/lib/supabaseClient';
 
 type Mode = 'check' | 'consume';
 

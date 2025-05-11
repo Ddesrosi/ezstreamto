@@ -17,21 +17,24 @@ export function buildSearchPrompt(preferences: SearchPreferences): string {
   const promptLines = [];
 
   promptLines.push(
-    `You are an expert AI assistant specialized in recommending ${typeLabel}.`,
-    `Recommend exactly ${resultCount} ${typeLabel} that match the preferences below.`,
-    `Return ONLY a valid JSON array of recommendations.`,
-    `Each recommendation must include these exact fields:`,
+    `You are an expert AI assistant specialized in recommending movies and TV shows.`,
+    `Based on the preferences below, recommend ${resultCount} ${typeLabel} in a JSON format.`,
+    `Each recommendation must include a popularity score (0-100) for sorting.`,
+    `Return ONLY a valid JSON object with this exact structure:`,
     `{`,
-    `  "title": "Movie Title",`,
-    `  "year": 2024,`,
-    `  "rating": 8.5,`,
-    `  "duration": 120,`,
-    `  "language": "EN",`,
-    `  "genres": ["Action", "Adventure"],`,
-    `  "description": "A brief plot summary.",`,
-    `  "popularity": 85`,
-    `}`,
-    `Do NOT include any explanations or text outside the JSON array.`
+    `  "recommendations": [`,
+    `    {`,
+    `      "title": "string",`,
+    `      "year": number,`,
+    `      "rating": number,`,
+    `      "duration": number or "TV Series",`,
+    `      "language": "string",`,
+    `      "genres": ["string"],`,
+    `      "description": "string",`,
+    `      "popularity": number`,
+    `    }`,
+    `  ]`,
+    `}`
   );
 
   promptLines.push(`\nUser Preferences:`);
@@ -56,11 +59,18 @@ export function buildSearchPrompt(preferences: SearchPreferences): string {
   promptLines.push(
     `\nRules:`,
     `- Do NOT include any movie classified as "Documentary" unless "Documentary" was explicitly selected as a genre.`,
-    `- Only include content available in English`,
-    `- Only include content from 1970 onwards`,
-    `- Ensure all JSON strings are properly escaped`,
-    `- Use double quotes for all JSON strings`,
-    `- Do not use special characters that need escaping`
+    `- Only include movies or series that are available at least in English.`,
+    `- Only include content released from 1970 onwards.`
+  );
+
+  promptLines.push(
+    `\nEach item in the array must include exactly these fields:`,
+    `"title", "year", "rating", "description", "duration", "language", "genres"`
+  );
+
+  promptLines.push(
+    `\nOutput Example (JSON only):`,
+    `[{"title":"Inception","year":2010,"rating":8.8,"description":"A skilled thief leads a team into dreams.","duration":148,"language":"EN","genres":["Sci-Fi","Thriller"]}]`
   );
 
   return promptLines.join('\n');

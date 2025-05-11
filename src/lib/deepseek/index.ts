@@ -40,7 +40,7 @@ export async function getMovieRecommendations(preferences: SearchPreferences): P
     console.log('✅ Preferences validated');
 
     const prompt = buildSearchPrompt(preferences);
-    console.log('📝 Prompt sent to Deepseek:\n' + prompt);
+    console.log('📝 Prompt sent to Deepseek:', prompt);
 
     let response;
     try {
@@ -96,7 +96,9 @@ export async function getMovieRecommendations(preferences: SearchPreferences): P
     }
 
     const limit = preferences.isPremium ? PREMIUM_USER_LIMIT : BASIC_USER_LIMIT;
-    const finalResults = validResults.slice(0, limit);
+    // Sort by popularity before slicing
+    const sortedResults = [...validResults].sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
+    const finalResults = sortedResults.slice(0, limit);
     
     let perfectMatch;
 
@@ -104,11 +106,9 @@ export async function getMovieRecommendations(preferences: SearchPreferences): P
       console.log("🎯 Generating Perfect Match");
 
       try {
-        const sorted = [...finalResults].sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
-
         perfectMatch = {
-          main: sorted[0],
-          suggestions: sorted.slice(1, 4)
+          main: finalResults[0],
+          suggestions: finalResults.slice(1, 4)
         };
 
         let explanation: string | undefined;

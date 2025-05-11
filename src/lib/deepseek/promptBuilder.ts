@@ -17,11 +17,24 @@ export function buildSearchPrompt(preferences: SearchPreferences): string {
   const promptLines = [];
 
   promptLines.push(
-    `You are an expert AI assistant specialized in recommending ${typeLabel}.`,
-    `Recommend exactly ${resultCount} ${typeLabel} that match the user's preferences below.`,
-    `Results must be available at least in English.`,
-    `Only return a raw valid JSON array of ${typeLabel}.`,
-    `Do NOT include explanations, markdown, text, or formatting outside the array.`
+    `You are an expert AI assistant specialized in recommending movies and TV shows.`,
+    `Based on the preferences below, recommend ${resultCount} ${typeLabel} in a JSON format.`,
+    `Each recommendation must include a popularity score (0-100) for sorting.`,
+    `Return ONLY a valid JSON object with this exact structure:`,
+    `{`,
+    `  "recommendations": [`,
+    `    {`,
+    `      "title": "string",`,
+    `      "year": number,`,
+    `      "rating": number,`,
+    `      "duration": number or "TV Series",`,
+    `      "language": "string",`,
+    `      "genres": ["string"],`,
+    `      "description": "string",`,
+    `      "popularity": number`,
+    `    }`,
+    `  ]`,
+    `}`
   );
 
   promptLines.push(`\nUser Preferences:`);

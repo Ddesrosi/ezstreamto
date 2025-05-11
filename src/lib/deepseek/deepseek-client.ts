@@ -5,6 +5,20 @@ import { DEEPSEEK_API_KEY } from "@/config";
 
 console.log("🔑 VITE_DEEPSEEK_API_KEY =", import.meta.env.VITE_DEEPSEEK_API_KEY);
 
+function sanitizeJsonString(str: string): string {
+  return str.replace(/([{,]\s*)([a-zA-Z0-9_]+)\s*:/g, '$1"$2":') // Fix unquoted keys
+    .replace(/:\s*'([^']*)'/g, ':"$1"') // Replace single quotes with double quotes
+    .replace(/([}\]])\s*([,}])/g, '$1$2') // Fix trailing commas
+    .replace(/([^"\\])"([^"\\]*)"(\s*[}\]])/g, '$1"$2"$3') // Fix unescaped quotes
+    .replace(/\[\s*([^"\]\[]*?)\s*\]/g, (match, content) => { // Fix array content
+      return `[${content.split(',')
+        .map((item: string) => item.trim())
+        .filter((item: string) => item)
+        .map((item: string) => `"${item}"`)
+        .join(',')}]`;
+    });
+}
+
 interface DeepseekResponse {
   rawMovies?: any[];
   rawText?: string;
@@ -87,22 +101,27 @@ export async function fetchMovieListFromDeepseek(prompt: string) {
     if (!movieData && content) {
       console.log("📦 Attempting to parse content:", content);
 
-      // Clean Markdown blocks if present
-      if (content.includes("```")) {
+      try {
+        // Clean and sanitize the content
         content = content.replace(/```(?:json)?/g, "").replace(/```/g, "").trim();
-      }
-
-      const parsedContent = JSON.parse(content);
-
-      if (Array.isArray(parsedContent)) {
-        movieData = parsedContent;
-      } else if (parsedContent.recommendations || parsedContent.movies || parsedContent.tv_series) {
-        movieData = parsedContent.recommendations || parsedContent.movies || parsedContent.tv_series;
-      } else if (parsedContent.choices?.[0]?.message?.content) {
-        const nested = parsedContent.choices[0].message.content;
-        movieData = typeof nested === 'string' ? JSON.parse(nested) : nested;
-      } else {
-        throw new Error("Invalid movies format - expected array");
+        content = sanitizeJsonString(content);
+        
+        console.log("🧹 Sanitized content:", content);
+        
+        const parsedContent = JSON.parse(content);
+        
+        if (Array.isArray(parsedContent)) {
+          movieData = parsedContent;
+        } else if (parsedContent.recommendations || parsedContent.movies || parsedContent.tv_series) {
+          movieData = parsedContent.recommendations || parsedContent.movies || parsedContent.tv_series;
+        } else if (parsedContent.choices?.[0]?.message?.content) {
+          const nested = parsedContent.choices[0].message.content;
+          movieData = typeof nested === 'string' ? JSON.parse(nested) : nested;
+        }
+      } catch (parseError) {
+        console.error("❌ JSON parse error:", parseError);
+        console.log("📄 Content that failed to parse:", content);
+        throw new Error(`Invalid JSON format: ${parseError.message}`);
       }
     }
 
@@ -114,11 +133,21 @@ export async function fetchMovieListFromDeepseek(prompt: string) {
     // Validate and filter movie objects
     movieData = movieData.filter(movie => {
       const isValid = typeof movie === 'object' && 
-                     movie !== null && 
-                     typeof movie.title === 'string';
+        movie !== null && 
+        typeof movie.title === 'string' &&
+        Array.isArray(movie.genres);
+
       if (!isValid) {
         console.warn("⚠️ Filtered out invalid movie:", movie);
       }
+      
+      // Sanitize genres array if needed
+      if (isValid && movie.genres) {
+        movie.genres = movie.genres.map((genre: any) => 
+          typeof genre === 'string' ? genre.trim() : ''
+        ).filter(Boolean);
+      }
+      
       return isValid;
     });
 

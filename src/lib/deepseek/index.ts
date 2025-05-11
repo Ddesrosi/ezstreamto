@@ -1,7 +1,7 @@
 import type { Movie } from '@/types';
 import { buildSearchPrompt } from './promptBuilder';
 import { enrichMovieWithPoster, FALLBACK_IMAGE } from '../tmdb';
-import { BASIC_USER_LIMIT, PREMIUM_USER_LIMIT } from '@/config';
+import { BASIC_USER_LIMIT, PREMIUM_USER_LIMIT } from '@/config'; 
 import { fetchMovieListFromDeepseek } from './deepseek-client';
 import { generatePerfectMatchInsights } from '@/lib/perfect-match';
 import { getDeepseekApiKey } from '../../config';
@@ -31,180 +31,135 @@ export async function getMovieRecommendations(preferences: SearchPreferences): P
   perfectMatch?: any;
   remaining?: number;
 }> {
-console.log("🔥 getMovieRecommendations() called", preferences);
-console.log("🎯 isPerfectMatch:", preferences.isPerfectMatch);
-console.log("💎 isPremium:", preferences.isPremium);
-console.log('🎬 Starting movie recommendations:', {
-    contentType: preferences.contentType,
-    moods: preferences.selectedMoods,
-    genres: preferences.selectedGenres,
-    isPremium: preferences.isPremium,
-    isPerfectMatch: preferences.isPerfectMatch
-  });
+  console.log("🔥 getMovieRecommendations() called", preferences);
+  console.log("🎯 isPerfectMatch:", preferences.isPerfectMatch);
+  console.log("💎 isPremium:", preferences.isPremium);
 
   try {
     validatePreferences(preferences);
-    console.log('✅ Preferences validated:', {
-      contentType: preferences.contentType,
-      moods: preferences.selectedMoods.length,
-      genres: preferences.selectedGenres.length,
-      isPerfectMatch: preferences.isPerfectMatch
-    });
+    console.log('✅ Preferences validated');
 
     const prompt = buildSearchPrompt(preferences);
     console.log('📝 Prompt sent to Deepseek:\n' + prompt);
 
-    console.log('🔑 Keywords:', preferences.keywords);
-
-    const response = await fetchMovieListFromDeepseek(prompt);
-
-    console.log("🪵 Deepseek full response:", response);
-    console.log("🪵 rawText:", response?.rawText);
-
-    if (!response || !response.rawMovies) {
-      console.error('❌ Invalid response structure:', response);
-      throw new RecommendationError('Invalid response from Deepseek: Missing movie data');
-    }
-
-    let movieArray: Movie[];
+    let response;
     try {
-      movieArray = response.rawMovies;
+      response = await fetchMovieListFromDeepseek(prompt);
+      console.log("🪵 Deepseek response received:", {
+        movieCount: response?.rawMovies?.length,
+        remaining: response?.remaining
+      });
 
-      if (!Array.isArray(movieArray)) {
-        throw new Error("Expected an array of movies");
+      if (!response?.rawMovies?.length) {
+        throw new RecommendationError('No movie recommendations received');
       }
-    } catch (err) {
-      console.error("❌ Failed to extract movies from Deepseek format:", err);
-      throw new RecommendationError("Invalid Deepseek response structure");
+    } catch (error) {
+      console.error("❌ Deepseek API error:", error);
+      throw new RecommendationError(
+        "We're having trouble getting movie recommendations right now. Please try again in a moment."
+      );
     }
-
-    console.log("📦 Response received from Deepseek:", {
-      movieCount: response.rawMovies.length,
-      remaining: response.remaining,
-      isPremium: response.isPremium
-    });
 
     const enrichedResults = await Promise.all(
-      movieArray.map(async (movie) => {
-        const movieWithDefaults = {
-          id: crypto.randomUUID(),
-          title: movie.title,
-          year: movie.year || new Date().getFullYear(),
-          rating: movie.rating || 0,
-          duration: movie.duration || 'Movie',
-          language: movie.language || 'EN',
-          genres: movie.genres || [],
-          description: movie.description || '',
-          imageUrl: movie.imageUrl || FALLBACK_IMAGE,
-          streamingPlatforms: []
-        };
+      response.rawMovies.map(async (movie) => {
+        try {
+          if (!movie?.title) {
+            console.warn("⚠️ Skipping movie with missing title:", movie);
+            return null;
+          }
 
-        return enrichMovieWithPoster(movieWithDefaults);
+          const movieWithDefaults = {
+            id: crypto.randomUUID(),
+            title: movie.title,
+            year: movie.year || new Date().getFullYear(),
+            rating: movie.rating || 0,
+            duration: movie.duration || 'Movie',
+            language: movie.language || 'EN',
+            genres: Array.isArray(movie.genres) ? movie.genres : [],
+            description: movie.description || '',
+            imageUrl: movie.imageUrl || FALLBACK_IMAGE,
+            streamingPlatforms: []
+          };
+
+          return await enrichMovieWithPoster(movieWithDefaults);
+        } catch (error) {
+          console.error("❌ Failed to enrich movie:", error);
+          return null;
+        }
       })
     );
     
-    let perfectMatch = undefined;
+    const validResults = enrichedResults.filter((movie): movie is Movie => movie !== null);
+    
+    if (validResults.length === 0) {
+      throw new RecommendationError('No valid movie recommendations found');
+    }
 
     const limit = preferences.isPremium ? PREMIUM_USER_LIMIT : BASIC_USER_LIMIT;
-    const finalResults = enrichedResults.slice(0, limit);
+    const finalResults = validResults.slice(0, limit);
+    
+    let perfectMatch;
 
-    console.log("🔍 Flags reçus :", {
-  isPerfectMatch: preferences.isPerfectMatch,
-  isPremium: preferences.isPremium
-});
- 
     if (preferences.isPerfectMatch && preferences.isPremium) {
-      console.log("🎯 Perfect Match enabled: selecting most popular movies from results");
-
-      const sorted = [...finalResults].sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
-
-      perfectMatch = {
-        main: sorted[0],
-        suggestions: sorted.slice(1, 4)
-      };
-
-      console.log("🎬 Bloc Perfect Match avec explication est ENTRÉ");
-
-      let explanation: string | undefined;
+      console.log("🎯 Generating Perfect Match");
 
       try {
+        const sorted = [...finalResults].sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
 
-        console.log("🧪 Bloc d’explication exécuté");
-        
-        const explanationPrompt = `
-You are an expert film critic AI. Explain in one sentence why the movie "${perfectMatch.main.title}" is a perfect match for a viewer who likes ${preferences.selectedGenres.join(", ")} and feels ${preferences.selectedMoods.join(", ")}.
-`.trim();
+        perfectMatch = {
+          main: sorted[0],
+          suggestions: sorted.slice(1, 4)
+        };
 
-        console.log("🧠 ENVOI FETCH EXPLANATION vers /deepseek-proxy", {
-  explanationPrompt,
-  uuid: "perfect-match-server"
-});
+        let explanation: string | undefined;
 
-        console.log("📨 Sending explanationPrompt to proxy:", explanationPrompt);
+        try {
+          const explanationPrompt = `
+            You are an expert film critic AI. Explain in one sentence why the movie "${perfectMatch.main.title}" 
+            is a perfect match for a viewer who likes ${preferences.selectedGenres.join(", ")} 
+            and feels ${preferences.selectedMoods.join(", ")}.
+          `.trim();
 
-        const body = {
-  prompt: explanationPrompt,
-  uuid: "perfect-match-server",
-  ip: "server"
-};
-console.log("📤 Sending to deepseek-proxy:", body); // 🔍 Vérifie si uuid est bien affiché
+          const proxyResponse = await fetch("https://acmpivmrokzblypxdxbu.supabase.co/functions/v1/deepseek-proxy", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
+            },
+            body: JSON.stringify({
+              prompt: explanationPrompt,
+              uuid: "perfect-match-server",
+              ip: "server"
+            })
+          });
 
-const proxyResponse = await fetch("https://acmpivmrokzblypxdxbu.supabase.co/functions/v1/deepseek-proxy", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
-  },
-  body: JSON.stringify(body)
-});
+          if (!proxyResponse.ok) {
+            throw new Error(`Deepseek proxy failed: ${await proxyResponse.text()}`);
+          }
 
-        
-        if (!proxyResponse.ok) {
-          const errorText = await proxyResponse.text();
+          const proxyData = await proxyResponse.json();
+          explanation = proxyData?.choices?.[0]?.message?.content?.trim();
 
-          console.warn("⚠️ Deepseek proxy response not OK", {
-  status: proxyResponse.status,
-  body: errorText
-});
-
-          throw new Error(`Deepseek proxy failed: ${errorText}`);
+        } catch (error) {
+          console.warn("⚠️ Failed to fetch explanation:", error);
+          explanation = "This film perfectly aligns with your selected preferences and viewing taste.";
         }
 
-        const proxyData = await proxyResponse.json();
-
-        console.log("📦 Contenu reçu du proxy Deepseek :", proxyData);
-        
-        explanation = proxyData?.choices?.[0]?.message?.content?.trim();
-
-if (explanation) {
-  if (!perfectMatch.main.description || perfectMatch.main.description.trim() === "") {
-    perfectMatch.main.description = explanation;
-  }
-  console.log("🧠 Explanation added to Perfect Match:", explanation);
-} else {
-  console.warn("⚠️ No explanation returned by Deepseek.");
-}
+        perfectMatch.insights = {
+          explanation: explanation,
+          recommendations: perfectMatch.suggestions
+        };
 
       } catch (error) {
-        console.warn("⚠️ Failed to fetch explanation from Deepseek:", error);
-        explanation = "We couldn't generate a detailed explanation, but this movie still aligns with your preferences.";
+        console.error("❌ Perfect Match generation failed:", error);
+        // Don't throw here, just continue without perfect match
       }
-
-      perfectMatch.insights = {
-        explanation: explanation || "This film matches your preferences based on its genre, mood, and audience appeal.",
-        recommendations: perfectMatch.suggestions
-      };
-
-      console.log("✅ Perfect Match constructed:", {
-        mainTitle: perfectMatch.main?.title,
-        suggestions: perfectMatch.suggestions?.map(m => m.title)
-      });
     }
 
     console.log('✅ Final results ready:', {
       count: finalResults.length,
       limit,
-      isPremium: preferences.isPremium
+      hasPerfectMatch: !!perfectMatch
     });
 
     return {

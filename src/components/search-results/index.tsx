@@ -44,12 +44,13 @@ export default function SearchResults({
   console.log("📊 perfectMatch received:", perfectMatch);
   console.log("🧪 Vérification PerfectMatch avant affichage :", perfectMatch);
   console.log("🔍 Champs de main:", {
-  title: perfectMatch?.main?.title,
-  year: perfectMatch?.main?.year,
-  genres: perfectMatch?.main?.genres,
-  imageUrl: perfectMatch?.main?.imageUrl,
-  streamingPlatforms: perfectMatch?.main?.streamingPlatforms
-});
+    title: perfectMatch?.main?.title,
+    year: perfectMatch?.main?.year,
+    genres: perfectMatch?.main?.genres,
+    imageUrl: perfectMatch?.main?.imageUrl,
+    popularity: perfectMatch?.main?.popularity,
+    streamingPlatforms: perfectMatch?.main?.streamingPlatforms
+  });
   console.log("🎯 Vérification des champs : main =", perfectMatch?.main, "| insights =", perfectMatch?.insights);
   console.log("🎬 movie details:", perfectMatch?.main);
 
@@ -212,7 +213,7 @@ export default function SearchResults({
 
 <p className={`text-xs sm:text-sm ${isDark ? 'text-blue-200/70' : 'text-gray-600'}`}>
   {perfectMatch ? (
-    'Based on your preferences, we’ve selected one perfect match and 3 similar suggestions.'
+    "Based on your preferences, we've selected one perfect match and 3 similar suggestions."
   ) : isPremium ? (
     `${results.length} matches found based on your preferences`
   ) : (

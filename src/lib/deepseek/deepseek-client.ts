@@ -1,13 +1,17 @@
 import { getClientIp } from "@/lib/search-limits/get-ip";
+import { getOrCreateUUID } from "@/lib/search-limits/get-uuid";
 
 console.log("🔑 VITE_DEEPSEEK_API_KEY =", import.meta.env.VITE_DEEPSEEK_API_KEY);
 
 export async function fetchMovieListFromDeepseek(prompt: string) {
-  const ip = await getClientIp();
+  const [ip, uuid] = await Promise.all([
+    getClientIp(),
+    getOrCreateUUID()
+  ]);
 
-  if (!ip) {
-    console.error("❌ IP address is missing");
-    throw new Error("Missing IP address");
+  if (!ip || !uuid) {
+    console.error("❌ Required identifiers missing:", { ip, uuid });
+    throw new Error("Missing required identification (IP or UUID)");
   }
 
   const res = await fetch("https://acmpivmrokzblypxdxbu.supabase.co/functions/v1/deepseek-proxy", {
@@ -16,7 +20,7 @@ export async function fetchMovieListFromDeepseek(prompt: string) {
       "Content-Type": "application/json",
       Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
     },
-    body: JSON.stringify({ prompt, ip })
+    body: JSON.stringify({ prompt, ip, uuid })
   });
 
   if (!res.ok) {
@@ -26,61 +30,86 @@ export async function fetchMovieListFromDeepseek(prompt: string) {
   }
 
   const responseData = await res.json();
-  console.log("🧪 responseData received from deepseek-proxy:", responseData);
-
-  // Check for both rawText and rawMovies
-  if (!responseData.rawText && !responseData.rawMovies) {
-    console.error("❌ Invalid response from Deepseek proxy:", responseData);
-    throw new Error("No movie recommendations received from the server");
-  }
+  console.log("🧪 Raw response from deepseek-proxy:", responseData);
 
   let movieData;
+  let content = "";
 
   try {
-    let content = "";
-
-    if (responseData.rawText) {
-      console.log("🪵 Received rawText from Deepseek.");
+    // Handle different response formats
+    if (responseData.rawMovies) {
+      console.log("🪵 Processing rawMovies");
+      if (Array.isArray(responseData.rawMovies)) {
+        console.log("📦 rawMovies is an array");
+        movieData = responseData.rawMovies;
+      } else if (typeof responseData.rawMovies === 'string') {
+        console.log("📦 rawMovies is a string, attempting to parse");
+        content = responseData.rawMovies;
+      } else if (responseData.rawMovies?.choices?.[0]?.message?.content) {
+        console.log("📦 rawMovies has nested content");
+        content = responseData.rawMovies.choices[0].message.content;
+      }
+    } else if (responseData.rawText) {
+      console.log("🪵 Processing rawText");
       const parsed = JSON.parse(responseData.rawText);
       content = parsed?.choices?.[0]?.message?.content;
-    } else if (responseData.rawMovies?.choices?.[0]?.message?.content) {
-      console.log("🪵 Received rawMovies from Deepseek (new format).");
-      content = responseData.rawMovies.choices[0].message.content;
-    } else {
-      console.error("❌ Invalid Deepseek format: neither rawText nor valid rawMovies");
-      throw new Error("Unrecognized response format from Deepseek");
     }
 
-    if (!content) {
-      throw new Error("Empty content from Deepseek");
+    // If we have content but no movieData, try to parse it
+    if (!movieData && content) {
+      console.log("📦 Attempting to parse content:", content);
+      
+      // Clean Markdown blocks if present
+      if (content.includes("```")) {
+        content = content.replace(/```(?:json)?/g, "").trim();
+      }
+
+      try {
+        const parsedContent = JSON.parse(content);
+        // Handle both direct array and nested movie array formats
+        movieData = Array.isArray(parsedContent)
+  ? parsedContent
+  : parsedContent.movies || parsedContent.tv_series;
+      } catch (parseError) {
+        console.error("❌ JSON parse error:", parseError);
+        throw new Error("Failed to parse movie data: Invalid JSON format");
+      }
     }
 
-    // 🧼 Nettoyer bloc Markdown si présent
-    if (content.includes("```")) {
-      content = content.replace(/```(?:json)?/g, "").trim();
+    if (!movieData || !Array.isArray(movieData)) {
+      console.error("❌ Invalid or missing movie data:", movieData);
+      throw new Error("No valid movie data found in the response");
     }
 
-    console.log("📦 Deepseek content to parse:", content);
+    // Validate and filter movie objects
+    movieData = movieData.filter(movie => {
+      const isValid = typeof movie === 'object' && 
+                     movie !== null && 
+                     typeof movie.title === 'string';
+      
+      if (!isValid) {
+        console.warn("⚠️ Filtered out invalid movie:", movie);
+      }
+      return isValid;
+    });
 
-const parsedData = JSON.parse(content);
-movieData = parsedData.movies;
-
-    if (!Array.isArray(movieData)) {
-      throw new Error("Expected an array of movie objects");
+    if (movieData.length === 0) {
+      throw new Error("No valid movies found in the response");
     }
+
+    console.log("✅ Successfully processed movie data:", {
+      count: movieData.length,
+      firstMovie: movieData[0]?.title
+    });
+
+    return {
+      rawMovies: movieData,
+      remaining: responseData.remaining,
+      isPremium: responseData.isPremium
+    };
 
   } catch (e) {
-    console.error("❌ Failed to parse movie data:", e);
-    throw new Error("Failed to process movie recommendations: " + e.message);
+    console.error("❌ Failed to process movie data:", e);
+    throw new Error(`Failed to process movie recommendations: ${e.message}`);
   }
-
-  if (!movieData || movieData.length === 0) {
-    throw new Error("No movie recommendations found");
-  }
-
-  return {
-    rawMovies: movieData,
-    remaining: responseData.remaining,
-    isPremium: responseData.isPremium
-  };
 }

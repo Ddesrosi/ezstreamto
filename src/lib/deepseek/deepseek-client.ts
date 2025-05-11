@@ -78,13 +78,13 @@ export async function fetchMovieListFromDeepseek(prompt: string) {
       console.log("📦 Attempting to parse content:", content);
       
       // Clean Markdown blocks if present
-      content = content.trim();
-      if (content.startsWith("```") && content.endsWith("```")) {
-        content = content.slice(3, -3).trim();
-      }
-      if (content.startsWith("```json") && content.endsWith("```")) {
-        content = content.slice(7, -3).trim();
-      }
+     // ✅ Clean up common Markdown wrappers like ```json ... ```
+if (content.includes("```")) {
+  console.log("⚠️ Markdown formatting detected, cleaning it up");
+  content = content.replace(/```(?:json)?/g, "").replace(/```/g, "").trim();
+}
+
+console.log("🔍 Final content to parse as JSON:", content);
 
       try {
         const parsedContent = JSON.parse(content);

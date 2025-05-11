@@ -1,5 +1,6 @@
 import { getClientIp } from "@/lib/search-limits/get-ip";
 import { getOrCreateUUID } from "@/lib/search-limits/get-uuid";
+import { supabase } from '@/lib/supabaseClient';
 
 console.log("🔑 VITE_DEEPSEEK_API_KEY =", import.meta.env.VITE_DEEPSEEK_API_KEY);
 
@@ -14,13 +15,30 @@ export async function fetchMovieListFromDeepseek(prompt: string) {
     throw new Error("Missing required identification (IP or UUID)");
   }
 
+  // Check premium status before proceeding
+  const { data: supporter } = await supabase
+    .from('supporters')
+    .select('*')
+    .or(`visitor_uuid.eq.${uuid},email.eq.${localStorage.getItem('visitor_email')}`)
+    .eq('verified', true)
+    .maybeSingle();
+
+  if (supporter?.unlimited_searches) {
+    console.log('✨ Premium user detected, skipping search limit check');
+  }
+
   const res = await fetch("https://acmpivmrokzblypxdxbu.supabase.co/functions/v1/deepseek-proxy", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
     },
-    body: JSON.stringify({ prompt, ip, uuid })
+    body: JSON.stringify({ 
+      prompt, 
+      ip, 
+      uuid,
+      isPremium: !!supporter?.unlimited_searches
+    })
   });
 
   if (!res.ok) {

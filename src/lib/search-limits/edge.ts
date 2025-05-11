@@ -26,12 +26,31 @@ export async function validateSearch(mode: Mode = 'check', uuid?: string) {
       return await cachedRequest;
     }
 
-  const body = {
-  ip,
-  uuid: finalUUID,
-  mode,
-  email: localStorage.getItem('visitor_email') || null
-};
+    // Check premium status first
+    const { data: supporter } = await supabase
+      .from('supporters')
+      .select('*')
+      .or(`visitor_uuid.eq.${finalUUID},email.eq.${localStorage.getItem('visitor_email')}`)
+      .eq('verified', true)
+      .maybeSingle();
+
+    if (supporter?.unlimited_searches) {
+      console.log('✨ Premium user detected, bypassing limits');
+      return {
+        canSearch: true,
+        remaining: Infinity,
+        total: Infinity,
+        isPremium: true,
+        message: "Premium user"
+      };
+    }
+
+    const body = {
+      ip,
+      uuid: finalUUID,
+      mode,
+      email: localStorage.getItem('visitor_email') || null
+    };
 
     console.log("📤 Email envoyé à search-limit:", body.email);
     console.log("📤 Request sent with body:", body);

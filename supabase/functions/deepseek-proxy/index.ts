@@ -49,42 +49,43 @@ serve(async (req) => {
   try {
   console.log("⏳ Requête reçue");
   const body = await req.json();
-console.log("🧪 JSON complet reçu dans deepseek-proxy:", body);
+  console.log("🧪 JSON complet reçu dans deepseek-proxy:", body);
 
-const { prompt, explanationPrompt, ip, uuid } = body;
-const finalPrompt = explanationPrompt || prompt;
-console.log("📥 Reçu dans proxy:", { prompt, explanationPrompt, finalPrompt, ip, uuid });
-console.log("🧪 Requête de type:", uuid);
-console.log("📥 Prompt reçu:", prompt);
-console.log("📥 ExplanationPrompt reçu:", explanationPrompt);
-console.log("🌍 IP reçue:", ip);
-console.log("📥 Données reçues :", { prompt, explanationPrompt, ip, uuid });
+  const { prompt, explanationPrompt, ip, uuid, isPremium } = body;
+  const finalPrompt = explanationPrompt || prompt;
+  console.log("📥 Reçu dans proxy:", { prompt, explanationPrompt, finalPrompt, ip, uuid, isPremium });
 
- if (!finalPrompt) {
-  console.log("⚠️ Aucun prompt valide transmis");
-  return new Response(JSON.stringify({
-    error: "Missing final prompt"
-  }), {
-    headers: {
-      ...cors,
-      "Content-Type": "application/json"
-    },
-    status: 400
-  });
-}
+  if (!finalPrompt) {
+    console.log("⚠️ Aucun prompt valide transmis");
+    return new Response(JSON.stringify({
+      error: "Missing final prompt"
+    }), {
+      headers: {
+        ...cors,
+        "Content-Type": "application/json"
+      },
+      status: 400
+    });
+  }
 
-if (!ip) {
-  console.warn("⚠️ IP manquante — quota non vérifié (appel probablement Premium ou serveur)");
-}
+  if (!ip && !isPremium) {
+    console.warn("⚠️ IP manquante pour utilisateur non-premium");
+    return new Response(JSON.stringify({
+      error: "IP required for non-premium users"
+    }), {
+      headers: { ...cors, "Content-Type": "application/json" },
+      status: 400
+    });
+  }
 
   // 🔍 Vérification des crédits avec search-limit (sauf pour appels serveur Premium)
-let creditData = {
-  canSearch: true,
-  remaining: null,
-  isPremium: true
-};
+  let creditData = {
+    canSearch: true,
+    remaining: null,
+    isPremium: isPremium
+  };
 
-if (uuid !== "perfect-match-server") {
+  if (!isPremium && uuid !== "perfect-match-server") {
   const creditRes = await fetch(`${supabaseUrl}/functions/v1/search-limit`, {
     method: "POST",
     headers: {

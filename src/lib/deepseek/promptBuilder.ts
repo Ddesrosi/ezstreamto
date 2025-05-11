@@ -37,6 +37,9 @@ export function buildSearchPrompt(preferences: SearchPreferences): string {
     `}`
   );
 
+  // ✅ Ajout important pour forcer Deepseek à échapper les caractères
+  promptLines.push(`Ensure all strings are properly escaped (e.g., using \\\" for quotes).`);
+
   promptLines.push(`\nUser Preferences:`);
 
   promptLines.push(`- Mood(s): ${selectedMoods.join(', ')}`);

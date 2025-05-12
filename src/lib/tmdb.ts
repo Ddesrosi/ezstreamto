@@ -166,6 +166,10 @@ export async function fetchMoviesFromTMDB(preferences: SearchPreferences): Promi
       params.append('with_genres', allGenreIds);
     }
 
+    // Exclude specific IDs if provided
+    if (preferences.excludeIds?.length) {
+      params.append('without_movies', preferences.excludeIds.join(','));
+    }
     console.log('🛠️ TMDB Query Parameters:', Object.fromEntries(params.entries()));
     
     const fetchPages = async () => {

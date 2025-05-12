@@ -6,17 +6,47 @@ import { DEEPSEEK_API_KEY } from "@/config";
 console.log("🔑 VITE_DEEPSEEK_API_KEY =", import.meta.env.VITE_DEEPSEEK_API_KEY);
 
 function sanitizeJsonString(str: string): string {
-  return str.replace(/([{,]\s*)([a-zA-Z0-9_]+)\s*:/g, '$1"$2":') // Fix unquoted keys
-    .replace(/:\s*'([^']*)'/g, ':"$1"') // Replace single quotes with double quotes
-    .replace(/([}\]])\s*([,}])/g, '$1$2') // Fix trailing commas
-    .replace(/([^"\\])"([^"\\]*)"(\s*[}\]])/g, '$1"$2"$3') // Fix unescaped quotes
-    .replace(/\[\s*([^"\]\[]*?)\s*\]/g, (match, content) => { // Fix array content
+  try {
+    // First attempt: Try direct parse
+    JSON.parse(str);
+    return str;
+  } catch (e) {
+    // Second attempt: Clean and sanitize
+    let sanitized = str;
+    
+    // Fix common JSON issues
+    sanitized = sanitized
+      .replace(/([{,]\s*)([a-zA-Z0-9_]+)\s*:/g, '$1"$2":')
+      .replace(/:\s*'([^']*)'/g, ':"$1"')
+      .replace(/([}\]])\s*([,}])/g, '$1$2')
+      .replace(/([^"\\])"([^"\\]*)"(\s*[}\]])/g, '$1"$2"$3');
+    
+    // Fix array content
+    sanitized = sanitized.replace(/\[\s*([^"\]\[]*?)\s*\]/g, (match, content) => {
       return `[${content.split(',')
         .map((item: string) => item.trim())
         .filter((item: string) => item)
         .map((item: string) => `"${item}"`)
         .join(',')}]`;
     });
+    
+    // Fix unterminated strings
+    const matches = sanitized.match(/"([^"]*)/g);
+    if (matches) {
+      matches.forEach(match => {
+        if (!match.endsWith('"')) {
+          sanitized = sanitized.replace(match, `${match}"`);
+        }
+      });
+    }
+    
+    // Ensure proper JSON structure
+    if (!sanitized.endsWith('}') && sanitized.includes('recommendations')) {
+      sanitized += '}';
+    }
+    
+    return sanitized;
+  }
 }
 
 interface DeepseekResponse {
@@ -36,6 +66,8 @@ export async function fetchMovieListFromDeepseek(prompt: string) {
     console.error("❌ Required identifiers missing:", { ip, uuid });
     throw new Error("Missing required identification (IP or UUID)");
   }
+
+  console.log("🔍 Fetching recommendations with prompt:", prompt);
 
   // Check premium status before proceeding
   const { data: supporter } = await supabase
@@ -78,6 +110,8 @@ export async function fetchMovieListFromDeepseek(prompt: string) {
   let content = "";
 
   try {
+    console.log("📥 Processing Deepseek response");
+
     // Handle different response formats
     if (responseData.rawMovies) {
       console.log("🩵 Processing rawMovies");

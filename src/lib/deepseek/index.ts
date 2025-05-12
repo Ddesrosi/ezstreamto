@@ -60,6 +60,21 @@ export async function getMovieRecommendations(preferences: SearchPreferences): P
       }
     } catch (error) {
       console.error("❌ Deepseek API error:", error);
+      // Fallback to TMDB if Deepseek fails
+      console.log("⚠️ Falling back to TMDB for recommendations");
+      try {
+        const tmdbResults = await fetchMoviesFromTMDB(preferences);
+        response = {
+          rawMovies: tmdbResults,
+          remaining: preferences.isPremium ? Infinity : 5,
+          isPremium: preferences.isPremium
+        };
+      } catch (tmdbError) {
+        console.error("❌ TMDB fallback failed:", tmdbError);
+        throw new RecommendationError(
+          "We're having trouble getting movie recommendations right now. Please try again in a moment."
+        );
+      }
       throw new RecommendationError(
         "We're having trouble getting movie recommendations right now. Please try again in a moment."
       );
@@ -103,7 +118,22 @@ export async function getMovieRecommendations(preferences: SearchPreferences): P
     const limit = preferences.isPremium ? PREMIUM_USER_LIMIT : BASIC_USER_LIMIT;
     // Sort by popularity before slicing
     const sortedResults = [...validResults].sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
-    const finalResults = sortedResults.slice(0, limit);
+    let finalResults = sortedResults.slice(0, limit);
+    
+    // Ensure 10 results for premium users when not using Perfect Match
+    if (preferences.isPremium && !preferences.isPerfectMatch && finalResults.length < 10) {
+      console.log("🔄 Fetching additional results to meet premium quota");
+      const additionalResults = await fetchMoviesFromTMDB({
+        ...preferences,
+        excludeIds: finalResults.map(m => m.id)
+      });
+      
+      const combinedResults = [...finalResults, ...additionalResults];
+      const uniqueResults = Array.from(new Map(combinedResults.map(m => [m.id, m])).values());
+      finalResults = uniqueResults.slice(0, 10);
+      
+      console.log("✅ Final results count:", finalResults.length);
+    }
     
     let perfectMatch;
 

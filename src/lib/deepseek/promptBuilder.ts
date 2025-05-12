@@ -18,17 +18,28 @@ export function buildSearchPrompt(preferences: SearchPreferences): string {
 
   promptLines.push(
     `You are an expert AI assistant specialized in recommending movies and TV shows.`,
-    `Based on the preferences below, recommend exactly ${resultCount} ${typeLabel} in JSON format.`,
+    `Based on the preferences below, recommend exactly ${resultCount} ${typeLabel}.`,
     ``,
-    `⚠️ Important rules:`,
+    `⚠️ Output format (very important):`,
+    `- Return ONLY a valid JSON object with this exact structure:`,
+    `  {`,
+    `    "recommendations": [`,
+    `      {`,
+    `        "title": "string",`,
+    `        "year": number,`,
+    `        "rating": number,`,
+    `        "duration": number or "TV Series",`,
+    `        "language": "string",`,
+    `        "genres": ["string"],`,
+    `        "description": "string",`,
+    `        "popularity": number`,
+    `      }`,
+    `    ]`,
+    `  }`,
     `- Do not include any text or explanation before or after the JSON.`,
     `- Do not wrap the JSON in code blocks.`,
-    `- The response MUST start with [ and end with ].`,
     `- All keys must be in double quotes.`,
-    `- Use only standard JSON syntax (no comments, no trailing commas).`,
-    ``,
-    `Return only an array of JSON objects with the following fields:`,
-    `"title", "year", "rating", "description", "duration", "language", "genres", "popularity"`
+    `- Use only standard JSON syntax (no comments, no trailing commas).`
   );
 
   promptLines.push(`\nUser Preferences:`);
@@ -58,24 +69,21 @@ export function buildSearchPrompt(preferences: SearchPreferences): string {
   );
 
   promptLines.push(
-    `\nEach item in the array must include exactly these fields:`,
-    `"title", "year", "rating", "description", "duration", "language", "genres"`
-  );
-
-  promptLines.push(
-    `\nExample:`,
-    `[`,
-    `  {`,
-    `    "title": "Inception",`,
-    `    "year": 2010,`,
-    `    "rating": 8.8,`,
-    `    "description": "A skilled thief enters dreams to steal secrets.",`,
-    `    "duration": 148,`,
-    `    "language": "EN",`,
-    `    "genres": ["Sci-Fi", "Thriller"],`,
-    `    "popularity": 92`,
-    `  }`,
-    `]`
+    `\nExample output:`,
+    `{`,
+    `  "recommendations": [`,
+    `    {`,
+    `      "title": "Inception",`,
+    `      "year": 2010,`,
+    `      "rating": 8.8,`,
+    `      "description": "A skilled thief enters dreams to steal secrets.",`,
+    `      "duration": 148,`,
+    `      "language": "EN",`,
+    `      "genres": ["Sci-Fi", "Thriller"],`,
+    `      "popularity": 92`,
+    `    }`,
+    `  ]`,
+    `}`
   );
 
   return promptLines.join('\n');

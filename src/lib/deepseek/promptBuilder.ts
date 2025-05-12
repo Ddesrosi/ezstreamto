@@ -11,30 +11,24 @@ export function buildSearchPrompt(preferences: SearchPreferences): string {
     ratingRange
   } = preferences;
 
-  const resultCount = preferences.isPremium ? 10 : 5;
+  const resultCount = preferences.isPremium && !preferences.isPerfectMatch ? 10 : 5;
   const typeLabel = contentType === 'movie' ? 'movies' : 'TV series';
 
   const promptLines = [];
 
   promptLines.push(
     `You are an expert AI assistant specialized in recommending movies and TV shows.`,
-    `Based on the preferences below, recommend ${resultCount} ${typeLabel} in a JSON format.`,
-    `Each recommendation must include a popularity score (0-100) for sorting.`,
-    `Return ONLY a valid JSON object with this exact structure:`,
-    `{`,
-    `  "recommendations": [`,
-    `    {`,
-    `      "title": "string",`,
-    `      "year": number,`,
-    `      "rating": number,`,
-    `      "duration": number or "TV Series",`,
-    `      "language": "string",`,
-    `      "genres": ["string"],`,
-    `      "description": "string",`,
-    `      "popularity": number`,
-    `    }`,
-    `  ]`,
-    `}`
+    `Based on the preferences below, recommend exactly ${resultCount} ${typeLabel} in JSON format.`,
+    ``,
+    `⚠️ Important rules:`,
+    `- Do not include any text or explanation before or after the JSON.`,
+    `- Do not wrap the JSON in code blocks.`,
+    `- The response MUST start with [ and end with ].`,
+    `- All keys must be in double quotes.`,
+    `- Use only standard JSON syntax (no comments, no trailing commas).`,
+    ``,
+    `Return only an array of JSON objects with the following fields:`,
+    `"title", "year", "rating", "description", "duration", "language", "genres", "popularity"`
   );
 
   promptLines.push(`\nUser Preferences:`);
@@ -69,8 +63,19 @@ export function buildSearchPrompt(preferences: SearchPreferences): string {
   );
 
   promptLines.push(
-    `\nOutput Example (JSON only):`,
-    `[{"title":"Inception","year":2010,"rating":8.8,"description":"A skilled thief leads a team into dreams.","duration":148,"language":"EN","genres":["Sci-Fi","Thriller"]}]`
+    `\nExample:`,
+    `[`,
+    `  {`,
+    `    "title": "Inception",`,
+    `    "year": 2010,`,
+    `    "rating": 8.8,`,
+    `    "description": "A skilled thief enters dreams to steal secrets.",`,
+    `    "duration": 148,`,
+    `    "language": "EN",`,
+    `    "genres": ["Sci-Fi", "Thriller"],`,
+    `    "popularity": 92`,
+    `  }`,
+    `]`
   );
 
   return promptLines.join('\n');

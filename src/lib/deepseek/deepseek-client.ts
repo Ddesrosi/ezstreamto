@@ -7,45 +7,28 @@ console.log("🔑 VITE_DEEPSEEK_API_KEY =", import.meta.env.VITE_DEEPSEEK_API_KE
 
 function sanitizeJsonString(str: string): string {
   try {
-    // First attempt: Try direct parse
-    JSON.parse(str);
-    return str;
+    // Remove any markdown code blocks
+    let cleaned = str.replace(/```(?:json)?/g, '').replace(/```/g, '').trim();
+
+    // Find the first [ and last ]
+    const start = cleaned.indexOf('[');
+    const end = cleaned.lastIndexOf(']');
+    
+    if (start === -1 || end === -1) {
+      throw new Error('Invalid JSON array format');
+    }
+    
+    try {
+      // Validate the cleaned JSON
+      JSON.parse(cleaned);
+      return cleaned;
+    } catch (parseError) {
+      console.error('❌ Failed to parse cleaned JSON:', parseError);
+      throw parseError;
+    }
   } catch (e) {
-    // Second attempt: Clean and sanitize
-    let sanitized = str;
-    
-    // Fix common JSON issues
-    sanitized = sanitized
-      .replace(/([{,]\s*)([a-zA-Z0-9_]+)\s*:/g, '$1"$2":')
-      .replace(/:\s*'([^']*)'/g, ':"$1"')
-      .replace(/([}\]])\s*([,}])/g, '$1$2')
-      .replace(/([^"\\])"([^"\\]*)"(\s*[}\]])/g, '$1"$2"$3');
-    
-    // Fix array content
-    sanitized = sanitized.replace(/\[\s*([^"\]\[]*?)\s*\]/g, (match, content) => {
-      return `[${content.split(',')
-        .map((item: string) => item.trim())
-        .filter((item: string) => item)
-        .map((item: string) => `"${item}"`)
-        .join(',')}]`;
-    });
-    
-    // Fix unterminated strings
-    const matches = sanitized.match(/"([^"]*)/g);
-    if (matches) {
-      matches.forEach(match => {
-        if (!match.endsWith('"')) {
-          sanitized = sanitized.replace(match, `${match}"`);
-        }
-      });
-    }
-    
-    // Ensure proper JSON structure
-    if (!sanitized.endsWith('}') && sanitized.includes('recommendations')) {
-      sanitized += '}';
-    }
-    
-    return sanitized;
+    console.error('❌ JSON sanitization failed:', e);
+    throw new Error(`Failed to sanitize JSON: ${e.message}`);
   }
 }
 

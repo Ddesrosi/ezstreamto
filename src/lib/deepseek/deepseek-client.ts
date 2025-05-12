@@ -5,33 +5,6 @@ import { DEEPSEEK_API_KEY } from "@/config";
 
 console.log("🔑 VITE_DEEPSEEK_API_KEY =", import.meta.env.VITE_DEEPSEEK_API_KEY);
 
-function sanitizeJsonString(str: string): string {
-  try {
-    // Remove any markdown code blocks
-    let cleaned = str.replace(/```(?:json)?/g, '').replace(/```/g, '').trim();
-
-    // Find the first [ and last ]
-    const start = cleaned.indexOf('[');
-    const end = cleaned.lastIndexOf(']');
-    
-    if (start === -1 || end === -1) {
-      throw new Error('Invalid JSON array format');
-    }
-    
-    try {
-      // Validate the cleaned JSON
-      JSON.parse(cleaned);
-      return cleaned;
-    } catch (parseError) {
-      console.error('❌ Failed to parse cleaned JSON:', parseError);
-      throw parseError;
-    }
-  } catch (e) {
-    console.error('❌ JSON sanitization failed:', e);
-    throw new Error(`Failed to sanitize JSON: ${e.message}`);
-  }
-}
-
 interface DeepseekResponse {
   rawMovies?: any[];
   rawText?: string;
@@ -119,12 +92,9 @@ export async function fetchMovieListFromDeepseek(prompt: string) {
       console.log("📦 Attempting to parse content:", content);
 
       try {
-        // Clean and sanitize the content
+       
         content = content.replace(/```(?:json)?/g, "").replace(/```/g, "").trim();
-        content = sanitizeJsonString(content);
-        
-        console.log("🧹 Sanitized content:", content);
-        
+              
         const parsedContent = JSON.parse(content);
         
         if (Array.isArray(parsedContent)) {
@@ -158,8 +128,7 @@ export async function fetchMovieListFromDeepseek(prompt: string) {
         console.warn("⚠️ Filtered out invalid movie:", movie);
       }
       
-      // Sanitize genres array if needed
-      if (isValid && movie.genres) {
+         if (isValid && movie.genres) {
         movie.genres = movie.genres.map((genre: any) => 
           typeof genre === 'string' ? genre.trim() : ''
         ).filter(Boolean);

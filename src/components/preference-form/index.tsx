@@ -194,7 +194,18 @@ const handleSearch = useCallback(async () => {
       });
     }, 300);
 
-    // 🔍 Récupération des résultats (Deepseek + TMDB)
+   console.log("🎬 Running getMovieRecommendations() with preferences:", {
+  contentType,
+  selectedMoods,
+  selectedGenres,
+  keywords: isPremium ? keywords : [],
+  yearRange,
+  specificYear: isPremium && specificYearInput ? parseInt(specificYearInput) : null,
+  ratingRange,
+  isPremium,
+  isPerfectMatch: isPerfectMatchEnabled && isPremium
+});
+
     const response = await getMovieRecommendations({
       contentType,
       selectedMoods,

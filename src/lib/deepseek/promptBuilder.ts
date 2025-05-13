@@ -11,7 +11,7 @@ export function buildSearchPrompt(preferences: SearchPreferences): string {
     ratingRange
   } = preferences;
 
-  const resultCount = preferences.isPremium && !preferences.isPerfectMatch ? 10 : 5;
+ const resultCount = preferences.isPremium ? 10 : 5;
   const typeLabel = contentType === 'movie' ? 'movies' : 'TV series';
 
   const promptLines = [];

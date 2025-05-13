@@ -8,8 +8,6 @@ import { Sparkles, Coffee } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { PremiumBadge } from '../ui/premium-badge';
 import { PremiumModal } from '../ui/premium-modal';
-import { PerfectMatchCard } from './perfect-match-card';
-import type { PerfectMatchInsights } from '@/lib/perfect-match';
 import { USER_LIMITS } from '@/config';
 import { getOrCreateUUID } from '@/lib/search-limits/get-uuid';
 import { supabase } from '@/lib/supabaseClient';
@@ -51,19 +49,6 @@ export default function SearchResults({
     popularity: perfectMatch?.main?.popularity,
     streamingPlatforms: perfectMatch?.main?.streamingPlatforms
   });
-  console.log("🎯 Vérification des champs : main =", perfectMatch?.main, "| insights =", perfectMatch?.insights);
-  console.log("🎬 movie details:", perfectMatch?.main);
-
-  if (perfectMatch?.main && perfectMatch?.insights) {
-  console.log("🎬 Rendering PerfectMatchCard");
-  return (
-    <PerfectMatchCard
-      movie={perfectMatch.main}
-      insights={perfectMatch.insights}
-      suggestions={perfectMatch.insights.similar}
-    />
-  );
-}
   
   const [displayedResults, setDisplayedResults] = useState<Movie[]>([]);
 

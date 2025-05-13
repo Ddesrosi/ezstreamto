@@ -95,6 +95,13 @@ export async function fetchMovieListFromDeepseek(prompt: string) {
        
         content = content.replace(/```(?:json)?/g, "").replace(/```/g, "").trim();
               
+   // Fix common Deepseek quote issues (unescaped " inside strings)
+content = content.replace(/"([^"]*?)"(?=\s*[:},])/g, (match) => {
+  // If the string inside contains an unmatched quote, escape it
+  const cleaned = match.replace(/([^\\])"/g, '$1\\"');
+  return cleaned;
+});
+    
         const parsedContent = JSON.parse(content);
         
         if (Array.isArray(parsedContent)) {

@@ -127,12 +127,13 @@ A short explanation only. No extra formatting. Do not return JSON.
 `.trim();
 
    const explanationResponse = await 
-   fetch("/api/deepseek-proxy", {
+   fetch("https://acmpivmrokzblypxdxbu.supabase.co/functions/v1/deepseek-proxy", {
   method: "POST",
   headers: {
-    "Content-Type": "application/json",
-  
-  },
+  "Content-Type": "application/json",
+  Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFjbXBpdm1yb2t6Ymx5cHhkeGJ1Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTczODk0MTU5NSwiZXhwIjoyMDU0NTE3NTk1fQ.wSBjWIKUhuRlvnKZSw9CmzaUz-eiahVdmgaiYjZB2j8"
+},
+
   body: JSON.stringify({
     prompt: explanationPrompt,
     uuid: "perfect-match-explanation"

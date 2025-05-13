@@ -126,11 +126,9 @@ function PreferenceForm({ isDark, onSearch, onError, visitorUUID }: PreferenceFo
   };
 
  const handleUpgrade = () => {
-  const uuid = getOrCreateUUID();
-  window.open(`https://www.buymeacoffee.com/EzStreamTo?pre_payment_uuid=${uuid}`, '_blank');
-  setShowPremiumModal(false);
+  setShowPremiumModal(true);
 };
-  
+
 const handleSearch = useCallback(async () => {
   console.log("🧩 handleSearch() called – DEBUG LOG –", new Date().toISOString());
 
@@ -311,7 +309,7 @@ setSearchProgress(0);
       {!isPremium && (
   <div className="w-full sm:w-auto mt-4">
     <Button
-      onClick={handlePremiumClick}
+      onClick={handleUpgrade}
       size="md"
       className={cn(
         "w-full sm:w-auto text-xs sm:text-sm px-3 sm:px-4 h-9 sm:h-10 font-medium",

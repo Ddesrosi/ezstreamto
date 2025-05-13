@@ -51,9 +51,7 @@ export default function SearchResults({
   
   const [isLoading, setIsLoading] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
-  const [showLocalPremiumModal, setShowLocalPremiumModal] = useState(false);
   const [loadingError, setLoadingError] = useState<string | null>(null);
-  const uuid = getOrCreateUUID();
 
   const [localRemainingSearches, setLocalRemainingSearches] = useState<number | null>(null);
 
@@ -63,12 +61,6 @@ export default function SearchResults({
     }
   }, [remainingSearches]);
 
-  const handleUpgrade = () => {
-    const uuid = getOrCreateUUID();
-    window.open(`https://www.buymeacoffee.com/EzStreamTo?pre_payment_uuid=${uuid}`, '_blank');
-    setShowLocalPremiumModal(false);
-  };
-
   const SearchCreditsSection = () => {
     if (isPremium) return null;
 
@@ -76,12 +68,7 @@ export default function SearchResults({
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className={cn(
-          "w-full max-w-lg mx-auto p-3 sm:p-6 rounded-lg text-center",
-          isDark 
-            ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white'
-            : 'bg-gradient-to-r from-amber-500 to-amber-600 text-white'
-        )}
+        className="w-full max-w-lg mx-auto p-3 sm:p-6 rounded-lg text-center bg-gradient-to-r from-amber-500 to-amber-600 text-white"
       >
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 w-full">
           <p className="text-xs sm:text-sm font-medium">
@@ -95,13 +82,12 @@ export default function SearchResults({
           </p>
 
           <div className="w-full sm:w-auto">
-            <button
-              onClick={handlePremiumClick}
-              type="button"
-              className="w-full sm:w-auto h-9 sm:h-10 text-xs sm:text-sm px-3 sm:px-4 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium rounded-lg transition-all duration-300"
+            <Button
+              onClick={() => setShowPremiumModal(true)}
+              className="w-full sm:w-auto text-xs sm:text-sm px-3 sm:px-4 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium"
             >
               Get Unlimited Searches
-            </button>
+            </Button>
           </div>
         </div>
       </motion.div>
@@ -142,36 +128,8 @@ export default function SearchResults({
     }
   }, [results]);
 
-  const handlePremiumClick = async () => {
-    try {
-      const uuid = getOrCreateUUID();
-      console.log('🔵 Handling premium click with UUID:', uuid);
-
-      const { error } = await supabase
-        .from('pre_payments')
-        .insert([{ visitor_uuid: uuid }]);
-
-      if (error) {
-        console.error('❌ Error inserting pre_payment:', error);
-        return;
-      }
-
-      console.log('✅ visitor_uuid inserted into pre_payments:', uuid);
-
-      window.location.href = `https://www.buymeacoffee.com/EzStreamTo?pre_payment_uuid=${uuid}`;
-    } catch (error) {
-      console.error('❌ Unexpected error during premium upgrade:', error);
-    }
-  };
-
   return (
     <div className="w-full">
-      <PremiumModal 
-        isOpen={showLocalPremiumModal}
-        onClose={() => setShowLocalPremiumModal(false)}
-        onUpgrade={handleUpgrade}
-      />
-
       <div className={`sticky top-0 z-10 pb-3 sm:pb-4 ${isDark ? 'bg-[#040B14]/90' : 'bg-gray-50/90'} backdrop-blur-sm`}>
         <div className="flex items-center justify-between mb-2">
           <Button variant="ghost" onClick={onBack} className="hover:bg-transparent text-sm sm:text-base">

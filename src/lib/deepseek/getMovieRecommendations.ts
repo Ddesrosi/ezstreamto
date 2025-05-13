@@ -72,6 +72,7 @@ export async function getMovieRecommendations(preferences: SearchPreferences) {
           similar
         }
       };
+      console.log("✨ Perfect Match generated:", perfectMatch);
     } catch (err) {
       console.error("❌ Perfect Match generation failed:", err);
       perfectMatch = undefined;

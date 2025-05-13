@@ -126,11 +126,12 @@ Do not mention that you're an AI or repeat the preferences explicitly.
 A short explanation only. No extra formatting. Do not return JSON.
 `.trim();
 
-   const explanationResponse = await fetch("https://acmpivmrokzblypxdxbu.supabase.co/functions/v1/deepseek-proxy", {
+   const explanationResponse = await 
+   fetch("/api/deepseek-proxy", {
   method: "POST",
   headers: {
     "Content-Type": "application/json",
-    Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`
+  
   },
   body: JSON.stringify({
     prompt: explanationPrompt,

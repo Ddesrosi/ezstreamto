@@ -106,9 +106,58 @@ try {
   limit
 });
 
+    let perfectMatch;
+
+if (preferences.isPerfectMatch && preferences.isPremium) {
+  try {
+    const sorted = [...validResults].sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
+    const main = sorted[0];
+    const similar = sorted.slice(1, 4);
+
+    const explanationPrompt = `
+You are an expert in movie recommendations.
+
+🎯 TASK:
+Explain in 3 to 4 sentences why the movie "${main.title}" is a perfect match based on the user's preferences.
+Keep the tone natural, as if you were speaking to a friend.
+Do not mention that you're an AI or repeat the preferences explicitly.
+
+📝 RESPONSE:
+A short explanation only. No extra formatting. Do not return JSON.
+`.trim();
+
+    const explanationResponse = await fetch("/api/deepseek-proxy", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        prompt: explanationPrompt,
+        uuid: "perfect-match-explanation"
+      })
+    });
+
+    const explanation = await explanationResponse.text();
+
+    perfectMatch = {
+      movie: main,
+      insights: {
+        reason: explanation.trim(),
+        similar
+      }
+    };
+
+    console.log("✨ Perfect Match generated:", perfectMatch);
+  } catch (error) {
+    console.error("❌ Perfect Match generation failed:", error);
+    perfectMatch = undefined;
+  }
+}
+
    return {
   results: finalResults,
-  remaining: response.remaining
+  remaining: response.remaining,
+  perfectMatch // ✅ Ajout ici
 };
 
   } catch (error) {

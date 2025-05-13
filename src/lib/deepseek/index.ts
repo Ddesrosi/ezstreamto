@@ -136,7 +136,8 @@ A short explanation only. No extra formatting. Do not return JSON.
 
   body: JSON.stringify({
     prompt: explanationPrompt,
-    uuid: "perfect-match-explanation"
+    uuid: "perfect-match-explanation",
+    ip: "127.0.0.1"
   })
 });
 

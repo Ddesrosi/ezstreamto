@@ -60,6 +60,7 @@ export async function getMovieRecommendations(preferences: SearchPreferences) {
   let perfectMatch;
   if (preferences.isPerfectMatch && preferences.isPremium) {
     try {
+      console.log("🚀 Entrée dans le bloc Perfect Match");
       const { main, similar } = selectPerfectMatchFromResults(enriched);
 
       const explanationPrompt = generatePerfectMatchExplanationPrompt(preferences, main);

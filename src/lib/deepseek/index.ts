@@ -126,8 +126,7 @@ Do not mention that you're an AI or repeat the preferences explicitly.
 A short explanation only. No extra formatting. Do not return JSON.
 `.trim();
 
-   const explanationResponse = await 
-   fetch("https://acmpivmrokzblypxdxbu.supabase.co/functions/v1/deepseek-proxy", {
+  const explanationResponse = await fetch("https://acmpivmrokzblypxdxbu.supabase.co/functions/v1/perfect-match-explanation", {
   method: "POST",
   headers: {
   "Content-Type": "application/json",
@@ -135,10 +134,8 @@ A short explanation only. No extra formatting. Do not return JSON.
 },
 
   body: JSON.stringify({
-    prompt: explanationPrompt,
-    uuid: "perfect-match-explanation",
-    ip: "127.0.0.1"
-  })
+  prompt: explanationPrompt
+})
 });
 
     const explanation = await explanationResponse.text();

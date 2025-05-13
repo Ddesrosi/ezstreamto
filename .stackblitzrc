@@ -1,0 +1,11 @@
+{
+  "installDependencies": true,
+  "startCommand": "npm run dev",
+  "env": {
+    "VITE_SUPABASE_URL": "https://acmpivmrokzblypxdxbu.supabase.co",
+    "VITE_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFjbXBpdm1yb2t6Ymx5cHhkeGJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg5NDE1OTUsImV4cCI6MjA1NDUxNzU5NX0.nPs1MeO2vH7bh85tvLrH5-jFBCPk9Z1kQMGuZGKmY3s",
+    "VITE_TMDB_API_KEY": "413cd33f7c45b65014879caead72caba",
+    "VITE_BMC_SECRET":0a6bfedc8e3bbbb98be3d64de49db60706fec2cda1ac5d1f9938326b233ca946cbbc93f9505a28f5
+    "VITE_DEEPSEEK_API_KEY":sk-fe5c59d636e4481799553718d427aff3
+  }
+}

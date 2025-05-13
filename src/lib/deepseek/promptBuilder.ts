@@ -11,7 +11,7 @@ export function buildSearchPrompt(preferences: SearchPreferences): string {
     ratingRange
   } = preferences;
 
- const resultCount = 5; // ✅ TEMPORARY FIX: always limit to 5 to avoid Deepseek JSON errors
+ const resultCount = preferences.isPremium ? 10 : 5;
   const typeLabel = contentType === 'movie' ? 'movies' : 'TV series';
 
   const promptLines = [];
@@ -67,24 +67,6 @@ export function buildSearchPrompt(preferences: SearchPreferences): string {
     `- Only include movies or series that are available at least in English.`,
     `- Only include content released from 1970 onwards.`
   );
-
-  promptLines.push(
-    `\nExample output:`,
-    `{`,
-    `  "recommendations": [`,
-    `    {`,
-    `      "title": "Inception",`,
-    `      "year": 2010,`,
-    `      "rating": 8.8,`,
-    `      "description": "A skilled thief enters dreams to steal secrets.",`,
-    `      "duration": 148,`,
-    `      "language": "EN",`,
-    `      "genres": ["Sci-Fi", "Thriller"],`,
-    `      "popularity": 92`,
-    `    }`,
-    `  ]`,
-    `}`
-  );
-
-  return promptLines.join('\n');
+   return promptLines.join('\n');
 }
+

@@ -11,7 +11,7 @@ export function buildSearchPrompt(preferences: SearchPreferences): string {
     ratingRange
   } = preferences;
 
- const resultCount = preferences.isPremium ? 10 : 5;
+ const resultCount = 5; // ✅ TEMPORARY FIX: always limit to 5 to avoid Deepseek JSON errors
   const typeLabel = contentType === 'movie' ? 'movies' : 'TV series';
 
   const promptLines = [];

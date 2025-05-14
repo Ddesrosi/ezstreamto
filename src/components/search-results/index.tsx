@@ -147,6 +147,31 @@ export default function SearchResults({
               ? `${results.length} matches found based on your preferences`
               : `Here are ${results.length} great matches based on your preferences. Want more results and powerful discovery options? Become a Premium member for just $5 and unlock unlimited searches.`}
           </p>
+          {perfectMatch && (
+  <div className="my-6">
+    <h3 className="text-lg font-semibold mb-2">
+      Your Perfect Match
+    </h3>
+    <p className="text-sm text-muted-foreground mb-4">
+      {perfectMatch.insights.reason}
+    </p>
+
+    <MovieCard
+      movie={perfectMatch.movie}
+      isDark={isDark}
+    />
+
+    <h4 className="text-md font-semibold mt-6 mb-2">
+      You Might Also Like
+    </h4>
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+      {perfectMatch.insights.similar.map((movie) => (
+        <MovieCard key={`suggestion-${movie.id}`} movie={movie} isDark={isDark} />
+      ))}
+    </div>
+  </div>
+)}
+
         </div>
       </div>
 

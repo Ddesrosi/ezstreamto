@@ -156,10 +156,11 @@ export default function SearchResults({
       {perfectMatch.insights.reason}
     </p>
 
-    <MovieCard
-      movie={perfectMatch.movie}
-      isDark={isDark}
-    />
+   <PerfectMatchCard
+  movie={perfectMatch.movie}
+  insights={perfectMatch.insights}
+  isDark={isDark}
+/>
 
     <h4 className="text-md font-semibold mt-6 mb-2">
       You Might Also Like

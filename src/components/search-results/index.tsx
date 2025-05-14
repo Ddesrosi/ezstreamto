@@ -155,10 +155,10 @@ export default function SearchResults({
     </h3>
     {(() => {
   try {
-    const parsed = JSON.parse(insights.reason);
+    const parsed = JSON.parse(perfectMatch.insights.reason);
     return <p className="text-sm text-muted-foreground mb-4">{parsed.explanation}</p>;
   } catch {
-    return <p className="text-sm text-muted-foreground mb-4">{insights.reason}</p>;
+    return <p className="text-sm text-muted-foreground mb-4">{perfectMatch.insights.reason}</p>;
   }
 })()}
 

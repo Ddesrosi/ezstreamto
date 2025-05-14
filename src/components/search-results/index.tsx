@@ -3,6 +3,7 @@ import { Button } from '../ui/button';
 import { Movie } from '@/types';
 import { MovieSkeleton } from './skeleton';
 import { MovieCard } from './movie-card';
+import { PerfectMatchCard } from './perfect-match-card';
 import { motion } from 'framer-motion';
 import { Sparkles, Coffee } from 'lucide-react';
 import { cn } from '@/lib/utils';

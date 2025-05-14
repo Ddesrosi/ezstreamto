@@ -171,22 +171,17 @@ const uniquePlatforms = (movie.streamingPlatforms || []).reduce((acc: string[], 
                 <ThumbsUp className="h-5 w-5 text-green-500" />
                 Why It's Perfect for You
               </h4>
-              {(() => {
-                try {
-                  const parsed = JSON.parse(insights.reason);
-                  return (
-                    <p className={cn("text-base sm:text-lg leading-relaxed", isDark ? 'text-blue-200/70' : 'text-gray-600')}>
-                      {parsed.explanation}
-                    </p>
-                  );
-                } catch (error) {
-                  return (
-                    <p className={cn("text-base sm:text-lg leading-relaxed", isDark ? 'text-blue-200/70' : 'text-gray-600')}>
-                      {insights.reason}
-                    </p>
-                  );
-                }
-              })()}
+              <p className={cn("text-base sm:text-lg leading-relaxed", isDark ? 'text-blue-200/70' : 'text-gray-600')}>
+  {(() => {
+    try {
+      const parsed = JSON.parse(insights.reason);
+      return parsed.explanation;
+    } catch {
+      return insights.reason;
+    }
+  })()}
+</p>
+
             </div>
 
             <div>

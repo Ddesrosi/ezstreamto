@@ -43,12 +43,12 @@ export default function SearchResults({
   const [displayedResults, setDisplayedResults] = useState<Movie[]>([]);
 
   console.log('📊 SearchResults component:', {
-  resultsCount: results?.length,
-  remainingSearches,
-  isPremium,
-  firstResult: results?.[0],
-  displayedResults: displayedResults?.length
-});
+    resultsCount: results?.length,
+    remainingSearches,
+    isPremium,
+    firstResult: results?.[0],
+    displayedResults: displayedResults?.length
+  });
   
   const [isLoading, setIsLoading] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
@@ -148,28 +148,18 @@ export default function SearchResults({
               ? `${results.length} matches found based on your preferences`
               : `Here are ${results.length} great matches based on your preferences. Want more results and powerful discovery options? Become a Premium member for just $5 and unlock unlimited searches.`}
           </p>
-          {perfectMatch && (
-  <div className="my-6">
-    
-   <PerfectMatchCard
-  movie={perfectMatch.movie}
-  insights={perfectMatch.insights}
-  isDark={isDark}
-/>
-
-    <h4 className="text-md font-semibold mt-6 mb-2">
-      You Might Also Like
-    </h4>
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-      {perfectMatch.insights.similar.map((movie) => (
-        <MovieCard key={`suggestion-${movie.id}`} movie={movie} isDark={isDark} />
-      ))}
-    </div>
-  </div>
-)}
-
         </div>
       </div>
+
+      {perfectMatch && (
+        <div className="my-6">
+          <PerfectMatchCard
+            movie={perfectMatch.movie}
+            insights={perfectMatch.insights}
+            isDark={isDark}
+          />
+        </div>
+      )}
 
       <div className="space-y-6 mb-6">
         <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4">

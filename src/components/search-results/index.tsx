@@ -150,18 +150,7 @@ export default function SearchResults({
           </p>
           {perfectMatch && (
   <div className="my-6">
-    <h3 className="text-lg font-semibold mb-2">
-      Your Perfect Match
-    </h3>
-    {(() => {
-  try {
-    const parsed = JSON.parse(perfectMatch.insights.reason);
-    return <p className="text-sm text-muted-foreground mb-4">{parsed.explanation}</p>;
-  } catch {
-    return <p className="text-sm text-muted-foreground mb-4">{perfectMatch.insights.reason}</p>;
-  }
-})()}
-
+    
    <PerfectMatchCard
   movie={perfectMatch.movie}
   insights={perfectMatch.insights}

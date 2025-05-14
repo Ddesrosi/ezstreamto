@@ -153,9 +153,14 @@ export default function SearchResults({
     <h3 className="text-lg font-semibold mb-2">
       Your Perfect Match
     </h3>
-    <p className="text-sm text-muted-foreground mb-4">
-      {perfectMatch.insights.reason}
-    </p>
+    {(() => {
+  try {
+    const parsed = JSON.parse(insights.reason);
+    return <p className="text-sm text-muted-foreground mb-4">{parsed.explanation}</p>;
+  } catch {
+    return <p className="text-sm text-muted-foreground mb-4">{insights.reason}</p>;
+  }
+})()}
 
    <PerfectMatchCard
   movie={perfectMatch.movie}

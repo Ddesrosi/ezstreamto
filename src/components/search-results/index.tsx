@@ -12,6 +12,7 @@ import { PremiumModal } from '../ui/premium-modal';
 import { USER_LIMITS } from '@/config';
 import { getOrCreateUUID } from '@/lib/search-limits/get-uuid';
 import { supabase } from '@/lib/supabaseClient';
+import { PerfectMatchSection } from './perfect-match-section';
 
 interface SearchResultsProps {
   results: Movie[];
@@ -151,31 +152,37 @@ export default function SearchResults({
         </div>
       </div>
 
-      {perfectMatch && (
-        <div className="my-6">
-          <PerfectMatchCard
-            movie={perfectMatch.movie}
-            insights={perfectMatch.insights}
-            isDark={isDark}
-          />
-        </div>
-      )}
+     {perfectMatch && (
+  <PerfectMatchSection
+    perfectMatch={perfectMatch}
+    isDark={isDark}
+  />
+)}
 
       <div className="space-y-6 mb-6">
-        <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4">
-          {!isInitialized ? (
-            <div className="col-span-full text-center py-8">
-              <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-              <p className={isDark ? 'text-blue-200' : 'text-gray-600'}>Loading results...</p>
-            </div>
-          ) : displayedResults.map((movie) => (
-            <MovieCard
-              key={`movie-${movie.id}`}
-              movie={movie}
-              isDark={isDark}
-            />
-          ))}
-        </div>
+
+  {perfectMatch && (
+    <PerfectMatchSection
+      movie={perfectMatch.movie}
+      insights={perfectMatch.insights}
+      isDark={isDark}
+    />
+  )}
+
+  <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4">
+    {!isInitialized ? (
+      <div className="col-span-full text-center py-8">
+        <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+        <p className={isDark ? 'text-blue-200' : 'text-gray-600'}>Loading results...</p>
+      </div>
+    ) : displayedResults.map((movie) => (
+      <MovieCard
+        key={`movie-${movie.id}`}
+        movie={movie}
+        isDark={isDark}
+      />
+    ))}
+  </div>
 
         {isLoading && (
           <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4 mt-4 mb-6">

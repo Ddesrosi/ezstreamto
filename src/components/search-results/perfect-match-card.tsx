@@ -172,22 +172,21 @@ const uniquePlatforms = (movie.streamingPlatforms || []).reduce((acc: string[], 
                 Why It's Perfect for You
               </h4>
               {(() => {
-  try {
-    const parsed = JSON.parse(insights.reason);
-    return (
-      <p className={cn("text-base sm:text-lg leading-relaxed", isDark ? 'text-blue-200/70' : 'text-gray-600')}>
-        {parsed.explanation}
-      </p>
-    );
-  } catch {
-    return (
-      <p className={cn("text-base sm:text-lg leading-relaxed", isDark ? 'text-blue-200/70' : 'text-gray-600')}>
-        {insights.reason}
-      </p>
-    );
-  }
-})()}
-
+                try {
+                  const parsed = JSON.parse(insights.reason);
+                  return (
+                    <p className={cn("text-base sm:text-lg leading-relaxed", isDark ? 'text-blue-200/70' : 'text-gray-600')}>
+                      {parsed.explanation}
+                    </p>
+                  );
+                } catch (error) {
+                  return (
+                    <p className={cn("text-base sm:text-lg leading-relaxed", isDark ? 'text-blue-200/70' : 'text-gray-600')}>
+                      {insights.reason}
+                    </p>
+                  );
+                }
+              })()}
             </div>
 
             <div>
@@ -334,4 +333,3 @@ const uniquePlatforms = (movie.streamingPlatforms || []).reduce((acc: string[], 
     </motion.div>
   );
 }
-         

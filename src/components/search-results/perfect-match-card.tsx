@@ -39,6 +39,22 @@ export function PerfectMatchCard({ movie, insights, isDark }: PerfectMatchCardPr
     return null;
   }
 
+  // Extract explanation from insights safely
+  const getExplanation = (insights: PerfectMatchInsights): string => {
+    if (!insights.reason) return 'No explanation available';
+    
+    try {
+      if (typeof insights.reason === 'string') {
+        const parsed = JSON.parse(insights.reason);
+        return parsed.explanation || insights.reason;
+      }
+      return String(insights.reason);
+    } catch (error) {
+      console.warn('Failed to parse explanation:', error);
+      return String(insights.reason);
+    }
+  };
+
   if (!Array.isArray(movie.streamingPlatforms)) {
   console.warn("⚠️ movie.streamingPlatforms is not an array, defaulting to empty array");
   movie.streamingPlatforms = [];
@@ -171,17 +187,12 @@ const uniquePlatforms = (movie.streamingPlatforms || []).reduce((acc: string[], 
                 <ThumbsUp className="h-5 w-5 text-green-500" />
                 Why It's Perfect for You
               </h4>
-              <p className={cn("text-base sm:text-lg leading-relaxed", isDark ? 'text-blue-200/70' : 'text-gray-600')}>
-  {(() => {
-    try {
-      const parsed = JSON.parse(insights.reason);
-      return parsed.explanation;
-    } catch {
-      return insights.reason;
-    }
-  })()}
-</p>
-
+              <p className={cn(
+                "text-base sm:text-lg leading-relaxed",
+                isDark ? 'text-blue-200/70' : 'text-gray-600'
+              )}>
+                {getExplanation(insights)}
+              </p>
             </div>
 
             <div>

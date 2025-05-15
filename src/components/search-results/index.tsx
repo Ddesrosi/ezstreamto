@@ -26,6 +26,7 @@ interface SearchResultsProps {
     main: Movie;
     insights: PerfectMatchInsights;
   };
+  isPerfectMatch: boolean;
 }
 
 const ITEMS_PER_BATCH = 12;
@@ -51,10 +52,10 @@ export default function SearchResults({
     displayedResults: displayedResults?.length
   });
   console.log('🧩 Perfect Match Debug:', {
-  perfectMatch,
-  main: perfectMatch?.main,
-  insights: perfectMatch?.insights
-});
+    perfectMatch,
+    main: perfectMatch?.main,
+    insights: perfectMatch?.insights
+  });
   
   const [isLoading, setIsLoading] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
@@ -157,12 +158,14 @@ export default function SearchResults({
         </div>
       </div>
 
-  {perfectMatch && perfectMatch.main && perfectMatch.insights ? (
-  <PerfectMatchSection
-    movie={perfectMatch.main}
-    insights={perfectMatch.insights}
-    isDark={isDark}
-  />
+     {isPerfectMatch ? (
+  perfectMatch?.main && perfectMatch?.insights ? (
+    <PerfectMatchSection
+      movie={perfectMatch.main}
+      insights={perfectMatch.insights}
+      isDark={isDark}
+    />
+  ) : null
 ) : (
   <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4">
     {!isInitialized ? (
@@ -179,30 +182,31 @@ export default function SearchResults({
     ))}
   </div>
 )}
+
     
-        {isLoading && (
-          <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4 mt-4 mb-6">
-            <MovieSkeleton 
-              count={Math.min(ITEMS_PER_BATCH, results.length - displayedResults.length)} 
-              isDark={isDark} 
-            />
-          </div>
+      {isLoading && (
+        <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4 mt-4 mb-6">
+          <MovieSkeleton 
+            count={Math.min(ITEMS_PER_BATCH, results.length - displayedResults.length)} 
+            isDark={isDark} 
+          />
+        </div>
+      )}
+
+      <div className="flex flex-col items-center gap-6 sm:gap-8 py-6 sm:py-8 mb-6">
+        {!isLoading && displayedResults.length < results.length && (
+          <Button
+            onClick={handleLoadMore}
+            className="w-full sm:w-auto h-10 sm:h-12 text-sm sm:text-base"
+          >
+            Load More
+          </Button>
         )}
 
-        <div className="flex flex-col items-center gap-6 sm:gap-8 py-6 sm:py-8 mb-6">
-          {!isLoading && displayedResults.length < results.length && (
-            <Button
-              onClick={handleLoadMore}
-              className="w-full sm:w-auto h-10 sm:h-12 text-sm sm:text-base"
-            >
-              Load More
-            </Button>
-          )}
-
-          <div className="w-full">
-            <SearchCreditsSection />
-          </div>
+        <div className="w-full">
+          <SearchCreditsSection />
         </div>
       </div>
-    );
+    </div>
+  );
 }

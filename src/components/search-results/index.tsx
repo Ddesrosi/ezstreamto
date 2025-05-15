@@ -50,6 +50,11 @@ export default function SearchResults({
     firstResult: results?.[0],
     displayedResults: displayedResults?.length
   });
+  console.log('🧩 Perfect Match Debug:', {
+  perfectMatch,
+  main: perfectMatch?.main,
+  insights: perfectMatch?.insights
+});
   
   const [isLoading, setIsLoading] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);

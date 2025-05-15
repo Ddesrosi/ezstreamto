@@ -162,10 +162,11 @@ export default function SearchResults({
      {isPerfectMatch ? (
   perfectMatch?.main && perfectMatch?.insights ? (
     <PerfectMatchSection
-      movie={perfectMatch.main}
-      insights={perfectMatch.insights}
-      isDark={isDark}
-    />
+  movie={perfectMatch.movie || perfectMatch.main}
+  insights={perfectMatch.insights}
+  isDark={isDark}
+/>
+
   ) : null
 ) : (
   <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4">

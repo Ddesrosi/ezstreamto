@@ -93,7 +93,10 @@ useEffect(() => {
     setError(null);
     setShowResults(true);
     setSearchResults(results);
-    setPerfectMatch(perfectMatchResult);
+    setPerfectMatch(perfectMatchResult ? {
+  main: perfectMatchResult.movie,
+  insights: perfectMatchResult.insights
+} : undefined);
     console.log('🔄 States updated:', {
       error: null,
       showResults: true,

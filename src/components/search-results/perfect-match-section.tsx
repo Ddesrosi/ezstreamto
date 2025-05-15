@@ -4,19 +4,17 @@ import { Movie } from '@/types';
 import type { PerfectMatchInsights } from '@/lib/perfect-match';
 
 interface PerfectMatchSectionProps {
-  perfectMatch: {
-    main: Movie;
-    insights: PerfectMatchInsights;
-  };
+  movie: Movie;
+  insights: PerfectMatchInsights;
   isDark: boolean;
 }
 
-export function PerfectMatchSection({ perfectMatch, isDark }: PerfectMatchSectionProps) {
+export function PerfectMatchSection({ movie, insights, isDark }: PerfectMatchSectionProps) {
   return (
     <div className="my-6">
       <PerfectMatchCard
-        movie={perfectMatch.main}
-        insights={perfectMatch.insights}
+        movie={movie}
+        insights={insights}
         isDark={isDark}
       />
 
@@ -24,7 +22,7 @@ export function PerfectMatchSection({ perfectMatch, isDark }: PerfectMatchSectio
         You Might Also Like
       </h4>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-        {perfectMatch.insights.similar.map((movie) => (
+        {insights.similar.map((movie) => (
           <MovieCard key={`suggestion-${movie.id}`} movie={movie} isDark={isDark} />
         ))}
       </div>

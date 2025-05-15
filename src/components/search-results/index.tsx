@@ -157,9 +157,9 @@ export default function SearchResults({
         </div>
       </div>
 
-  {perfectMatch && perfectMatch.movie && perfectMatch.insights ? (
+  {perfectMatch && perfectMatch.main && perfectMatch.insights ? (
   <PerfectMatchSection
-    movie={perfectMatch.movie}
+    movie={perfectMatch.main}
     insights={perfectMatch.insights}
     isDark={isDark}
   />

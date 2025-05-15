@@ -152,7 +152,7 @@ export default function SearchResults({
         </div>
       </div>
 
-    {perfectMatch && (
+   {perfectMatch?.main && perfectMatch?.insights && (
   <PerfectMatchSection
     movie={perfectMatch.main}
     insights={perfectMatch.insights}

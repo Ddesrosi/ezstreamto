@@ -138,27 +138,29 @@ export default function SearchResults({
       </div>
 
       {isPerfectMatch && perfectMatch?.main && perfectMatch?.insights ? (
-        <PerfectMatchSection
-          movie={perfectMatch.main}
-          insights={perfectMatch.insights}
-          isDark={isDark}
-        />
-      ) : (
-        <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4">
-          {!isInitialized ? (
-            <div className="col-span-full text-center py-8">
-              <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-              <p className={isDark ? 'text-blue-200' : 'text-gray-600'}>Loading results...</p>
-            </div>
-          ) : displayedResults.map((movie) => (
-            <MovieCard
-              key={`movie-${movie.id}`}
-              movie={movie}
-              isDark={isDark}
-            />
-          ))}
-        </div>
-      )}
+  <PerfectMatchSection
+    movie={perfectMatch.main}
+    insights={perfectMatch.insights}
+    isDark={isDark}
+  />
+) : (
+  <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4">
+    {!isInitialized ? (
+      <div className="col-span-full text-center py-8">
+        <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+        <p className={isDark ? 'text-blue-200' : 'text-gray-600'}>
+          Loading results...
+        </p>
+      </div>
+    ) : displayedResults.map((movie) => (
+      <MovieCard
+        key={`movie-${movie.id}`}
+        movie={movie}
+        isDark={isDark}
+      />
+    ))}
+  </div>
+)}
 
       {isLoading && (
         <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4 mt-4 mb-6">

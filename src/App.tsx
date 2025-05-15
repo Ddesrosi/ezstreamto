@@ -210,6 +210,7 @@ useEffect(() => {
                       isPremiumLoading={isPremiumLoading}
                       setShowPremiumModal={setShowPremiumModal}
                       perfectMatch={perfectMatch}
+                      isPerfectMatch={!!perfectMatch}
                     />
                   </div>
                 ) : (

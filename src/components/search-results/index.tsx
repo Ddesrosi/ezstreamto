@@ -5,7 +5,6 @@ import { MovieSkeleton } from './skeleton';
 import { MovieCard } from './movie-card';
 import { PerfectMatchCard } from './perfect-match-card';
 import { motion } from 'framer-motion';
-import { Sparkles, Coffee } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { PremiumBadge } from '../ui/premium-badge';
 import { PremiumModal } from '../ui/premium-modal';
@@ -44,24 +43,9 @@ export default function SearchResults({
 }: SearchResultsProps) {
 
   const [displayedResults, setDisplayedResults] = useState<Movie[]>([]);
-
-  console.log('📊 SearchResults component:', {
-    resultsCount: results?.length,
-    remainingSearches,
-    isPremium,
-    firstResult: results?.[0],
-    displayedResults: displayedResults?.length
-  });
-  console.log('🧩 Perfect Match Debug:', {
-    perfectMatch,
-    main: perfectMatch?.main,
-    insights: perfectMatch?.insights
-  });
-  
   const [isLoading, setIsLoading] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
   const [loadingError, setLoadingError] = useState<string | null>(null);
-
   const [localRemainingSearches, setLocalRemainingSearches] = useState<number | null>(null);
 
   useEffect(() => {
@@ -118,14 +102,9 @@ export default function SearchResults({
     setIsLoading(true);
     setLoadingError(null);
     setIsInitialized(false);
-    
+
     try {
       const initialBatch = results.slice(0, ITEMS_PER_BATCH);
-      console.log('🎯 Setting initial batch:', {
-        batchSize: ITEMS_PER_BATCH,
-        resultCount: initialBatch.length,
-        firstResult: initialBatch[0]
-      });
       setIsInitialized(true);
       setDisplayedResults(initialBatch);
     } catch (error) {
@@ -145,12 +124,11 @@ export default function SearchResults({
             ← Back to Search
           </Button>
         </div>
-        
+
         <div>
           <h2 className={`text-lg sm:text-2xl font-bold ${isDark ? 'text-blue-100' : 'text-gray-900'} flex items-center gap-2`}>
             Recommended for You
           </h2>
-
           <p className={`text-xs sm:text-sm ${isDark ? 'text-blue-200/70' : 'text-gray-600'}`}>
             {isPremium
               ? `${results.length} matches found based on your preferences`
@@ -159,34 +137,29 @@ export default function SearchResults({
         </div>
       </div>
 
-     {isPerfectMatch ? (
-  perfectMatch?.main && perfectMatch?.insights ? (
-    <PerfectMatchSection
-  movie={perfectMatch.movie || perfectMatch.main}
-  insights={perfectMatch.insights}
-  isDark={isDark}
-/>
+      {isPerfectMatch && perfectMatch?.main && perfectMatch?.insights ? (
+        <PerfectMatchSection
+          movie={perfectMatch.main}
+          insights={perfectMatch.insights}
+          isDark={isDark}
+        />
+      ) : (
+        <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4">
+          {!isInitialized ? (
+            <div className="col-span-full text-center py-8">
+              <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <p className={isDark ? 'text-blue-200' : 'text-gray-600'}>Loading results...</p>
+            </div>
+          ) : displayedResults.map((movie) => (
+            <MovieCard
+              key={`movie-${movie.id}`}
+              movie={movie}
+              isDark={isDark}
+            />
+          ))}
+        </div>
+      )}
 
-  ) : null
-) : (
-  <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4">
-    {!isInitialized ? (
-      <div className="col-span-full text-center py-8">
-        <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-        <p className={isDark ? 'text-blue-200' : 'text-gray-600'}>
-          Loading results...
-        </p>
-      </div>
-    ) : displayedResults.map((movie) => (
-      <MovieCard
-        key={`movie-${movie.id}`}
-        movie={movie}
-        isDark={isDark}
-      />
-    ))}
-  </div>
-)}
-    
       {isLoading && (
         <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4 mt-4 mb-6">
           <MovieSkeleton 

@@ -108,6 +108,40 @@ const uniquePlatforms = (movie.streamingPlatforms || []).reduce((acc: string[], 
       <div className="p-6 sm:p-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-gray-900 shadow-xl">
+            <div className="mt-4 space-y-2">
+  <h3 className="text-xl font-bold">{movie.title}</h3>
+  <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
+    <span>{movie.year}</span>
+    {movie.duration && <span>• {typeof movie.duration === 'number' ? `${movie.duration} min` : movie.duration}</span>}
+    <span>• {movie.language}</span>
+    {movie.rating && (
+      <>
+        <span>•</span>
+        <span className="flex items-center gap-1">
+          <span>⭐</span>
+          <span>{movie.rating.toFixed(1)}</span>
+        </span>
+      </>
+    )}
+  </div>
+
+  <div className="flex flex-wrap gap-2 mt-2">
+    {movie.genres.map((genre) => (
+      <span key={genre} className="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded-full">
+        {genre}
+      </span>
+    ))}
+  </div>
+
+  <div className="flex flex-wrap gap-2 mt-2">
+    {movie.streamingPlatforms.map((platform) => (
+      <span key={platform} className="text-xs px-2 py-1 bg-green-100 text-green-800 rounded-full">
+        {platform}
+      </span>
+    ))}
+  </div>
+</div>
+
             <img
               src={movie.imageUrl || FALLBACK_IMAGE}
               alt={movie.title}

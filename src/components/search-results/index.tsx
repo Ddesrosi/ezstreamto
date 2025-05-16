@@ -131,60 +131,56 @@ export default function SearchResults({
             Recommended for You
           </h2>
           <p className={`text-xs sm:text-sm ${isDark ? 'text-blue-200/70' : 'text-gray-600'}`}>
-  {isPerfectMatch && perfectMatch?.main
-    ? `This movie is your perfect match based on your preferences.`
-    : isPremium
-    ? `${results.length} matches found based on your preferences`
-    : `Here are ${results.length} great matches based on your preferences. Want more results and powerful discovery options? Become a Premium member for just $5 and unlock unlimited searches.`}
-</p>
-
+            {isPerfectMatch && perfectMatch?.main
+              ? `This movie is your perfect match based on your preferences.`
+              : isPremium
+              ? `${results.length} matches found based on your preferences`
+              : `Here are ${results.length} great matches based on your preferences. Want more results and powerful discovery options? Become a Premium member for just $5 and unlock unlimited searches.`}
+          </p>
         </div>
       </div>
 
-      {isPerfectMatch && perfectMatch?.main && perfectMatch?.insights ? (
-        <PerfectMatchSection
-          movie={perfectMatch.main}
-          insights={perfectMatch.insights}
-          isDark={isDark}
-        />
-      ) : (
-        <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4">
-          {!isInitialized ? (
-            <div className="col-span-full text-center py-8">
-              <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-              <p className={isDark ? 'text-blue-200' : 'text-gray-600'}>Loading results...</p>
-            </div>
-          ) : displayedResults.map((movie) => (
-            <MovieCard
-              key={`movie-${movie.id}`}
-              movie={movie}
-              isDark={isDark}
-            />
-          ))}
-        </div>
-      )}
-
-      {isLoading && (
-        <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4 mt-4 mb-6">
-          <MovieSkeleton 
-            count={Math.min(ITEMS_PER_BATCH, results.length - displayedResults.length)} 
-            isDark={isDark} 
+      <div className="space-y-6">
+        {isPerfectMatch && perfectMatch?.main && perfectMatch?.insights ? (
+          <PerfectMatchSection
+            movie={perfectMatch.main}
+            insights={perfectMatch.insights}
+            isDark={isDark}
           />
-        </div>
-      )}
-
-      <div className="flex flex-col items-center gap-6 sm:gap-8 py-6 sm:py-8 mb-6">
-        {!isLoading && displayedResults.length < results.length && (
-          <Button
-            onClick={handleLoadMore}
-            className="w-full sm:w-auto h-10 sm:h-12 text-sm sm:text-base"
-          >
-            Load More
-          </Button>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-4">
+            {displayedResults.map((movie) => (
+              <MovieCard
+                key={`movie-${movie.id}`}
+                movie={movie}
+                isDark={isDark}
+              />
+            ))}
+          </div>
         )}
 
-        <div className="w-full">
-          <SearchCreditsSection />
+        {isLoading && (
+          <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4 mt-4 mb-6">
+            <MovieSkeleton 
+              count={Math.min(ITEMS_PER_BATCH, results.length - displayedResults.length)} 
+              isDark={isDark} 
+            />
+          </div>
+        )}
+
+        <div className="flex flex-col items-center gap-6 sm:gap-8 py-6 sm:py-8 mb-6">
+          {!isLoading && displayedResults.length < results.length && (
+            <Button
+              onClick={handleLoadMore}
+              className="w-full sm:w-auto h-10 sm:h-12 text-sm sm:text-base"
+            >
+              Load More
+            </Button>
+          )}
+
+          <div className="w-full">
+            <SearchCreditsSection />
+          </div>
         </div>
       </div>
     </div>

@@ -113,16 +113,17 @@ export function PerfectMatchCard({ movie, insights, isDark }: PerfectMatchCardPr
                 src={movie.imageUrl || FALLBACK_IMAGE}
                 alt={movie.title}
                 className={cn(
-                  "w-full h-full object-cover transition-opacity duration-300",
+                  "w-full h-full object-cover transition-all duration-300 group-hover:scale-105 brightness-110",
                   !imageLoaded && "opacity-0"
                 )}
                 onLoad={handleImageLoad}
                 onError={handleImageError}
                 crossOrigin="anonymous"
               />
-              {!imageLoaded && (
+              {!imageLoaded && !imageError && (
                 <div className="absolute inset-0 bg-gray-800 animate-pulse" />
               )}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
             </div>
 
             <div className="mt-4 space-y-2">
@@ -132,9 +133,42 @@ export function PerfectMatchCard({ movie, insights, isDark }: PerfectMatchCardPr
               </p>
               <p className="text-sm text-gray-400">{movie.language}</p>
 
-              <p className="text-sm font-semibold mt-2 mb-1 text-white">
-  Available on
-</p>
+              <div className="mt-4">
+                <p className="text-sm font-semibold mb-2 text-white">Available on</p>
+                <div className="flex flex-wrap gap-2">
+                  {movie.streamingPlatforms && movie.streamingPlatforms.length > 0 ? (
+                    movie.streamingPlatforms.map((platform) => {
+                      const style = getPlatformStyle(platform);
+                      const platformName = style?.name || platform;
+                      const baseUrl = PLATFORM_SEARCH_URLS[platformName] || `https://www.${platformName.toLowerCase().replace(/\s/g, '')}.com`;
+                      
+                      return style ? (
+                        <a
+                          key={platform}
+                          href={`${baseUrl}${encodeURIComponent(movie.title)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={cn(
+                            "text-xs px-2.5 py-1.5 rounded-full transition-all whitespace-nowrap",
+                            style.bgColor,
+                            style.textColor,
+                            "hover:opacity-90"
+                          )}
+                        >
+                          {style.shortName}
+                        </a>
+                      ) : null;
+                    })
+                  ) : (
+                    <span className={cn(
+                      "text-xs px-3 py-1.5 rounded-lg inline-block",
+                      isDark ? 'bg-gray-800/50 text-gray-400' : 'bg-gray-100 text-gray-500'
+                    )}>
+                      Unavailable on any platform
+                    </span>
+                  )}
+                </div>
+              </div>
 
               <div className="flex flex-wrap gap-2">
                 {movie.streamingPlatforms.map((platform) => {

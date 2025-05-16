@@ -107,13 +107,13 @@ export function PerfectMatchCard({ movie, insights, isDark }: PerfectMatchCardPr
     >
       <div className="p-6 sm:p-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="w-full sm:w-1/2 max-w-sm">
-            <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-gray-900">
+          <div className="w-full md:w-full">
+            <div className="relative aspect-[2/3] h-[500px] rounded-xl overflow-hidden bg-gray-900">
               <img
                 src={movie.imageUrl || FALLBACK_IMAGE}
                 alt={movie.title}
                 className={cn(
-                  "w-full h-full object-cover transition-opacity duration-300",
+                  "absolute inset-0 w-full h-full object-cover transition-all duration-300",
                   !imageLoaded && "opacity-0"
                 )}
                 onLoad={handleImageLoad}
@@ -125,7 +125,7 @@ export function PerfectMatchCard({ movie, insights, isDark }: PerfectMatchCardPr
             </div>
 
             <div className="mt-4 space-y-2">
-              <h2 className="text-xl font-bold text-white">{movie.title}</h2>
+              <h2 className="text-2xl font-bold text-white">{movie.title}</h2>
               <p className="text-sm text-gray-300">
                 {movie.year} • {movie.duration} min • ⭐ {movie.rating}
               </p>

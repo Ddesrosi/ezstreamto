@@ -27,6 +27,7 @@ interface PerfectMatchCardProps {
 }
 
 export function PerfectMatchCard({ movie, insights, isDark }: PerfectMatchCardProps) {
+  console.log("🎬 Poster URL:", movie.imageUrl);
   console.log("🧩 Inside PerfectMatchCard – movie =", movie);
   console.log("🧩 Inside PerfectMatchCard – insights =", insights);
   if (!movie || typeof movie !== 'object') {
@@ -101,7 +102,7 @@ export function PerfectMatchCard({ movie, insights, isDark }: PerfectMatchCardPr
       animate={{ opacity: 1, y: 0 }}
       transition={{ type: "spring", duration: 0.6 }}
       className={cn(
-        "w-full rounded-lg border overflow-hidden",
+               "w-full rounded-lg border overflow-hidden",
         isDark ? 'bg-[#0A1A3F] border-blue-900/30' : 'bg-white border-gray-200'
       )}
     >

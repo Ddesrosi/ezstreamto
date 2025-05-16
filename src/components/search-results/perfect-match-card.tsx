@@ -108,40 +108,6 @@ const uniquePlatforms = (movie.streamingPlatforms || []).reduce((acc: string[], 
       <div className="p-6 sm:p-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-gray-900 shadow-xl">
-            <div className="mt-4 space-y-2">
-  <h3 className="text-xl font-bold">{movie.title}</h3>
-  <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
-    <span>{movie.year}</span>
-    {movie.duration && <span>• {typeof movie.duration === 'number' ? `${movie.duration} min` : movie.duration}</span>}
-    <span>• {movie.language}</span>
-    {movie.rating && (
-      <>
-        <span>•</span>
-        <span className="flex items-center gap-1">
-          <span>⭐</span>
-          <span>{movie.rating.toFixed(1)}</span>
-        </span>
-      </>
-    )}
-  </div>
-
-  <div className="flex flex-wrap gap-2 mt-2">
-    {movie.genres.map((genre) => (
-      <span key={genre} className="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded-full">
-        {genre}
-      </span>
-    ))}
-  </div>
-
-  <div className="flex flex-wrap gap-2 mt-2">
-    {movie.streamingPlatforms.map((platform) => (
-      <span key={platform} className="text-xs px-2 py-1 bg-green-100 text-green-800 rounded-full">
-        {platform}
-      </span>
-    ))}
-  </div>
-</div>
-
             <img
               src={movie.imageUrl || FALLBACK_IMAGE}
               alt={movie.title}
@@ -150,187 +116,71 @@ const uniquePlatforms = (movie.streamingPlatforms || []).reduce((acc: string[], 
               onLoad={handleImageLoad}
               onError={handleImageError}
             />
-            <div className="mt-4 space-y-2">
-  <h3 className={cn("text-xl font-bold", isDark ? "text-blue-100" : "text-gray-900")}>
-    {movie.title}
-  </h3>
-
-  <div className={cn("flex flex-wrap gap-2 text-sm", isDark ? "text-blue-200/80" : "text-gray-700")}>
-    <span>{movie.year}</span>
-    {movie.duration && <span>• {movie.duration} min</span>}
-    <span>•</span>
-    <span>{movie.language}</span>
-    {movie.rating && (
-      <>
-        <span>•</span>
-        <div className="flex items-center gap-1">
-          <Star className="h-4 w-4 text-amber-400" fill="currentColor" />
-          <span>{movie.rating.toFixed(1)}</span>
-        </div>
-      </>
-    )}
-  </div>
-
-  <div className="flex flex-wrap gap-2">
-    {movie.genres.map((genre) => (
-      <span
-        key={genre}
-        className={cn(
-          "text-xs px-2.5 py-1.5 rounded-full transition-all whitespace-nowrap",
-          isDark ? 'bg-blue-900/30 text-blue-200' : 'bg-blue-100 text-blue-800'
-        )}
-      >
-        {genre}
-      </span>
-    ))}
-  </div>
-
-  <div className="flex flex-wrap gap-2">
-    {uniquePlatforms.map((platform) => {
-      const style = getPlatformStyle(platform);
-      const baseUrl = PLATFORM_SEARCH_URLS[style?.name || ''];
-      return style && baseUrl ? (
-        <a
-          key={platform}
-          href={`${baseUrl}${encodeURIComponent(movie.title)}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={cn(
-            "text-xs px-2.5 py-1.5 rounded-full transition-all whitespace-nowrap",
-            style.bgColor,
-            style.textColor,
-            "hover:opacity-90"
-          )}
-        >
-          {style.shortName}
-        </a>
-      ) : null;
-    })}
-  </div>
-</div>
-
             {!imageLoaded && !imageError && (
               <div className="absolute inset-0 bg-gray-800 animate-pulse" />
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-            
+            <div className="absolute bottom-0 left-0 right-0 p-4">
+              <h3 className="text-xl font-bold text-white mb-2">{movie.title}</h3>
+              <div className="flex flex-col gap-1 text-sm text-white/90">
+                <div className="flex items-center gap-2">
+                  <span>{movie.year}</span>
+                  <span>•</span>
+                  {movie.duration && (
+                    <>
+                      <span>{typeof movie.duration === 'number' ? `${movie.duration} min` : movie.duration}</span>
+                      <span>•</span>
+                    </>
+                  )}
+                  <div className="flex items-center gap-1">
+                    <Star className="h-4 w-4 text-amber-400" fill="currentColor" />
+                    <span>{movie.rating.toFixed(1)}</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span>{movie.language}</span>
+                </div>
+                <div className="flex flex-wrap gap-1 mt-1">
+                  <div className="flex flex-wrap gap-2 w-full mb-3">
+                    {uniquePlatforms.map((platform) => {
+                      const style = getPlatformStyle(platform);
+                      const baseUrl = PLATFORM_SEARCH_URLS[style?.name || ''];
+                      return style && baseUrl ? (
+                        <a
+                          key={platform}
+                          href={`${baseUrl}${encodeURIComponent(movie.title)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={cn(
+                            "text-xs px-2.5 py-1.5 rounded-full transition-all whitespace-nowrap",
+                            style.bgColor,
+                            style.textColor,
+                            "hover:opacity-90"
+                          )}
+                        >
+                          {style.shortName}
+                        </a>
+                      ) : null;
+                    })}
+                  </div>
+                  <div className="flex flex-wrap gap-2 w-full">
+                    {movie.genres.map((genre) => (
+                      <span
+                        key={genre}
+                        className={cn(
+                          "text-xs px-2.5 py-1.5 rounded-full transition-all whitespace-nowrap",
+                          isDark ? 'bg-blue-900/30 text-blue-200' : 'bg-blue-100 text-blue-800'
+                        )}
+                      >
+                        {genre}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div className="mt-4">
-  <h3 className={cn("text-xl font-bold mb-2", isDark ? 'text-blue-100' : 'text-gray-900')}>
-    {movie.title}
-  </h3>
-  <div className="flex flex-wrap gap-3 text-sm">
-    <span>{movie.year}</span>
-    <span>•</span>
-    {movie.duration && <span>{typeof movie.duration === 'number' ? `${movie.duration} min` : movie.duration}</span>}
-    <span>•</span>
-    <span>{movie.language}</span>
-    {movie.rating && (
-      <>
-        <span>•</span>
-        <div className="flex items-center gap-1">
-          <Star className="h-4 w-4 text-amber-400" fill="currentColor" />
-          <span>{movie.rating.toFixed(1)}</span>
-        </div>
-      </>
-    )}
-  </div>
-</div>
-
-<div className="flex flex-wrap gap-2 mt-4">
-  {movie.streamingPlatforms?.map((platform) => (
-    <span
-      key={platform}
-      className={cn(
-        "text-xs px-2 py-1 rounded-full",
-        isDark
-          ? "bg-blue-900 text-blue-100"
-          : "bg-blue-100 text-blue-900"
-      )}
-    >
-      {platform}
-    </span>
-  ))}
-
-  {movie.genres?.map((genre) => (
-    <span
-      key={genre}
-      className={cn(
-        "text-xs px-2 py-1 rounded-full",
-        isDark
-          ? "bg-gray-700 text-gray-100"
-          : "bg-gray-200 text-gray-900"
-      )}
-    >
-      {genre}
-    </span>
-  ))}
-</div>
-
-   <div className="mt-4 flex flex-wrap gap-4 text-sm">
-  <span>{movie.year}</span>
-  {movie.duration && <span>{movie.duration} min</span>}
-  {movie.language && <span>{movie.language}</span>}
-  {movie.rating && (
-    <div className="flex items-center gap-1">
-      <span>⭐</span>
-      <span>{movie.rating.toFixed(1)}</span>
-    </div>
-  )}
-</div>
-
- {uniquePlatforms.length > 0 && (
-  <div className="mt-4 flex flex-wrap gap-2">
-    {uniquePlatforms.map((platform) => {
-      const style = getPlatformStyle(platform);
-      const baseUrl = PLATFORM_SEARCH_URLS[style?.name || ''];
-      return style && baseUrl ? (
-        <a
-          key={platform}
-          href={`${baseUrl}${encodeURIComponent(movie.title)}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={cn(
-            "text-xs px-2.5 py-1.5 rounded-full transition-all whitespace-nowrap",
-            style.bgColor,
-            style.textColor,
-            "hover:opacity-90"
-          )}
-        >
-          {style.shortName}
-        </a>
-      ) : null;
-    })}
-  </div>
-)}
-
-   {movie.genres.length > 0 && (
-  <div className="mt-2 flex flex-wrap gap-2">
-    {movie.genres.map((genre) => (
-      <span
-        key={genre}
-        className={cn(
-          "text-xs px-2.5 py-1.5 rounded-full transition-all whitespace-nowrap",
-          isDark ? 'bg-blue-900/30 text-blue-200' : 'bg-blue-100 text-blue-800'
-        )}
-      >
-        {genre}
-      </span>
-    ))}
-  </div>
-)}
-       
-{movie.description && (
-  <p className={cn(
-    "text-base sm:text-lg leading-relaxed mt-4",
-    isDark ? 'text-blue-200/80' : 'text-gray-700'
-  )}>
-    {movie.description}
-  </p>
-)}
-
-          
           <div className="md:col-span-2 space-y-6">
             <div className="space-y-4">
               <h4 className={cn("text-xl font-semibold mb-3 flex items-center gap-2", isDark ? 'text-blue-100' : 'text-gray-900')}>

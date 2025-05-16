@@ -93,10 +93,7 @@ useEffect(() => {
     setError(null);
     setShowResults(true);
     setSearchResults(results);
-    setPerfectMatch(perfectMatchResult ? {
-  main: perfectMatchResult.movie,
-  insights: perfectMatchResult.insights
-} : undefined);
+    setPerfectMatch(perfectMatchResult);
     console.log('🔄 States updated:', {
       error: null,
       showResults: true,
@@ -213,7 +210,6 @@ useEffect(() => {
                       isPremiumLoading={isPremiumLoading}
                       setShowPremiumModal={setShowPremiumModal}
                       perfectMatch={perfectMatch}
-                      isPerfectMatch={!!perfectMatch}
                     />
                   </div>
                 ) : (

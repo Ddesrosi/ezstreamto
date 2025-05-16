@@ -107,76 +107,50 @@ const uniquePlatforms = (movie.streamingPlatforms || []).reduce((acc: string[], 
     >
       <div className="p-6 sm:p-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-gray-900 shadow-xl">
+          <div className="w-full sm:w-1/2 max-w-sm">
             <img
               src={movie.imageUrl || FALLBACK_IMAGE}
               alt={movie.title}
-              className="w-full h-full object-cover brightness-110"
-              loading="eager"
-              onLoad={handleImageLoad}
-              onError={handleImageError}
+              className="w-full h-auto rounded-xl"
             />
-            {!imageLoaded && !imageError && (
-              <div className="absolute inset-0 bg-gray-800 animate-pulse" />
-            )}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-            <div className="absolute bottom-0 left-0 right-0 p-4">
-              <h3 className="text-xl font-bold text-white mb-2">{movie.title}</h3>
-              <div className="flex flex-col gap-1 text-sm text-white/90">
-                <div className="flex items-center gap-2">
-                  <span>{movie.year}</span>
-                  <span>•</span>
-                  {movie.duration && (
-                    <>
-                      <span>{typeof movie.duration === 'number' ? `${movie.duration} min` : movie.duration}</span>
-                      <span>•</span>
-                    </>
-                  )}
-                  <div className="flex items-center gap-1">
-                    <Star className="h-4 w-4 text-amber-400" fill="currentColor" />
-                    <span>{movie.rating.toFixed(1)}</span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span>{movie.language}</span>
-                </div>
-                <div className="flex flex-wrap gap-1 mt-1">
-                  <div className="flex flex-wrap gap-2 w-full mb-3">
-                    {uniquePlatforms.map((platform) => {
-                      const style = getPlatformStyle(platform);
-                      const baseUrl = PLATFORM_SEARCH_URLS[style?.name || ''];
-                      return style && baseUrl ? (
-                        <a
-                          key={platform}
-                          href={`${baseUrl}${encodeURIComponent(movie.title)}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className={cn(
-                            "text-xs px-2.5 py-1.5 rounded-full transition-all whitespace-nowrap",
-                            style.bgColor,
-                            style.textColor,
-                            "hover:opacity-90"
-                          )}
-                        >
-                          {style.shortName}
-                        </a>
-                      ) : null;
-                    })}
-                  </div>
-                  <div className="flex flex-wrap gap-2 w-full">
-                    {movie.genres.map((genre) => (
-                      <span
-                        key={genre}
-                        className={cn(
-                          "text-xs px-2.5 py-1.5 rounded-full transition-all whitespace-nowrap",
-                          isDark ? 'bg-blue-900/30 text-blue-200' : 'bg-blue-100 text-blue-800'
-                        )}
-                      >
-                        {genre}
-                      </span>
-                    ))}
-                  </div>
-                </div>
+
+            <div className="mt-4 space-y-2">
+              <h2 className="text-xl font-bold text-white">{movie.title}</h2>
+              <p className="text-sm text-gray-300">
+                {movie.year} • {movie.duration} min • ⭐ {movie.rating}
+              </p>
+              <p className="text-sm text-gray-400">{movie.language}</p>
+
+              <div className="flex flex-wrap gap-2">
+                {movie.streamingPlatforms.map((platform) => {
+                  const style = getPlatformStyle(platform);
+                  return style ? (
+                    <a
+                      key={platform}
+                      href={PLATFORM_SEARCH_URLS[style.name] || '#'}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={cn(
+                        "px-2 py-1 rounded text-xs font-medium",
+                        isDark ? style.darkBg : style.lightBg,
+                        isDark ? style.darkText : style.lightText
+                      )}
+                    >
+                      {style.label}
+                    </a>
+                  ) : null;
+                })}
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {movie.genres.map((genre) => (
+                  <span
+                    key={genre}
+                    className="bg-white/10 text-white text-xs px-2 py-1 rounded"
+                  >
+                    {genre}
+                  </span>
+                ))}
               </div>
             </div>
           </div>
@@ -233,106 +207,104 @@ const uniquePlatforms = (movie.streamingPlatforms || []).reduce((acc: string[], 
             </div>
 
             <div>
-                   <h4 className={cn("text-xl font-semibold mb-4 flex items-center gap-2", isDark ? 'text-blue-100' : 'text-gray-900')}>
+              <h4 className={cn("text-xl font-semibold mb-4 flex items-center gap-2", isDark ? 'text-blue-100' : 'text-gray-900')}>
                 <Sparkles className="h-5 w-5 text-amber-400" />
                 You Might Also Like
               </h4>
               <div className="space-y-3">
-               {insights.similar
-  .filter(rec =>
-    rec &&
-    typeof rec === 'object' &&
-    rec.title &&
-    Array.isArray(rec.streamingPlatforms)
-  )
-  .map((rec, index) => {
+                {insights.similar
+                  .filter(rec =>
+                    rec &&
+                    typeof rec === 'object' &&
+                    rec.title &&
+                    Array.isArray(rec.streamingPlatforms)
+                  )
+                  .map((rec, index) => {
+                    const normalizedPlatforms = rec.streamingPlatforms || [];
+                    const imageUrl = rec.imageUrl || FALLBACK_IMAGE;
+                    const title = rec.title || 'Untitled';
+                    const year = rec.year || 'N/A';
+                    const rating = rec.rating !== undefined ? rec.rating : null;
+                    const genres = rec.genres || [];
+                    const duration = typeof rec.duration === 'number' ? `${rec.duration} min` : rec.duration || 'Unknown duration';
+                    const reason = rec.reason || 'No description available';
+                    const youtubeUrl = rec.youtubeUrl || `https://www.youtube.com/results?search_query=${encodeURIComponent(title + ' trailer')}`;
 
-                  const normalizedPlatforms = rec.streamingPlatforms || [];
-                  const imageUrl = rec.imageUrl || FALLBACK_IMAGE;
-                  const title = rec.title || 'Untitled';
-                  const year = rec.year || 'N/A';
-                  const rating = rec.rating !== undefined ? rec.rating : null;
-                  const genres = rec.genres || [];
-                  const duration = typeof rec.duration === 'number' ? `${rec.duration} min` : rec.duration || 'Unknown duration';
-                  const reason = rec.reason || 'No description available';
-                  const youtubeUrl = rec.youtubeUrl || `https://www.youtube.com/results?search_query=${encodeURIComponent(title + ' trailer')}`;
-
-                  return (
-                    <div key={index} className={cn("p-4 rounded-lg transition-all duration-300 hover:scale-[1.01]", isDark ? 'bg-blue-900/20' : 'bg-blue-50')}>
-                      <div className="flex gap-4">
-                        <div className="flex-none w-24 h-36 rounded overflow-hidden bg-gray-900">
-                          <img
-                            src={imageUrl}
-                            alt={`${title} poster`}
-                            className="w-full h-full object-cover"
-                            loading="lazy"
-                            onLoad={(e) => (e.currentTarget.classList.add("loaded"))}
-                            onError={(e) => (e.currentTarget.src = FALLBACK_IMAGE)}
-                          />
-                        </div>
-                        <div className="flex-1">
-                          <h5 className={cn("text-lg font-medium mb-2", isDark ? 'text-blue-100' : 'text-gray-900')}>{title}</h5>
-                          <div className="flex flex-wrap gap-2 text-xs mb-2">
-                            <span>{year}</span>
-                            <span>•</span>
-                            <span>{duration}</span>
-                            {rating !== null && (
-                              <>
-                                <span>•</span>
-                                <div className="flex items-center gap-1">
-                                  <Star className="h-3 w-3 text-amber-400" fill="currentColor" />
-                                  <span>{rating.toFixed(1)}</span>
-                                </div>
-                              </>
-                            )}
+                    return (
+                      <div key={index} className={cn("p-4 rounded-lg transition-all duration-300 hover:scale-[1.01]", isDark ? 'bg-blue-900/20' : 'bg-blue-50')}>
+                        <div className="flex gap-4">
+                          <div className="flex-none w-24 h-36 rounded overflow-hidden bg-gray-900">
+                            <img
+                              src={imageUrl}
+                              alt={`${title} poster`}
+                              className="w-full h-full object-cover"
+                              loading="lazy"
+                              onLoad={(e) => (e.currentTarget.classList.add("loaded"))}
+                              onError={(e) => (e.currentTarget.src = FALLBACK_IMAGE)}
+                            />
                           </div>
-                          {normalizedPlatforms.length > 0 && (
-                            <div className="flex flex-wrap gap-2 mb-2">
-                              {normalizedPlatforms.map((platform) => {
-                                const style = getPlatformStyle(platform);
-                                const baseUrl = PLATFORM_SEARCH_URLS[style?.name || ''];
-                                return style && baseUrl ? (
-                                  <a
-                                    key={platform}
-                                    href={`${baseUrl}${encodeURIComponent(title)}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className={cn("text-xs px-2.5 py-1.5 rounded-full transition-all whitespace-nowrap", style.bgColor, style.textColor, "hover:opacity-90")}
-                                  >
-                                    {style.shortName}
-                                  </a>
-                                ) : null;
-                              })}
+                          <div className="flex-1">
+                            <h5 className={cn("text-lg font-medium mb-2", isDark ? 'text-blue-100' : 'text-gray-900')}>{title}</h5>
+                            <div className="flex flex-wrap gap-2 text-xs mb-2">
+                              <span>{year}</span>
+                              <span>•</span>
+                              <span>{duration}</span>
+                              {rating !== null && (
+                                <>
+                                  <span>•</span>
+                                  <div className="flex items-center gap-1">
+                                    <Star className="h-3 w-3 text-amber-400" fill="currentColor" />
+                                    <span>{rating.toFixed(1)}</span>
+                                  </div>
+                                </>
+                              )}
                             </div>
-                          )}
-                          <div className="flex flex-wrap gap-1 mb-2">
-                            {genres.map((genre, idx) => (
-                              <span
-                                key={idx}
-                                className={cn("text-xs px-2.5 py-1.5 rounded-full transition-all whitespace-nowrap", isDark ? 'bg-blue-900/30 text-blue-200' : 'bg-blue-100 text-blue-800')}
+                            {normalizedPlatforms.length > 0 && (
+                              <div className="flex flex-wrap gap-2 mb-2">
+                                {normalizedPlatforms.map((platform) => {
+                                  const style = getPlatformStyle(platform);
+                                  const baseUrl = PLATFORM_SEARCH_URLS[style?.name || ''];
+                                  return style && baseUrl ? (
+                                    <a
+                                      key={platform}
+                                      href={`${baseUrl}${encodeURIComponent(title)}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className={cn("text-xs px-2.5 py-1.5 rounded-full transition-all whitespace-nowrap", style.bgColor, style.textColor, "hover:opacity-90")}
+                                    >
+                                      {style.shortName}
+                                    </a>
+                                  ) : null;
+                                })}
+                              </div>
+                            )}
+                            <div className="flex flex-wrap gap-1 mb-2">
+                              {genres.map((genre, idx) => (
+                                <span
+                                  key={idx}
+                                  className={cn("text-xs px-2.5 py-1.5 rounded-full transition-all whitespace-nowrap", isDark ? 'bg-blue-900/30 text-blue-200' : 'bg-blue-100 text-blue-800')}
+                                >
+                                  {genre}
+                                </span>
+                              ))}
+                            </div>
+                            <p className={cn("text-sm", isDark ? 'text-blue-200/70' : 'text-gray-600')}>{reason}</p>
+                            <div className="space-y-3 mt-3">
+                              <Button
+                                onClick={() => window.open(youtubeUrl, '_blank')}
+                                className={cn("w-full flex items-center justify-center gap-2 h-12 text-base font-medium", isDark ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-500 hover:bg-blue-600')}
                               >
-                                {genre}
-                              </span>
-                            ))}
-                          </div>
-                          <p className={cn("text-sm", isDark ? 'text-blue-200/70' : 'text-gray-600')}>{reason}</p>
-                          <div className="space-y-3 mt-3">
-                            <Button
-                              onClick={() => window.open(youtubeUrl, '_blank')}
-                              className={cn("w-full flex items-center justify-center gap-2 h-12 text-base font-medium", isDark ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-500 hover:bg-blue-600')}
-                            >
-                              <Youtube className="h-5 w-5" />
-                              Watch Trailer
-                            </Button>
+                                <Youtube className="h-5 w-5" />
+                                Watch Trailer
+                              </Button>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
               </div>
             </div>
-
           </div>
         </div>
       </div>

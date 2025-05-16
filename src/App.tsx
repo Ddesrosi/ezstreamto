@@ -38,6 +38,7 @@ function App() {
       recommendations: { title: string; reason: string; }[];
     };
   } | undefined>();
+  const isPerfectMatch = !!perfectMatch;
 
   const prePaymentUUID = localStorage.getItem('pre_payment_uuid');
 const shouldPoll = remainingSearches === 0 || !!prePaymentUUID;
@@ -210,7 +211,7 @@ useEffect(() => {
                       isPremiumLoading={isPremiumLoading}
                       setShowPremiumModal={setShowPremiumModal}
                       perfectMatch={perfectMatch}
-                      isPerfectMatch={preferences.isPerfectMatch} 
+                      isPerfectMatch={isPerfectMatch}
                     />
                   </div>
                 ) : (

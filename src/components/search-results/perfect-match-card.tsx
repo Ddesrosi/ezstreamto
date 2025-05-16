@@ -132,6 +132,10 @@ export function PerfectMatchCard({ movie, insights, isDark }: PerfectMatchCardPr
               </p>
               <p className="text-sm text-gray-400">{movie.language}</p>
 
+              <p className="text-sm font-semibold mt-2 mb-1 text-white">
+  Available on
+</p>
+
               <div className="flex flex-wrap gap-2">
                 {movie.streamingPlatforms.map((platform) => {
                   const style = getPlatformStyle(platform);

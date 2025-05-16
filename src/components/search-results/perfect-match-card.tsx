@@ -108,13 +108,13 @@ export function PerfectMatchCard({ movie, insights, isDark }: PerfectMatchCardPr
       <div className="p-6 sm:p-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="w-full sm:w-1/2 max-w-sm">
-            <div className="aspect-[2/3] w-full rounded-xl overflow-hidden">
-              <img
-                src={movie.imageUrl || FALLBACK_IMAGE}
-                alt={movie.title}
-                className="w-full h-full object-cover"
-              />
-            </div>
+            <div className="w-full rounded-xl overflow-hidden">
+  <img
+    src={movie.imageUrl || FALLBACK_IMAGE}
+    alt={movie.title}
+    className="w-full h-[460px] object-cover rounded-xl"
+  />
+</div>
 
             <div className="mt-4 space-y-2">
               <h2 className="text-xl font-bold text-white">{movie.title}</h2>

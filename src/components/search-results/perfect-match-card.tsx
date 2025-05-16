@@ -108,12 +108,12 @@ export function PerfectMatchCard({ movie, insights, isDark }: PerfectMatchCardPr
       <div className="p-6 sm:p-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="w-full md:w-full">
-            <div className="relative aspect-[2/3] h-[600px] rounded-xl overflow-hidden bg-gray-900 shadow-xl">
+            <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-gray-900 shadow-xl">
               <img
                 src={movie.imageUrl || FALLBACK_IMAGE}
                 alt={movie.title}
                 className={cn(
-                  "absolute inset-0 w-full h-full object-cover transition-opacity duration-300",
+                  "w-full h-full object-cover transition-opacity duration-300",
                   !imageLoaded && "opacity-0"
                 )}
                 onLoad={handleImageLoad}

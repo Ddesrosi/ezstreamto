@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Star, ThumbsUp, Youtube, Facebook, MessageCircle, Sparkles } from 'lucide-react';
 import { Movie } from '@/types';
 import { PerfectMatchInsights } from '@/lib/perfect-match';
@@ -62,6 +62,54 @@ export function PerfectMatchCard({ movie, insights, isDark }: PerfectMatchCardPr
 
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [imageUrl, setImageUrl] = useState(movie.imageUrl || FALLBACK_IMAGE);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    // Check if movie.imageUrl is a valid URL
+    if (!movie.imageUrl || !isValidUrl(movie.imageUrl)) {
+      console.warn('⚠️ Invalid movie.imageUrl:', movie.imageUrl, 'Using FALLBACK_IMAGE');
+      setImageUrl(FALLBACK_IMAGE);
+      setImageLoaded(true);
+      setImageError(true);
+      return;
+    }
+
+    setImageLoaded(false);
+    setImageError(false);
+    setImageUrl(movie.imageUrl);
+
+    const img = new Image();
+    img.src = movie.imageUrl;
+
+    const handleLoad = () => {
+      setImageLoaded(true);
+      setImageError(false);
+      clearTimeout(timeoutRef.current as NodeJS.Timeout);
+    };
+
+    const handleError = () => {
+      console.error('❌ Image load failed for:', movie.imageUrl, 'Using FALLBACK_IMAGE');
+      setImageLoaded(true);
+      setImageError(true);
+      setImageUrl(FALLBACK_IMAGE);
+      clearTimeout(timeoutRef.current as NodeJS.Timeout);
+    };
+
+    img.onload = handleLoad;
+    img.onerror = handleError;
+
+    timeoutRef.current = setTimeout(() => {
+      console.warn('⌛ Image load timeout for:', movie.imageUrl, 'Using FALLBACK_IMAGE');
+      handleError();
+    }, 5000); // 5 seconds timeout
+
+    return () => {
+      img.onload = null;
+      img.onerror = null;
+      clearTimeout(timeoutRef.current as NodeJS.Timeout);
+    };
+  }, [movie.imageUrl]);
 
   const uniquePlatforms = (movie.streamingPlatforms || []).reduce((acc: string[], platform) => {
     const exists = acc.some(existing => {
@@ -72,26 +120,6 @@ export function PerfectMatchCard({ movie, insights, isDark }: PerfectMatchCardPr
     if (!exists) acc.push(platform);
     return acc;
   }, []);
-
-  const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    const img = e.target as HTMLImageElement;
-    const tempImg = new Image();
-    tempImg.onload = () => {
-      setImageLoaded(true);
-      img.classList.add('loaded');
-    };
-    tempImg.onerror = () => {
-      setImageError(true);
-      img.src = FALLBACK_IMAGE;
-    };
-    tempImg.src = img.src;
-  };
-
-  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    const img = e.target as HTMLImageElement;
-    setImageError(true);
-    img.src = FALLBACK_IMAGE;
-  };
 
   const shareMessage = `🎬 Found my perfect movie match "${movie.title}" on EzStreamTo! Check it out! 🍿\n\n${window.location.origin}`;
 
@@ -110,14 +138,14 @@ export function PerfectMatchCard({ movie, insights, isDark }: PerfectMatchCardPr
           <div className="w-full md:w-full">
             <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-gray-900 shadow-xl">
               <img
-                src={movie.imageUrl || FALLBACK_IMAGE}
+                src={imageUrl}
                 alt={movie.title}
                 className={cn(
                   "w-full h-full object-cover transition-all duration-300 group-hover:scale-105 brightness-110",
                   !imageLoaded && "opacity-0"
                 )}
-                onLoad={handleImageLoad}
-                onError={handleImageError}
+                onLoad={() => {}}
+                onError={() => {}}
                 crossOrigin="anonymous"
               />
               {!imageLoaded && !imageError && (
@@ -168,27 +196,6 @@ export function PerfectMatchCard({ movie, insights, isDark }: PerfectMatchCardPr
                     </span>
                   )}
                 </div>
-              </div>
-
-              <div className="flex flex-wrap gap-2">
-                {movie.streamingPlatforms.map((platform) => {
-                  const style = getPlatformStyle(platform);
-                  return style ? (
-                    <a
-                      key={platform}
-                      href={PLATFORM_SEARCH_URLS[style.name] || '#'}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={cn(
-                        "px-2 py-1 rounded text-xs font-medium",
-                        isDark ? style.darkBg : style.lightBg,
-                        isDark ? style.darkText : style.lightText
-                      )}
-                    >
-                      {style.label}
-                    </a>
-                  ) : null;
-                })}
               </div>
 
               <div className="flex flex-wrap gap-2">
@@ -359,4 +366,13 @@ export function PerfectMatchCard({ movie, insights, isDark }: PerfectMatchCardPr
       </div>
     </motion.div>
   );
+}
+
+function isValidUrl(string: string) {
+  try {
+    new URL(string);
+    return true;
+  } catch (_) {
+    return false;
+  }
 }

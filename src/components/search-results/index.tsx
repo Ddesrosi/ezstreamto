@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '../ui/button';
 import { Movie } from '@/types';
+import type { PerfectMatchInsights } from '@/lib/perfect-match';
 import { MovieSkeleton } from './skeleton';
 import { MovieCard } from './movie-card';
 import { PerfectMatchCard } from './perfect-match-card';
@@ -130,10 +131,13 @@ export default function SearchResults({
             Recommended for You
           </h2>
           <p className={`text-xs sm:text-sm ${isDark ? 'text-blue-200/70' : 'text-gray-600'}`}>
-            {isPremium
-              ? `${results.length} matches found based on your preferences`
-              : `Here are ${results.length} great matches based on your preferences. Want more results and powerful discovery options? Become a Premium member for just $5 and unlock unlimited searches.`}
-          </p>
+  {isPerfectMatch && perfectMatch?.main
+    ? `This movie is your perfect match based on your preferences.`
+    : isPremium
+    ? `${results.length} matches found based on your preferences`
+    : `Here are ${results.length} great matches based on your preferences. Want more results and powerful discovery options? Become a Premium member for just $5 and unlock unlimited searches.`}
+</p>
+
         </div>
       </div>
 

@@ -27,12 +27,12 @@ interface PerfectMatchCardProps {
 }
 
 export function PerfectMatchCard({ movie, insights, isDark }: PerfectMatchCardProps) {
-   console.log("🧩 Inside PerfectMatchCard – movie =", movie);
+  console.log("🧩 Inside PerfectMatchCard – movie =", movie);
   console.log("🧩 Inside PerfectMatchCard – insights =", insights);
   if (!movie || typeof movie !== 'object') {
-  console.warn('⚠️ PerfectMatchCard: movie is undefined or invalid:', movie);
-  return null;
-}
+    console.warn('⚠️ PerfectMatchCard: movie is undefined or invalid:', movie);
+    return null;
+  }
 
   if (!insights || typeof insights !== 'object') {
     console.warn('⚠️ PerfectMatchCard: insights is undefined or invalid:', insights);
@@ -56,14 +56,14 @@ export function PerfectMatchCard({ movie, insights, isDark }: PerfectMatchCardPr
   };
 
   if (!Array.isArray(movie.streamingPlatforms)) {
-  console.warn("⚠️ movie.streamingPlatforms is not an array, defaulting to empty array");
-  movie.streamingPlatforms = [];
-}
+    console.warn("⚠️ movie.streamingPlatforms is not an array, defaulting to empty array");
+    movie.streamingPlatforms = [];
+  }
 
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
 
-const uniquePlatforms = (movie.streamingPlatforms || []).reduce((acc: string[], platform) => {
+  const uniquePlatforms = (movie.streamingPlatforms || []).reduce((acc: string[], platform) => {
     const exists = acc.some(existing => {
       const existingStyle = getPlatformStyle(existing);
       const newStyle = getPlatformStyle(platform);
@@ -108,11 +108,13 @@ const uniquePlatforms = (movie.streamingPlatforms || []).reduce((acc: string[], 
       <div className="p-6 sm:p-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="w-full sm:w-1/2 max-w-sm">
-            <img
-              src={movie.imageUrl || FALLBACK_IMAGE}
-              alt={movie.title}
-              className="w-full h-auto rounded-xl"
-            />
+            <div className="aspect-[2/3] w-full rounded-xl overflow-hidden">
+              <img
+                src={movie.imageUrl || FALLBACK_IMAGE}
+                alt={movie.title}
+                className="w-full h-full object-cover"
+              />
+            </div>
 
             <div className="mt-4 space-y-2">
               <h2 className="text-xl font-bold text-white">{movie.title}</h2>

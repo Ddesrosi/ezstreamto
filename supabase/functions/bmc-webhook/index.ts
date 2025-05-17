@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { corsHeaders } from "../_shared/cors.ts";
+import { getCorsHeaders } from "../_shared/cors.ts";
 import crypto from "https://esm.sh/crypto-js@4.1.1";
 
 // 🔵 Fonction pour notifier Make.com
@@ -24,7 +24,7 @@ async function notifyMakeWebhook(payer_email: string, visitor_uuid: string, tran
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return new Response("ok", { headers: getCorsHeaders(req.headers.get("origin")) });
   }
 
   try {
@@ -154,12 +154,12 @@ serve(async (req) => {
     }
     
     return new Response("Success", {
-      status: 200,
-      headers: {
-        ...corsHeaders,
-        'Content-Type': 'application/json'
-      }
-    });
+  status: 200,
+  headers: {
+    ...getCorsHeaders(req.headers.get("origin")),
+    'Content-Type': 'application/json'
+  }
+});
 
   } catch (error) {
     console.error("❌ Server error:", error);

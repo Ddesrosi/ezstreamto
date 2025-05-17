@@ -159,14 +159,12 @@ if (visitor_uuid && payer_email) {
 
     console.log("✅ Supporter inserted successfully!");
 
-    if (visitor_uuid) {
-      try {
-        await notifyMakeWebhook(payer_email, visitor_uuid, transaction_id, amount);
-      } catch (error) {
-        console.error('⚠️ Failed to notify Make.com:', error);
-      }
-    }
-    
+   try {
+  await notifyMakeWebhook(payer_email, visitor_uuid || 'null', transaction_id, amount);
+} catch (error) {
+  console.error('⚠️ Failed to notify Make.com:', error);
+}
+ 
     return new Response("Success", {
   status: 200,
   headers: {

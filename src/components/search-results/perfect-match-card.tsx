@@ -141,7 +141,13 @@ export function PerfectMatchCard({ movie, insights, isDark }: PerfectMatchCardPr
   <img
   src={movie.imageUrl}
   alt={movie.title}
-  style={{ width: '200px', height: '300px', objectFit: 'cover', border: '2px solid green' }}
+  style={{
+    width: '200px',
+    height: '300px',
+    objectFit: 'cover',
+    border: '2px solid green',
+    display: 'block'
+  }}
 />
 
               {!imageLoaded && !imageError && (

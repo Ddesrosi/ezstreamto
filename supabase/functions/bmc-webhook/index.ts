@@ -4,7 +4,7 @@ import { corsHeaders } from "../_shared/cors.ts";
 import crypto from "https://esm.sh/crypto-js@4.1.1";
 
 // 🔵 Fonction pour notifier Make.com
-async function notifyMakeWebhook(payer_email: string, visitor_uuid: string, transaction_id: string) {
+async function notifyMakeWebhook(payer_email: string, visitor_uuid: string, transaction_id: string, amount: number) {
   try {
     await fetch('https://hook.us1.make.com/72rmijhq6prsglukc5eo97aouahdrs9w', {
   method: 'POST',
@@ -147,12 +147,12 @@ serve(async (req) => {
 
     if (visitor_uuid) {
       try {
-        await notifyMakeWebhook(payer_email, visitor_uuid, transaction_id);
+        await notifyMakeWebhook(payer_email, visitor_uuid, transaction_id, amount);
       } catch (error) {
         console.error('⚠️ Failed to notify Make.com:', error);
       }
     }
-
+    
     return new Response("Success", {
       status: 200,
       headers: {

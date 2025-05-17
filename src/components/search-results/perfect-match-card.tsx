@@ -138,25 +138,12 @@ export function PerfectMatchCard({ movie, insights, isDark }: PerfectMatchCardPr
             <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-gray-900 shadow-xl">
      
  <img
-  src={movie.imageUrl}
+  src={movie.imageUrl || FALLBACK_IMAGE}
   alt={movie.title}
-  crossOrigin=""
-  style={{
-    width: '100%',
-    height: '100%',
-    objectFit: 'cover',
-    border: '2px solid red',
-    backgroundColor: 'yellow'
-  }}
-  onError={(e) => {
-    console.error('❌ Image failed to load:', movie.imageUrl);
-    (e.currentTarget as HTMLImageElement).src = FALLBACK_IMAGE;
-  }}
-  onLoad={() => {
-    console.log('✅ Poster loaded:', movie.imageUrl);
-  }}
+  crossOrigin="anonymous"
+  onError={(e) => (e.currentTarget.src = FALLBACK_IMAGE)}
+  className="w-full h-full object-cover transition-all duration-300 group-hover:scale-105 brightness-110"
 />
-
 
               {!imageLoaded && !imageError && (
                 <div className="absolute inset-0 bg-gray-800 animate-pulse" />

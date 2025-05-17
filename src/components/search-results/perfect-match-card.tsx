@@ -122,8 +122,7 @@ export function PerfectMatchCard({ movie, insights, isDark }: PerfectMatchCardPr
   }, []);
 
   const shareMessage = `🎬 Found my perfect movie match "${movie.title}" on EzStreamTo! Check it out! 🍿\n\n${window.location.origin}`;
- console.log("🎯 TEST Affichage imageUrl:", imageUrl);
-  return (
+   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -138,16 +137,10 @@ export function PerfectMatchCard({ movie, insights, isDark }: PerfectMatchCardPr
           <div className="w-full md:w-full">
             <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-gray-900 shadow-xl">
      
-  <img
-  src={movie.imageUrl}
+ <img
+  src={imageUrl}
   alt={movie.title}
-  style={{
-    width: '200px',
-    height: '300px',
-    objectFit: 'cover',
-    border: '2px solid green',
-    display: 'block'
-  }}
+  className="w-full h-full object-cover transition-all duration-300 group-hover:scale-105 brightness-110"
 />
 
               {!imageLoaded && !imageError && (
@@ -366,15 +359,7 @@ export function PerfectMatchCard({ movie, insights, isDark }: PerfectMatchCardPr
           </div>
         </div>
       </div>
-     <div style={{ marginTop: '20px' }}>
-  <h3 style={{ color: 'white' }}>🔍 Test image en dehors de la carte</h3>
-  <img
-    src={movie.imageUrl}
-    alt="Image test"
-    style={{ width: '200px', height: '300px', border: '3px solid red', display: 'block' }}
-  />
-</div>
- 
+     
     </motion.div>
   );
 }

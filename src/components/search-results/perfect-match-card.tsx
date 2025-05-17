@@ -138,16 +138,11 @@ export function PerfectMatchCard({ movie, insights, isDark }: PerfectMatchCardPr
           <div className="w-full md:w-full">
             <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-gray-900 shadow-xl">
               <img
-                src={imageUrl}
-                alt={movie.title}
-                className={cn(
-                  "w-full h-full object-cover transition-all duration-300 group-hover:scale-105 brightness-110",
-                  !imageLoaded && "opacity-0"
-                )}
-                onLoad={() => {}}
-                onError={() => {}}
-                crossOrigin="anonymous"
-              />
+  src={imageUrl}
+  alt={movie.title}
+  className="w-full h-full object-cover transition-all duration-300 group-hover:scale-105 brightness-110"
+/>
+
               {!imageLoaded && !imageError && (
                 <div className="absolute inset-0 bg-gray-800 animate-pulse" />
               )}

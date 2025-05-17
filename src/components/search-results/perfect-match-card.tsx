@@ -140,7 +140,8 @@ export function PerfectMatchCard({ movie, insights, isDark }: PerfectMatchCardPr
               <img
   src={imageUrl}
   alt={movie.title}
-  className="w-full h-full object-cover transition-all duration-300 group-hover:scale-105 brightness-110"
+  className="w-full h-full object-cover border-4 border-red-500"
+
 />
 
               {!imageLoaded && !imageError && (

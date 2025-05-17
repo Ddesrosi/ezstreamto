@@ -103,6 +103,20 @@ serve(async (req) => {
 
     console.log("🔍 Final visitor_uuid value:", visitor_uuid);
 
+    // ✅ Met à jour la ligne pre_payments avec le email après avoir trouvé le visitor_uuid
+if (visitor_uuid && payer_email) {
+  const { error: updateError } = await supabase
+    .from('pre_payments')
+    .update({ email: payer_email })
+    .eq('visitor_uuid', visitor_uuid);
+
+  if (updateError) {
+    console.error("❌ Failed to update pre_payments with email:", updateError);
+  } else {
+    console.log("✅ Email successfully linked to visitor_uuid in pre_payments:", visitor_uuid);
+  }
+}
+
     const { data: existingSupport } = await supabase
       .from('supporters')
       .select('id')

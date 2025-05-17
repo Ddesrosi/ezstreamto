@@ -345,7 +345,7 @@ setSearchProgress(0);
     // 🔵 1. Insérer dans pre_payments
     const { error } = await supabase
       .from('pre_payments')
-      .insert([{ visitor_uuid: uuid, email }]);
+      .insert([{ visitor_uuid: uuid }]);
 
     if (error) {
       console.error('❌ Error inserting pre_payment:', error);

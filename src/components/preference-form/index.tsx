@@ -340,11 +340,12 @@ setSearchProgress(0);
   const handlePremiumClick = async () => {
   try {
     const uuid = getOrCreateUUID();
+    const email = userEmail || localStorage.getItem('visitor_email');
 
     // 🔵 1. Insérer dans pre_payments
     const { error } = await supabase
       .from('pre_payments')
-      .insert([{ visitor_uuid: uuid }]);
+      .insert([{ visitor_uuid: uuid, email }]);
 
     if (error) {
       console.error('❌ Error inserting pre_payment:', error);
@@ -367,7 +368,7 @@ setSearchProgress(0);
         onClose={() => setShowModal(false)} 
         progress={searchProgress}
       />
-      
+         
       <Toast
         message={searchLimitMessage}
         isVisible={showLimitToast}

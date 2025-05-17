@@ -137,7 +137,8 @@ export function PerfectMatchCard({ movie, insights, isDark }: PerfectMatchCardPr
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="w-full md:w-full">
             <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-gray-900 shadow-xl">
-              <img
+      console.log("🎯 TEST Affichage imageUrl:", imageUrl);
+  <img
   src={movie.imageUrl}
   alt={movie.title}
   style={{ width: '200px', height: '300px', objectFit: 'cover', border: '2px solid green' }}

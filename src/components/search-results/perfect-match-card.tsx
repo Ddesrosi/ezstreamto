@@ -122,7 +122,7 @@ export function PerfectMatchCard({ movie, insights, isDark }: PerfectMatchCardPr
   }, []);
 
   const shareMessage = `🎬 Found my perfect movie match "${movie.title}" on EzStreamTo! Check it out! 🍿\n\n${window.location.origin}`;
-
+ console.log("🎯 TEST Affichage imageUrl:", imageUrl);
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -137,7 +137,7 @@ export function PerfectMatchCard({ movie, insights, isDark }: PerfectMatchCardPr
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="w-full md:w-full">
             <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-gray-900 shadow-xl">
-      console.log("🎯 TEST Affichage imageUrl:", imageUrl);
+     
   <img
   src={movie.imageUrl}
   alt={movie.title}

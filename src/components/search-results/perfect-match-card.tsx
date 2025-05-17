@@ -366,6 +366,15 @@ export function PerfectMatchCard({ movie, insights, isDark }: PerfectMatchCardPr
           </div>
         </div>
       </div>
+     <div style={{ marginTop: '20px' }}>
+  <h3 style={{ color: 'white' }}>🔍 Test image en dehors de la carte</h3>
+  <img
+    src={movie.imageUrl}
+    alt="Image test"
+    style={{ width: '200px', height: '300px', border: '3px solid red', display: 'block' }}
+  />
+</div>
+ 
     </motion.div>
   );
 }

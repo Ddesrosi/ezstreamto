@@ -138,8 +138,10 @@ export function PerfectMatchCard({ movie, insights, isDark }: PerfectMatchCardPr
             <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-gray-900 shadow-xl">
      
  <img
-  src={imageUrl}
+  src={movie.imageUrl || FALLBACK_IMAGE}
   alt={movie.title}
+  crossOrigin="anonymous"
+  onError={(e) => (e.currentTarget.src = FALLBACK_IMAGE)}
   className="w-full h-full object-cover transition-all duration-300 group-hover:scale-105 brightness-110"
 />
 

@@ -67,8 +67,8 @@ export const SearchModal = memo(function SearchModal({ isOpen, onClose, progress
                   />
                 </div>
                 <p className="text-xs sm:text-sm text-blue-200">
-                  {progress < 85 ? 'This may take a few seconds...' : 
-                   progress < 100 ? 'Almost done!' : 'Preparing your recommendations...'}
+                  {progress < 75 ? 'This may take a few seconds...' : 
+                   progress < 84 ? 'Almost done!' : 'Preparing your recommendations...'}
                 </p>
               </div>
             </div>

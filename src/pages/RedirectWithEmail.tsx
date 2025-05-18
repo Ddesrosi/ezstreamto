@@ -21,12 +21,16 @@ export default function RedirectWithEmail() {
         return;
       }
 
+      console.log("📧 Email from URL =", email);
+
       const { data, error } = await supabase
         .from('supporters')
         .select('email, verified, unlimited_searches')
         .eq('email', email)
         .eq('verified', true)
         .maybeSingle();
+
+      console.log("📦 Supabase result:", { data, error });
 
       console.log('📦 Supabase result:', { data, error });
 

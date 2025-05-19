@@ -134,7 +134,12 @@ export default function PremiumSuccess() {
           {status === 'checking' && 'Please wait while we verify your payment...'}
           {status === 'waiting' && "We are processing your purchase. This may take a few moments..."}
           {status === 'success' && 'Redirecting you to your Premium experience...'}
-          {status === 'error' && "We couldn't verify your purchase. Please contact us."}
+         {status === 'error' && (
+  <>
+    We received your support, but it may not meet the $5 minimum for Premium access. <br />
+    If this is a mistake, please contact us.
+  </>
+)}
         </p>
 
         {status === 'waiting' && retryCount > 0 && (

@@ -52,6 +52,13 @@ serve(async (req) => {
     console.log("🧾 pre_payment_uuid received from BMC:", pre_payment_uuid);
     console.log("📦 Full Raw BMC body:", body);
 
+    // ✅ Vérifie que le montant est suffisant (minimum $5)
+if (typeof amount !== 'number' || amount < 5) {
+  console.warn(`⚠️ Payment too low: $${amount}. Premium not granted.`);
+  return new Response("Payment amount too low. Minimum $5 required for Premium access.", { status: 200 });
+}
+
+
     if (!payer_email || !amount || !transaction_id) {
       console.error("❌ Missing required fields");
       return new Response("Invalid data", { status: 400 });

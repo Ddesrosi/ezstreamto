@@ -36,12 +36,13 @@ export function PremiumModal({ isOpen, onClose, onUpgrade }: PremiumModalProps) 
 
     if (error) {
       console.error('❌ Error inserting pre_payment:', error);
-    } else {
-      console.log('✅ visitor_uuid inserted into pre_payments:', uuid);
+      return;
     }
 
-    // 🔵 2. Rediriger vers BuyMeACoffee
-    window.location.href = `https://www.buymeacoffee.com/EzStreamTo?pre_payment_uuid=${uuid}`;
+    console.log('✅ visitor_uuid inserted into pre_payments:', uuid);
+
+    // 🔵 2. Rediriger vers BuyMeACoffee UNIQUEMENT au clic sur le bouton
+    window.open(`https://www.buymeacoffee.com/EzStreamTo?pre_payment_uuid=${uuid}`, '_blank');
 
     // 🔵 3. Fermer le modal
     onClose();
@@ -49,7 +50,7 @@ export function PremiumModal({ isOpen, onClose, onUpgrade }: PremiumModalProps) 
     console.error('Error during upgrade:', error);
   }
 };
-  
+
   if (!isOpen) return null;
 
   return (

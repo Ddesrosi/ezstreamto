@@ -9,9 +9,9 @@ import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { PremiumBadge } from '../ui/premium-badge';
 import { PremiumModal } from '../ui/premium-modal';
-import { USER_LIMITS } from '@/config';
 import { getOrCreateUUID } from '@/lib/search-limits/get-uuid';
 import { supabase } from '@/lib/supabaseClient';
+import { USER_LIMITS } from '@/config';
 import { PerfectMatchSection } from './perfect-match-section';
 
 interface SearchResultsProps {
@@ -55,6 +55,26 @@ export default function SearchResults({
     }
   }, [remainingSearches]);
 
+  const handleUpgrade = async () => {
+    try {
+      const uuid = getOrCreateUUID();
+      
+      const { error } = await supabase
+        .from('pre_payments')
+        .insert([{ visitor_uuid: uuid }]);
+
+      if (error) {
+        console.error('❌ Error inserting pre_payment:', error);
+        return;
+      }
+
+      console.log('✅ visitor_uuid inserted into pre_payments:', uuid);
+      window.location.href = `https://www.buymeacoffee.com/EzStreamTo?pre_payment_uuid=${uuid}`;
+    } catch (error) {
+      console.error('❌ Unexpected error during premium upgrade:', error);
+    }
+  };
+
   const SearchCreditsSection = () => {
     if (isPremium) return null;
 
@@ -77,7 +97,7 @@ export default function SearchResults({
 
           <div className="w-full sm:w-auto">
             <Button
-              onClick={() => setShowPremiumModal(true)}
+              onClick={handleUpgrade}
               className="w-full sm:w-auto text-xs sm:text-sm px-3 sm:px-4 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium"
             >
               Get Unlimited Searches

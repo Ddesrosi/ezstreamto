@@ -100,13 +100,13 @@ export default function Privacy() {
             <p>
               If you have any questions regarding this policy, contact us at{' '}
               <a 
-                href="mailto:ezstreamto@gmail.com"
+                href="mailto:info@ezstreamto.com"
                 className={cn(
                   "transition-colors",
                   isDark ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'
                 )}
               >
-                ezstreamto@gmail.com
+                info@ezstreamto.com
               </a>
             </p>
           </div>
